@@ -1,0 +1,6 @@
+syntax: glob
+
+config.json
+credo.komodoproject
+*.pyc
+*~
