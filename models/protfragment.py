@@ -8,9 +8,22 @@ class ProtFragment(Model):
         '''
         return '<ProtFragment({self.sstruct} {self.fragment_size})>'.format(self=self)
 
-    def __iter__(self):
+    @property
+    def ProtFragmentN(self):
         '''
         '''
-        pass
+        return ProtFragmentAdaptor().fetch_by_prot_fragment_id(self.prot_fragment_nterm_id)
 
-from ..adaptors.residueadaptor import ResidueAdaptor
+    @property
+    def ProtFragmentC(self):
+        '''
+        '''
+        return ProtFragmentAdaptor().fetch_by_prot_fragment_id(self.prot_fragment_cterm_id)
+
+    @property
+    def IdenticalFragments(self):
+        '''
+        '''
+        return ProtFragmentAdaptor().fetch_all_by_fragment_seq(self.fragment_seq)
+
+from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
