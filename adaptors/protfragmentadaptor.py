@@ -21,4 +21,9 @@ class ProtFragmentAdaptor(object):
         return self.query.filter(and_(ProtFragment.biomolecule_id==biomolecule_id,
                                       *expressions)).all()
 
+    def fetch_all_by_fragment_seq(self, seq):
+        '''
+        '''
+        return self.query.filter(ProtFragment.fragment_seq==seq).all()
+
 from ..models.protfragment import ProtFragment
