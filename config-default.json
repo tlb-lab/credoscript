@@ -24,7 +24,8 @@
         "dashcolor":
         {
             "normal": "cyan",
-
+            "disordered_region": "deepsalmon",
+            
             "xbond":
             {
                 "vdwclash": "blue",
