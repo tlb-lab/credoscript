@@ -1,3 +1,4 @@
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
 from ..meta import session, binding_sites, ligand_fragment_atoms
@@ -40,8 +41,8 @@ class ResidueAdaptor(object):
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
-        Joins
-        -----
+        Queried Entities
+        ----------------
         Residue, LigandComponent
 
         Returns
@@ -71,8 +72,8 @@ class ResidueAdaptor(object):
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
-        Joins
-        -----
+        Queried Entities
+        ----------------
         Residue, Chain
 
         Returns
@@ -89,6 +90,49 @@ class ResidueAdaptor(object):
 
         return query.all()
 
+    def fetch_all_in_contact_with_residue_id(self, residue_id, *expressions):
+        '''
+        Returns all the Residues that are in contact with the Residue having the
+        specified residue_id.
+        
+        Parameters
+        ----------
+        residue_id : int
+            Primary key of the Residue.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+        
+        Returns
+        -------
+        residues : list
+            Residues that are in contact with the Residue having the specified
+            residue_id.
+        
+        Queried Entities
+        ----------------
+        Residue, Atom, Contact
+        
+        Examples
+        --------
+        >>>> ResidueAdaptor().fetch_all_in_contact_with_residue_id(271510, Contact.interaction_type_id==PRO_PRO)
+        [<Residue(ILE 160 )>, <Residue(TYR 159 )>, <Residue(ALA 192 )>,
+         <Residue(MSE 158 )>, <Residue(TYR 191 )>, <Residue(ALA 207 )>,
+         <Residue(VAL 1532 )>, <Residue(GLN 206 )>, <Residue(ALA 190 )>,
+         <Residue(MSE 210 )>, <Residue(LEU 203 )>]
+        '''
+        Other = aliased(Atom)
+        query = self.query.join('Atoms')
+        
+        bgn = query.join((Contact, Contact.atom_bgn_id==Atom.atom_id),
+                         (Other, Other.atom_id==Contact.atom_end_id)
+                         ).filter(and_(Other.residue_id==residue_id, *expressions))
+        
+        end = query.join((Contact, Contact.atom_end_id==Atom.atom_id),
+                         (Other, Other.atom_id==Contact.atom_bgn_id)
+                         ).filter(and_(Other.residue_id==residue_id, *expressions))
+
+        return bgn.union(end).all()
+
     def fetch_all_in_contact_with_ligand_id(self, ligand_id, *expressions):
         '''
         Returns all residues that are in contact with the ligand having the specified
@@ -101,9 +145,9 @@ class ResidueAdaptor(object):
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
-        Joins
-        -----
-        Residue, credo.tables['credo.binding_sites']
+        Queried Entities
+        ----------------
+        Residue, binding_sites
 
         Returns
         -------
@@ -126,8 +170,8 @@ class ResidueAdaptor(object):
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
-        Joins
-        -----
+        Queried Entities
+        ----------------
         Residue, Atom, Contact, ligand_fragment_atoms
 
         Returns
