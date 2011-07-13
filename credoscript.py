@@ -101,8 +101,8 @@ if HAS_RDKIT:
                                  backref=backref('ChemComp', uselist=False, innerjoin=True))
         })
 
-
 mapper(ProtFragment, credo.tables['credo.prot_fragments'])
+
 mapper(Groove, credo.tables['credo.grooves'])
 
 mapper(Contact, credo.tables['credo.contacts'],
@@ -222,6 +222,9 @@ mapper(Ligand, credo.tables['credo.ligands'],
                                         primaryjoin=LigandFragment.ligand_id==credo.tables['credo.ligands'].c.ligand_id,
                                         foreign_keys = [LigandFragment.ligand_id], uselist=True, innerjoin=True,
                                         backref=backref('Ligand', uselist=False, innerjoin=True)),
+        'XRefs': relationship(XRef,
+                              primaryjoin=and_(XRef.entity_type=='Ligand', XRef.entity_id==credo.tables['credo.ligands'].c.ligand_id),
+                              foreign_keys=[XRef.entity_type, XRef.entity_id], uselist=True, innerjoin=True),
         'name': credo.tables['credo.ligands'].c.ligand_name
         })
 
