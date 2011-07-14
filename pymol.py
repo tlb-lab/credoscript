@@ -2,7 +2,7 @@ import os
 from warnings import warn
 from itertools import combinations
 
-from .credoscript import *
+from .schema import *
 from .support.pymolviewer import PyMOLViewer
 
 PDB_DIR = CONFIG['directory']['pdb']
