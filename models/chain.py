@@ -92,7 +92,7 @@ class Chain(Model):
         '''
         statement = select([disordered_regions],
             and_(disordered_regions.c.pdb==self.Biomolecule.Structure.pdb,
-                 disordered_regions.c.pdb_chain_id==self.pdb_chain_id_asu,
+                 disordered_regions.c.pdb_chain_id==self.pdb_chain_asu_id,
                  *expressions))
 
         return session.execute(statement).fetchall()
