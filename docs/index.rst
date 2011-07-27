@@ -11,8 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   introduction
-
+   Introduction <introduction>
+   The CREDO Database <credo>
+   Tutorial <tutorial>
+   Integration with PyMOL <pymol>
+   
 Indices and tables
 ==================
 
