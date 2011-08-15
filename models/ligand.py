@@ -174,7 +174,7 @@ class Ligand(Model):
             PyMOL selection string.
         '''
         return "/{0}-{1}//{2}/{3}".format(self.Biomolecule.Structure.pdb,
-                                          self.Biomolecule.biomolecule,
+                                          self.Biomolecule.assembly_serial,
                                           self.pdb_chain_id,
                                           self.res_num and self.res_num or '')
 

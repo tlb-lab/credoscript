@@ -10,14 +10,16 @@ class Residue(Model):
         Primary key.
     chain_id : int
         "Foreign key" of the parent `Chain`.
-    res_name : string
+    res_name : str
         The PDB three-letter chemical component name / Three-letter amino acid code.
     one_letter_code : string
         The one-letter code of this amino acid.
     res_num : int
         The PDB residue number.
-    ins_code : string
+    ins_code : str
         The PDB insertion code.
+    entity_type_bm : int
+        Entity type bitmask containing six bits.
 
     Mapped attributes
     -----------------
@@ -65,7 +67,7 @@ class Residue(Model):
             PyMOL selection string.
         '''
         return "/{0}-{1}//{2}/{3}`{4}".format(self.Chain.Biomolecule.Structure.pdb,
-                                              self.Chain.Biomolecule.biomolecule,
+                                              self.Chain.Biomolecule.assembly_serial,
                                               self.Chain.pdb_chain_id, self.res_name,
                                               str(self.res_num)+self.ins_code.strip())
 

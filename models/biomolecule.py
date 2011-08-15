@@ -11,10 +11,10 @@ class Biomolecule(Model):
         Primary key.
     structure_id: int
         Primary key of the parent structure.
-    biomolecule : int
+    assembly_serial : int
         Serial number of the assembly - can be > 1 if asymmetric unit contains
         more than one biological assembly.
-    assembly : str
+    assembly_type : str
         Assembly type of the biomolecule, e.g. Monomeric.
     num_chains : int
         Number of chains in biological assembly.
@@ -51,7 +51,7 @@ class Biomolecule(Model):
     def __repr__(self):
         '''
         '''
-        return '<Biomolecule({self.biomolecule})>'.format(self=self)
+        return '<Biomolecule({self.assembly_serial})>'.format(self=self)
 
     def __getitem__(self, pdb_chain_id):
         '''
