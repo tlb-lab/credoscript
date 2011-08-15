@@ -1,27 +1,46 @@
 """
 Each contact in CREDO is classified based on the kind of macromolecular interaction
-it takes part in. This file serves as a namespace containing the mapping between
-the interaction_type_id used in the contacts table and the corresponding description.
+it takes part in. This file serves as a namespace containing the structural_interaction_type
+used in the contacts table.
 """
 
-PRO_PRO = 1
-PRO_DNA = 2
-PRO_RNA = 3
-PRO_SAC = 4
-PRO_LIG = 5
-PRO_WAT = 6
-DNA_DNA = 7
-DNA_RNA = 8
-DNA_SAC = 9
-DNA_LIG = 10
-DNA_WAT = 11
-RNA_RNA = 12
-RNA_SAC = 13
-RNA_LIG = 14
-RNA_WAT = 15
-SAC_SAC = 16
-SAC_LIG = 17
-SAC_WAT = 18
-LIG_LIG = 19
-LIG_WAT = 20
-UNKNOWN = 21
+UNKNOWN = 0
+LIG_WAT = 3     # 2 + 1
+LIG_LIG = 4
+SAC_WAT = 5
+SAC_LIG = 6
+SAC_SAC = 8
+RNA_WAT = 9
+RNA_LIG = 10
+RNA_SAC = 12
+RNA_RNA = 16
+DNA_WAT = 17
+DNA_LIG = 18
+DNA_SAC = 20    # 16 + 4
+DNA_RNA = 24
+DNA_DNA = 32
+PRO_WAT = 33
+PRO_LIG = 34
+PRO_SAC = 36
+PRO_RNA = 44
+PRO_DNA = 48    # 32 + 16
+PRO_PRO = 64    # 32 + 32
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

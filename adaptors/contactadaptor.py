@@ -166,8 +166,8 @@ class ContactAdaptor(object):
             (Interface, and_(Interface.chain_bgn_id==ResidueBgn.chain_id,
                              Interface.chain_end_id==ResidueEnd.chain_id))
             ).filter(and_(Interface.interface_id==interface_id,
-                          ResidueBgn.is_polymer==True,
-                          ResidueEnd.is_polymer==True,
+                          ResidueBgn.entity_type_bm==32,
+                          ResidueEnd.entity_type_bm==32,
                           *expressions))
 
         end = self.query.join(
@@ -178,8 +178,8 @@ class ContactAdaptor(object):
             (Interface, and_(Interface.chain_bgn_id==ResidueEnd.chain_id,
                              Interface.chain_end_id==ResidueBgn.chain_id))
             ).filter(and_(Interface.interface_id==interface_id,
-                          ResidueBgn.is_polymer==True,
-                          ResidueEnd.is_polymer==True,
+                          ResidueBgn.entity_type_bm==32,
+                          ResidueEnd.entity_type_bm==32,
                           *expressions))
 
         return bgn.union(end).all()
