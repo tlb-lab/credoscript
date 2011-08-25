@@ -2,7 +2,7 @@
 Introduction
 ============
 
-**credoscript** is an Application Programming Interface (API) for the CREDO database.
+**credoscript** is an Application Programming Interface (API) for the **CREDO** database.
 
 Installation
 ------------
@@ -28,7 +28,7 @@ by cloning it with::
 
     $ hg clone https://aschreyer@bitbucket.org/aschreyer/credoscript
 
-The directory containing the **credoscript** source code should be added to the :envvar:`$PYTHONPATH`
+The directory containing the **credoscript** source code should be added to the `$PYTHONPATH`
 environment variable.
 
 Configuring credoscript
