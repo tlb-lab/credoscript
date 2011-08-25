@@ -1,3 +1,6 @@
+from sqlalchemy.sql.expression import or_
+from sqlalchemy.ext.hybrid import hybrid_method
+
 from .model import Model
 from ..support.vector import Vector
 
@@ -121,6 +124,25 @@ class Atom(Model):
         >>>
         '''
         return AtomAdaptor().fetch_all_water_by_atom_id(self.atom_id, *expressions)
+
+    @hybrid_method
+    @property
+    def is_polar(self):
+        '''
+        Meta atom type indicating whether the atom is polar or not. The traditional
+        medinical chemistry definition for polar atoms is used, i.e. either oxygen
+        or nitrogen.
+        '''
+        return any((self.element=='O', self.element=='N'))
+        
+    @is_polar.expression
+    @property
+    def is_polar(self):
+        '''
+        Returns an SQLAlchemy boolean clause list that can enables usage of this
+        meta atom type to filter query constructs.
+        '''
+        return or_(Atom.element=='O', Atom.element=='N')
 
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
