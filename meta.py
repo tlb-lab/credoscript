@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SAWarning, ProgrammingError
 
 # CONFIGURATION
-CREDOSCRIPT_PATH= os.path.split(os.path.realpath(__file__))[0]
+CREDOSCRIPT_PATH= os.path.dirname(os.path.realpath(__file__))
 CONFIG_PATH     = os.path.join(CREDOSCRIPT_PATH, 'config.json')
 CONFIG          = json.loads(open(CONFIG_PATH).read())
 
@@ -43,6 +43,7 @@ except ImportError:
 
 # DO NOT MAP AGAINST CLASS
 binding_sites = credo.tables['credo.binding_sites']
+binding_site_atom_surface_areas = credo.tables['credo.binding_site_atom_surface_areas']
 chem_comp_fragment_atoms = credo.tables['pdbchem.chem_comp_fragment_atoms']
 ligand_molstrings = credo.tables['credo.ligand_molstrings']
 ligand_fragments = credo.tables['credo.ligand_fragments']

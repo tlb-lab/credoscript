@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import and_, func
 
 from .model import Model
-from ..meta import session, ligand_usr, ligand_molstrings
+from ..meta import session, ligand_usr, ligand_molstrings, binding_site_atom_surface_areas
 
 class Ligand(Model):
     '''
@@ -149,6 +149,21 @@ class Ligand(Model):
         return query.scalar()
 
     @property
+    def pdb(self):
+        '''
+        Isomeric SMILES string of this Ligand (taken straight from the PDB structure).
+
+        Returns
+        -------
+        pdb : str
+            Ligand structure in PDB format.
+        '''
+        query = session.query(ligand_molstrings.c.pdb)
+        query = query.filter(ligand_molstrings.c.ligand_id==self.ligand_id)
+
+        return query.scalar()
+
+    @property
     def usr_space(self):
         '''
         '''
@@ -291,6 +306,72 @@ class Ligand(Model):
         '''
         return ResidueAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id, *expressions)
 
+    def get_buried_surface_area(self, *expressions, **kwargs):
+        '''
+        Returns the buried solvent-accessible surface areas of the ligand.
+        
+        Parameters
+        ----------
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+        state: str, {'apo','bound','delta'}, default='delta'
+            State of the surface.
+        atom_areas: bool, default=False
+            If True, the method returns the Atoms and their change in solvent-accessible
+            surface area for the given projection - otherwise the sum of the individual
+            contributions.
+        projection: str, {'complex','ligand','bindingsite'}
+            The entity for which the surface area should be returned:
+            - complex: all atoms
+            - ligand: only ligand atoms
+            - bindingsite: all the atoms the ligand is in contact with
+        
+        Queried Entities
+        ----------------
+        binding_site_atom_surface_areas, Atom, Residue
+
+        Returns
+        -------
+        
+        '''
+        state = kwargs.get('state','delta')
+        atom_areas = kwargs.get('atom_areas', False)
+        projection = kwargs.get('projection','complex')
+        
+        # CHOOSE WHICH SURFACE STATE SHOULD BE USED
+        if state == 'delta': column = binding_site_atom_surface_areas.c.asa_delta
+        elif state == 'apo': column = binding_site_atom_surface_areas.c.asa_apo
+        elif state == 'bound': column = binding_site_atom_surface_areas.c.asa_bound
+        
+        # RETURN THE SUM OF THE ATOM SURFACE AREA CONTRIBUTIONS
+        if not atom_areas:
+            buried_area = func.sum(column).label('buried_surface_area')
+            query = session.query(buried_area).select_from(Atom)
+        
+        # RETURN THE ATOMS AND THE INDIVIDUAL CHANGE IN SOLVENT-ACCESSIBLE SURFACE AREA
+        else:
+            query = session.query(Atom, binding_site_atom_surface_areas.c.asa_delta)
+        
+        query = query.join(binding_site_atom_surface_areas,
+                           binding_site_atom_surface_areas.c.atom_id==Atom.atom_id)
+
+        # ONLY INCLUDE LIGAND ATOMS
+        if projection == 'ligand':
+            query = query.join(Residue, Residue.residue_id==Atom.residue_id)
+            query = query.filter(Residue.entity_type_bm.op('&')(2) > 0)
+        
+        # ONLY INCLUDE POLYMER ATOMS THAT FORM THE BINDING SITE
+        elif projection == 'bindingsite':
+            query = query.join(Residue, Residue.residue_id==Atom.residue_id)
+            query = query.filter(Residue.entity_type_bm.op('&')(3) == 0)
+
+        query = query.filter(and_(binding_site_atom_surface_areas.c.ligand_id==self.ligand_id,
+                                  *expressions))
+    
+        # RETURN SIMPLE SCALAR OR LIST FOR THE ATOMS
+        if not atom_areas: return query.scalar()
+        else: return query.all()
+
     def usr(self, *expressions, **kwargs):
         '''
         Performs an Ultrast Shape Recognition (USR) search of this Ligand against
@@ -333,6 +414,8 @@ class Ligand(Model):
 from .ligandusr import LigandUSR
 from .chemcompconformer import ChemCompConformer
 from .chemcomp import ChemComp
+from .atom import Atom
+from .residue import Residue
 from ..adaptors.chemcompadaptor import ChemCompAdaptor
 from ..adaptors.xrefadaptor import XRefAdaptor
 from ..adaptors.residueadaptor import ResidueAdaptor
