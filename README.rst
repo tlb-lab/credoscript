@@ -33,14 +33,8 @@ environment variable.
 
 Configuring credoscript
 ~~~~~~~~~~~~~~~~~~~~~~~
-The connection settings inside the default configuration file :file:`config-default.json`
+The connection settings inside the default configuration file `config-default.json`
 have to be changed.
-
-Testing the installation
-~~~~~~~~~~~~~~~~~~~~~~~~
-.. sourcecode:: python
-
-   from credoscript import *
 
 Documentation
 -------------
