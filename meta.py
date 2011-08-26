@@ -14,15 +14,15 @@ CONFIG          = json.loads(open(CONFIG_PATH).read())
 # DATABASE CONNECTION
 url             = '{driver}://{user}:{passwd}@{host}:{port}/{db}'.format(**CONFIG['connection'])
 engine          = create_engine(url, echo=CONFIG['debug']['SQL'])
-credo           = MetaData(bind=engine)
+metadata        = MetaData(bind=engine)
 
 # SUPPRESS WARNINGS CONCERNING POSTGRESQL-SPECIFIC TYPES AND INDEXES
 warnings.simplefilter('ignore', SAWarning)
 
 # REFLECT ALL THE REQUIRED SCHEMAS
-credo.reflect(schema='credo')
-credo.reflect(schema='pdbchem')
-credo.reflect(schema='pdb')
+metadata.reflect(schema='credo')
+metadata.reflect(schema='pdbchem')
+metadata.reflect(schema='pdb')
 
 # DATABASE SESSION
 Session     = sessionmaker(bind=engine, autocommit=True)
@@ -42,12 +42,12 @@ except ImportError:
 # psycopg2.extras.register_composite('vector', globally=True)
 
 # DO NOT MAP AGAINST CLASS
-binding_sites = credo.tables['credo.binding_sites']
-binding_site_atom_surface_areas = credo.tables['credo.binding_site_atom_surface_areas']
-chem_comp_fragment_atoms = credo.tables['pdbchem.chem_comp_fragment_atoms']
-ligand_molstrings = credo.tables['credo.ligand_molstrings']
-ligand_fragments = credo.tables['credo.ligand_fragments']
-ligand_fragment_atoms = credo.tables['credo.ligand_fragment_atoms']
-ligand_usr = credo.tables['credo.ligand_usr']
-citations = credo.tables['pdb.citations']
-disordered_regions = credo.tables['pdb.disordered_regions']
+binding_sites = metadata.tables['credo.binding_sites']
+binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
+chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
+ligand_molstrings = metadata.tables['credo.ligand_molstrings']
+ligand_fragments = metadata.tables['credo.ligand_fragments']
+ligand_fragment_atoms = metadata.tables['credo.ligand_fragment_atoms']
+ligand_usr = metadata.tables['credo.ligand_usr']
+citations = metadata.tables['pdb.citations']
+disordered_regions = metadata.tables['pdb.disordered_regions']
