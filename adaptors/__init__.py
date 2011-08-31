@@ -2,6 +2,7 @@ from .structureadaptor import StructureAdaptor
 from .chainadaptor import ChainAdaptor
 from .biomoleculeadaptor import BiomoleculeAdaptor
 from .ligandadaptor import LigandAdaptor
+from .ligandcomponentadaptor import LigandComponentAdaptor
 from .residueadaptor import ResidueAdaptor
 from .aromaticringadaptor import AromaticRingAdaptor
 from .atomadaptor import AtomAdaptor
