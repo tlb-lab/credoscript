@@ -97,7 +97,7 @@ html_theme = 'haiku'
 # further.  For a list of options available for each theme, see the
 # documentation.
 # textcolor
-html_theme_options = {'headingcolor':'#D2691E','linkcolor':'#dd7700','hoverlinkcolor' :'#dd7700', 'visitedlinkcolor':'#ddaa6e'}
+html_theme_options = {'headingcolor':'#D2691E','linkcolor':'#0B108C','hoverlinkcolor' :'#0E4EAD', 'visitedlinkcolor':'#0C0F66'}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
