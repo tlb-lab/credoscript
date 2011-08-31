@@ -1,17 +1,19 @@
+************
 Introduction
-============
+************
 
-Credoscript is an Application Programming Interface (API) for the CREDO database.
+|credoscript| is an Application Programming Interface (API) for the :doc:`CREDO</credo>` database [Schreyer-2009]_.
 
 Installation
 ------------
 
 Software requirements
 ~~~~~~~~~~~~~~~~~~~~~
-Credoscript is written in the `Python <http://www.python.org/>`_ programming language
-and tested with versions 2.6 and 2.7. CREDO uses PostgreSQL as relational database
-management system (RDBMS) so a Python driver for PostgreSQL is required to connect
-to the database. PsycoPg2 can be installed on Debian-based systems with::
+|credoscript| is written in the `Python`_ programming language and tested with
+versions 2.6 and 2.7. CREDO uses `PostgreSQL`_ as relational database management
+system (RDBMS) so a Python driver for PostgreSQL is required to connect to the database.
+`Psycopg <http://www.initd.org/psycopg/>`_ can be installed on Debian-based systems
+with::
 
     $ sudo apt-get install python-psycopg2
 
@@ -20,20 +22,19 @@ for object-relational mapping (ORM) purposes.
 
 Obtaining the source code
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-The source code for credoscript can be obtained by either downloading a source package
+The source code for |credoscript| can be obtained by either downloading a source package
 from the `Bitbucket <https://bitbucket.org/aschreyer/credoscript>`_ repository or
 by cloning it with::
 
     $ hg clone https://aschreyer@bitbucket.org/aschreyer/credoscript
 
-The directory containing the credoscript source code should be added to the ``$PYTHONPATH``
+The directory containing the |credoscript| source code should be added to the :envvar:`$PYTHONPATH`
 environment variable.
 
 Configuring credoscript
 ~~~~~~~~~~~~~~~~~~~~~~~
-The connections settings inside the default configuration file ``config-default.json``
+The connection settings inside the default configuration file :file:`config-default.json`
 have to be changed.
-
 
 Testing the installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,6 +46,17 @@ Documentation
 -------------
 This documentation is available from http://credoscript.readthedocs.org.
 
+Software used in CREDO
+----------------------
+
+In alphabetical order:
+
+`NumPy/SciPy <http://numpy.scipy.org>`_, `OpenEye toolkits <http://www.eyesopen.com>`_,
+`PostgreSQL`_, `Python`_, `RDKit <http://www.rdkit.org>`_.
+
 License
 -------
 Credoscript is released under the `MIT License <http://en.wikipedia.org/wiki/MIT_License>`_.
+
+.. _PostgreSQL: http://www.postgresql.org
+.. _Python: http://www.python.org

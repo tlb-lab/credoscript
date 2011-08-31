@@ -1,2 +1,3 @@
-Integration with PyMOL
-======================
+************************
+Visualisation with PyMOL
+************************
