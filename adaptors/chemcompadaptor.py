@@ -36,7 +36,15 @@ class ChemCompAdaptor(object):
         >>>> ChemCompAdaptor().fetch_by_het_id('NIL')
         <ChemComp(NIL)>
         '''
-        return self.query.filter(ChemComp.het_id==het_id).first()
+        return self.query.filter(ChemComp.het_id==het_id.upper()).first()
+
+    def fetch_by_residue_id(self, residue_id):
+        '''
+        '''
+        query = self.query.join((Residue, Residue.res_name==ChemComp.het_id))
+        query = query.filter(Residue.residue_id==residue_id)
+        
+        return query.first()
 
     def fetch_all_by_fragment_id(self, fragment_id, *expressions):
         '''
@@ -426,7 +434,7 @@ class ChemCompAdaptor(object):
         # GET THE CHEMCOMP ENTITIES
         query = session.query(ChemComp, subquery.c.similarity)
         query = query.join((subquery, subquery.c.het_id==ChemComp.het_id)).filter(and_(*expressions))
-
+        
         return query.all()
 
 from ..models.xref import XRef
@@ -435,3 +443,4 @@ from ..models.chemcompfragment import ChemCompFragment
 from ..models.chemcompconformer import ChemCompConformer
 from ..models.chemcomprdmol import ChemCompRDMol
 from ..models.chemcomprdfp import ChemCompRDFP
+from ..models.residue import Residue
