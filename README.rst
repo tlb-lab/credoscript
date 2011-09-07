@@ -34,7 +34,7 @@ environment variable.
 Configuring credoscript
 ~~~~~~~~~~~~~~~~~~~~~~~
 The connection settings inside the default configuration file `config-default.json`
-have to be changed.
+have to be changed and the file renamed to `config.json`.
 
 Documentation
 -------------
