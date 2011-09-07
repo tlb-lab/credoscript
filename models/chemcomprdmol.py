@@ -1,13 +1,13 @@
-from warnings import warn
-
 from sqlalchemy.orm import reconstructor
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.sql.expression import func
 
 try: from rdkit.Chem import Mol, MolFromSmarts
-except ImportError: HAS_RDKIT = False
+except ImportError: pass
 
+from ..meta import HAS_RDKIT
 from .model import Model
+from ..support import requires
 
 class ChemCompRDMol(Model):
     '''
@@ -97,6 +97,7 @@ class ChemCompRDMol(Model):
         return self.rdmol.op('OPERATOR(rdkit.@>)')(smiles)
 
     @hybrid_method
+    @requires.rdkit
     def contained_in(self, smiles):
         '''
         Returns true if the given SMILES string is a superstructure of this RDMol.
@@ -108,10 +109,7 @@ class ChemCompRDMol(Model):
             True if the rdmol molecule attribute is contained in the specified
             substructure in SMILES format.
         '''
-        if HAS_RDKIT:
-            return MolFromSmiles(smiles).HasSubstructMatch(self.rdmol)
-        else:
-            warn("The RDKit Python wrappers are not installed.", UserWarning)
+        return MolFromSmiles(smiles).HasSubstructMatch(self.rdmol)
 
     @contained_in.expression
     def contained_in(self, smiles):
@@ -127,7 +125,9 @@ class ChemCompRDMol(Model):
         '''
         return self.rdmol.op('OPERATOR(rdkit.<@)')(smiles)
 
+    
     @hybrid_method
+    @requires.rdkit
     def matches(self, smarts):
         '''
         Returns true if the RDMol matches the given SMARTS query. Uses a client-side
@@ -138,10 +138,7 @@ class ChemCompRDMol(Model):
         matches : boolean
             True if the rdmol molecule attribute matches the given SMARTS query.
         '''
-        if HAS_RDKIT:
-            return self.rdmol.HasSubstructMatch(MolFromSmarts(smarts))
-        else:
-            warn("The RDKit Python wrappers are not installed.", UserWarning)
+        return self.rdmol.HasSubstructMatch(MolFromSmarts(smarts))
 
     @matches.expression
     def matches(self, smarts):
