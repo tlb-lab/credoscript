@@ -26,7 +26,7 @@ The source code for **credoscript** can be obtained by either downloading a sour
 from the `Bitbucket <https://bitbucket.org/aschreyer/credoscript>`_ repository or
 by cloning it with::
 
-    $ hg clone https://aschreyer@bitbucket.org/aschreyer/credoscript
+    $ hg clone https://bitbucket.org/aschreyer/credoscript
 
 The directory containing the **credoscript** source code should be added to the `$PYTHONPATH`
 environment variable.
