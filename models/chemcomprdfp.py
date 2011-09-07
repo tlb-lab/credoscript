@@ -1,8 +1,5 @@
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from rdkit import DataStructs
-from rdkit.Chem.Fingerprints import FingerprintMols
-
 from .model import Model
 
 class ChemCompRDFP(Model):
