@@ -108,10 +108,10 @@ def load_biomolecule(self, *args, **kwargs):
     Load a PDB structure into PyMOL
     '''
     pdb = self.Structure.pdb
-    biomolecule = self.biomolecule
+    assembly_serial = self.assembly_serial
 
     # STRING USED TO REPRESENT BIOMOLECULE IN PYMOL
-    string_id = '{0}-{1}'.format(pdb, biomolecule)
+    string_id = '{0}-{1}'.format(pdb, assembly_serial)
 
     # LOOK FOR STRUCTURE ON LOCAL MIRROR
     path = os.path.join(PDB_DIR, '{0}.pdb'.format(string_id))
@@ -224,7 +224,7 @@ def show_aromatic_ring(self, **kwargs):
         if group: pymol.group(group, label)
 
 @defer_update
-def show_contacts(self, *args, **kwargs):
+def show_contacts(self, *binaryexpressions, **kwargs):
     '''
     Visualises all interatomic contacts of this entity with other entities through
     colour-coded PyMOL distance objects.
@@ -257,18 +257,33 @@ def show_contacts(self, *args, **kwargs):
     # SHOW ONLY CONTACTS WITH OTHER ENTITIES BY DEFAULT
     same_entity = kwargs.get('same_entity', False)
 
-    # DO NOT SHOW SECONDARY CONTACTS
-    secondary_contacts = kwargs.get('secondary_contacts', False)
+    # DO NOT SHOW SECONDARY CONTACTS / only, hide, include
+    secondary_contacts = kwargs.get('secondary_contacts', 'hide')
 
     if hasattr(self, 'Contacts'):
         contacts = self.Contacts
         if not secondary_contacts: contacts = [c for c in contacts if c.is_secondary==False]
 
     elif hasattr(self, 'get_contacts'):
-        if secondary_contacts: contacts = self.get_contacts(Contact.distance<=distance_cut_off)
-        else: contacts = self.get_contacts(Contact.distance<=distance_cut_off,
-                                           Contact.is_same_entity==same_entity,
-                                           Contact.is_secondary==secondary_contacts)
+        
+        contacts = self.get_contacts(*binaryexpressions)
+        
+        # SHOW ONLY SECONDARY CONTACTS
+        #if secondary_contacts == 'only':
+        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
+        #                                 Contact.is_same_entity==same_entity,
+        #                                 Contact.is_secondary==True)
+        #
+        # HIDE SECONDARY AND SHOW ONLY DIRECT CONTACTS
+        #elif secondary_contacts == 'hide':
+        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
+        #                                 Contact.is_same_entity==same_entity,
+        #                                 Contact.is_secondary==False)
+        #
+        # SHOW ALL CONTACTS
+        #else:
+        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
+        #                                 Contact.is_same_entity==same_entity)
 
     else:
         raise RuntimeError('Entity {entity} does not have contacts associated with it.'.format(entity=credo_class))
@@ -276,7 +291,7 @@ def show_contacts(self, *args, **kwargs):
     # ALSO INCLUDE BRIDGED HBONDS
     if kwargs.get('water_bridges', True):
         for water in self.get_proximal_water():
-
+    
             # KEEP ONLY THOSE BRIDGES THAT ARE WITHIN THE MAXIMUM DISTANCE OF 6.05 ANGSTROM
             for wc1, wc2 in combinations(water.Contacts,2):
                 if wc1.distance + wc2.distance <= 6.1:
