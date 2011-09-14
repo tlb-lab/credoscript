@@ -98,6 +98,24 @@ class ChemCompAdaptor(object):
         query = self.query.join('XRefs').filter(and_(XRef.source==source, XRef.xref==xref))
         return query.all()
 
+    def fetch_all_by_chembl_id(self, chembl_id):
+        '''
+        Returns all chemical components with the same structure as the ChEMBL molecule
+        with the specified CHEMBLID.
+        
+        Parameters
+        ----------
+        chembl_id : str
+            ChEMBL stable identifier.
+        
+        Returns
+        -------
+        chemcomps : list
+            Chemical components having the same structurea as the ChEMBL molecule
+            with the specified CHEMBLID.
+        '''
+        return self.fetch_all_by_xref('ChEMBL Compound', chembl_id)
+
     def fetch_all_approved_drugs(self):
         '''
         Returns a list of all the ChemComps that are approved drugs based on the
@@ -321,10 +339,6 @@ class ChemCompAdaptor(object):
         Requires
         --------
         .. important:: `pg_trgm  <http://www.postgresql.org/docs/current/static/pgtrgm.html>`_ PostgreSQL extension.
-
-        Notes
-        -----
-        Will make use of the KNNGIST operator <-> in 9.1.
         '''
         threshold = kwargs.get('threshold', 0.6)
         limit = kwargs.get('limit', 25)
@@ -336,7 +350,9 @@ class ChemCompAdaptor(object):
 
         query = session.query(ChemComp, similarity)
         query = query.filter(and_(ChemComp.like(smiles), *expressions))
-        query = query.order_by(similarity.desc()).limit(limit)
+        
+        # KNN-GIST
+        query = query.order_by(ChemComp.ism.op('<->')(smiles)).limit(limit)
 
         return query.all()
 
@@ -405,10 +421,10 @@ class ChemCompAdaptor(object):
 
         # WEIGHTS FOR THE INDIVIDUAL ATOM TYPE MOMENTS
         ow = kwargs.get('ow', 1.0)
-        hw = kwargs.get('hw', 0.25)
-        rw = kwargs.get('rw', 0.25)
-        aw = kwargs.get('aw', 0.25)
-        dw = kwargs.get('dw', 0.25)
+        hw = kwargs.get('hw', 0.125)
+        rw = kwargs.get('rw', 0.125)
+        aw = kwargs.get('aw', 0.125)
+        dw = kwargs.get('dw', 0.125)
 
         # RAISE AN ERROR IF NEITHER A CUBE NOR THE USR MOMENTS HAVE BEEN PROVIDED
         if len(usr_moments) != 60: raise ValueError('The 60 USR shape descriptors are required.')
