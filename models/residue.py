@@ -1,3 +1,7 @@
+from sqlalchemy.dialects.postgresql import INTEGER
+from sqlalchemy.sql.expression import and_, cast, func
+
+from ..meta import session
 from .model import Model
 
 class Residue(Model):
@@ -85,8 +89,8 @@ class Residue(Model):
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
-        Joins
-        -----
+        Queried entities
+        ----------------
         Subquery (not exposed), Atom
 
         Returns
@@ -94,12 +98,52 @@ class Residue(Model):
         atoms : list
             List of `Atom` objects.
 
-         Examples
+        Examples
         --------
         >>>
         '''
         return AtomAdaptor().fetch_all_water_by_residue_id(self.residue_id, *expressions)
 
+    def get_sift(self, *expressions):
+        '''
+        Returns the sum of all the contact types of all the contacts this residue
+        has as a tuple. 
+        
+        Queried entities
+        ----------------
+        Residue, Atom, Contact
+        
+        Returns
+        -------
+        sift : tuple
+            sum of all the contact types of all contacts this residue has.
+        '''
+        whereclause = and_(Atom.residue_id==self.residue_id, *expressions)
+
+        bgn = session.query(Contact).join(Atom, Contact.atom_bgn_id==Atom.atom_id).filter(whereclause)
+        end = session.query(Contact).join(Atom, Contact.atom_end_id==Atom.atom_id).filter(whereclause)
+        
+        subquery = bgn.union(end).subquery(name='contacts')
+                
+        sift = (func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)),
+                func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)))
+        
+        query = session.query(*sift)
+
+        return query.first()
+
+from .contact import Contact
+from .atom import Atom
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
