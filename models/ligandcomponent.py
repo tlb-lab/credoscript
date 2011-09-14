@@ -36,12 +36,6 @@ class LigandComponent(Model):
         '''
         return self.ligand_id != other.ligand_id
 
-    @property
-    def ChemComp(self):
-        '''
-        '''
-        return ChemCompAdaptor().fetch_by_residue_id(self.residue_id)
-
 from .fragment import Fragment
 from .atom import Atom
 from .residue import Residue

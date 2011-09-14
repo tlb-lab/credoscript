@@ -173,13 +173,4 @@ class ChemComp(Model):
         '''
         return self.ism.op('%%')(smiles)
 
-    @property
-    def LigandComponents(self):
-        '''
-        '''
-        return LigandComponentAdaptor().fetch_all_by_het_id(self.het_id)
-
 from .chemcomprdfp import ChemCompRDFP
-from ..adaptors.fragmentadaptor import FragmentAdaptor
-from ..adaptors.xrefadaptor import XRefAdaptor
-from ..adaptors.ligandcomponentadaptor import LigandComponentAdaptor
