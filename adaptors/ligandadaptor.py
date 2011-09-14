@@ -26,6 +26,42 @@ class LigandAdaptor(object):
         return self.query.join('Biomolecule').filter(
             and_(Biomolecule.structure_id==structure_id, *expressions)).all()
 
+    def fetch_all_by_chembl_id(self, chembl_id, *expressions):
+        '''
+        Returns all ligands that contain a chemical components that can be linked
+        to a ChEMBL molecule with the specified ChEMBL identifier.
+        
+        Parameters
+        ----------
+        chembl_id : str
+            ChEMBL compound stable identifier.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        Ligand, LigandComponent, ChemComp, XRef
+
+        Returns
+        -------
+        ligands : list
+            ligands that contain a chemical components that can be linked to a
+            ChEMBL molecule with the specified ChEMBL identifier.
+
+        Examples
+        --------
+        >>> LigandAdaptor().fetch_all_by_chembl_id('CHEMBL1323')
+        [<Ligand(B 301 017)>, <Ligand(D 301 017)>, <Ligand(A 302 017)>,
+         <Ligand(B 401 017)>, <Ligand(A 201 017)>, <Ligand(B 203 017)>,
+         <Ligand(A 201 017)>, <Ligand(B 203 017)>, <Ligand(B 401 017)>,
+         <Ligand(A 402 017)>]
+        '''
+        query = self.query.join('Components','ChemComp','XRefs')
+        query = query.filter(and_(XRef.source=='ChEMBL Compound', XRef.xref==chembl_id,
+                                  *expressions))
+
+        return query.all()
+
     def fetch_all_by_uniprot(self, uniprot, *expressions):
         '''
         Returns all ligands that are in contact with a protein having the specified
