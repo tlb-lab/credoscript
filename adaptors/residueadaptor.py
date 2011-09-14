@@ -20,7 +20,7 @@ class ResidueAdaptor(object):
 
         Returns
         -------
-        Atom
+        Residue
             CREDO `Residue` object having this atom_id as primary key.
 
         Examples
@@ -29,6 +29,32 @@ class ResidueAdaptor(object):
         <Residue(1)>
         '''
         return self.query.get(residue_id)
+
+    def fetch_all_by_chain_id(self, chain_id, *expressions):
+        '''
+        Returns all residues that are part of the chain with the specified chain_id.
+        
+        Parameters
+        ----------
+        chain_id : int
+            CREDO chain_id.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Residue
+
+        Returns
+        -------
+        residues : list
+            residues that are part of the chain with the specified chain_id.
+
+        Examples
+        --------
+
+        '''
+        return self.query.filter(and_(Residue.chain_id==chain_id,*expressions)).all()
 
     def fetch_all_by_ligand_id(self, ligand_id, *expressions):
         '''
