@@ -57,6 +57,31 @@ class ChainAdaptor(object):
 
         return query.all()
 
+    def fetch_all_by_seq_md5(self, md5, *expressions):
+        '''
+        Returns all chains in CREDO whose protein sequences MD5 hash match the
+        specified MD5 hash (of another protein sequence).
+
+        Parameters
+        ----------
+        md5 : str
+            MD5 hash of a protein sequence.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Returns
+        -------
+        Chains : list
+            Chains in CREDO whose protein sequences MD5 hash match the specified
+            MD5 hash.
+        
+        Examples
+        --------
+        ChainAdaptor().fetch_all_by_seq_md5('02F49E94352EADF3DE9DC9416502ED7F')
+        [<Chain(A)>, <Chain(A)>, <Chain(A)>, <Chain(A)>, <Chain(A)>, ...]
+        '''
+        return self.query.filter(Chain.chain_seq_md5==md5).all()
+
 from ..models.xref import XRef
 from ..models.chain import Chain
 from ..models.biomolecule import Biomolecule
