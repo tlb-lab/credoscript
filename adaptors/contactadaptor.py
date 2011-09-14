@@ -126,6 +126,14 @@ class ContactAdaptor(object):
 
         return bgn.union(end).all()
 
+    def fetch_all_by_chain_id(self, chain_id, *expressions):
+        '''
+        '''
+        bgn = self.query.join('AtomBgn','Residue').filter(and_(Residue.chain_id==chain_id, *expressions))
+        end = self.query.join('AtomEnd','Residue').filter(and_(Residue.chain_id==chain_id, *expressions))
+
+        return bgn.union(end).all()
+
     def fetch_all_by_interface_id(self, interface_id, *expressions):
         '''
         Returns a list of `Contact` objects that exist in the pairwise interaction
