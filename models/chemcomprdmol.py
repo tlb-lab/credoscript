@@ -5,7 +5,6 @@ from sqlalchemy.sql.expression import func
 try: from rdkit.Chem import Mol, MolFromSmarts
 except ImportError: pass
 
-from ..meta import HAS_RDKIT
 from .model import Model
 from ..support import requires
 
@@ -124,7 +123,6 @@ class ChemCompRDMol(Model):
             hits.
         '''
         return self.rdmol.op('OPERATOR(rdkit.<@)')(smiles)
-
     
     @hybrid_method
     @requires.rdkit
