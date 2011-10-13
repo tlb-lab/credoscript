@@ -2,7 +2,6 @@ import os
 import sys
 import json
 
-from sqlalchemy import select
 from sqlalchemy.sql.expression import and_, func
 from sqlalchemy.orm import backref, composite, deferred, mapper, relationship, column_property
 from sqlalchemy.orm.collections import column_mapped_collection
@@ -113,8 +112,7 @@ mapper(Contact, metadata.tables['credo.contacts'],
         'AtomEnd': relationship(Atom,
                                 primaryjoin=Atom.atom_id==metadata.tables['credo.contacts'].c.atom_end_id,
                                 foreign_keys=[Atom.atom_id], uselist=False, innerjoin=True)
-        }
-       )
+        })
 
 mapper(AromaticRing, metadata.tables['credo.aromatic_rings'])
 
@@ -125,7 +123,8 @@ mapper(AtomRingInteraction, metadata.tables['credo.atom_ring_interactions'],
                              foreign_keys = [Atom.atom_id], uselist=False, innerjoin=True),
         'AromaticRing': relationship(AromaticRing,
                                      primaryjoin=AromaticRing.aromatic_ring_id==metadata.tables['credo.atom_ring_interactions'].c.aromatic_ring_id,
-                                     foreign_keys = [AromaticRing.aromatic_ring_id], uselist=False, innerjoin=True)
+                                     foreign_keys = [AromaticRing.aromatic_ring_id], uselist=False, innerjoin=True,
+                                     backref=backref('AtomRingInteractions', uselist=True, innerjoin=True))
         }
        )
 
