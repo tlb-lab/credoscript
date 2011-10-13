@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.sql.expression import and_, text
+from sqlalchemy.sql.expression import and_, cast, func, text
 from sqlalchemy.dialects.postgresql import INTEGER
 
 from ..meta import session, disordered_regions
@@ -103,7 +103,7 @@ class Chain(Model):
 
         return session.execute(statement).fetchall()
 
-    def get_residue_sifts(self, structural_interaction_type):
+    def get_residue_sifts(self, *expressions):
         '''
         Returns all polymer residues of this chain and their summed structural
         interaction fingerprint (SIFt). Only intermolecular contacts are considered
@@ -111,76 +111,65 @@ class Chain(Model):
         
         Parameters
         ----------
-        structural_interaction_type : int
-            CREDO structural interaction type (e.g. PRO_LIG) that will be used
-            to filter the SIFts.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
         
         Returns
         -------
         sift : list
-            list of lists in the form [(Residue, sift),...].
+            list of lists in the form [(Residue, SIFt),...].
         
         Examples
         --------
         >>> structure = StructureAdaptor().fetch_by_pdb('2p33')
         >>> chain = structure[0]['A']
-        >>> chain.get_residue_sifts(structural_interaction_type=PRO_LIG)
+        >>> chain.get_residue_sifts(Contact.structural_interaction_type=PRO_LIG)
         >>> [(<Residue(ILE 70 )>, 0L, 0L, 0L, 25L, 0L, 1L, 0L, 0L, 0L, 0L, 2L, 0L),
              (<Residue(GLY 71 )>, 0L, 0L, 0L, 4L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L),
              (<Residue(SER 72 )>, 0L, 0L, 0L, 3L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L),...]
         '''
-        statement = text('''
-                        SELECT  sq.residue_id,
-                                sum(sq.is_covalent::int) as is_covalent,
-                                sum(sq.is_vdw_clash::int) as is_vdw_clash,
-                                sum(sq.is_vdw::int) as is_vdw,
-                                sum(sq.is_proximal::int) as is_proximal,
-                                sum(sq.is_hbond::int) as is_hbond,
-                                sum(sq.is_weak_hbond::int) as is_weak_hbond,
-                                sum(sq.is_xbond::int) as is_xbond,
-                                sum(sq.is_ionic::int) as is_ionic,
-                                sum(sq.is_metal_complex::int) as is_metal_complex,
-                                sum(sq.is_aromatic::int) as is_aromatic,
-                                sum(sq.is_hydrophobic::int) as is_hydrophobic,
-                                sum(sq.is_carbonyl::int) as is_carbonyl
-                        FROM    (
-                                SELECT  r.*, cs.*
-                                FROM    credo.contacts cs
-                                JOIN    credo.atoms a ON a.atom_id = cs.atom_bgn_id
-                                JOIN    credo.residues r ON r.residue_id = a.residue_id
-                                WHERE   cs.is_same_entity = false
-                                        AND cs.is_secondary = false
-                                        AND r.entity_type_bm > 2 
-                                        AND r.chain_id = :chain_id
-                                        AND cs.structural_interaction_type = :structural_interaction_type
-                                UNION
-                                SELECT  r.*, cs.*
-                                FROM    credo.contacts cs
-                                JOIN    credo.atoms a ON a.atom_id = cs.atom_end_id
-                                JOIN    credo.residues r ON r.residue_id = a.residue_id
-                                WHERE   cs.is_same_entity = false
-                                        AND cs.is_secondary = false
-                                        AND r.entity_type_bm > 2 
-                                        AND r.chain_id = :chain_id
-                                        AND cs.structural_interaction_type = :structural_interaction_type
-                                ) sq
-                        GROUP BY sq.residue_id
-                        ORDER BY sq.residue_id
-                         ''')
+        query = session.query(Residue.residue_id.label('residue_id'), Contact).select_from(Contact)
+
+        clauses = and_(Residue.chain_id==self.chain_id,
+                       Contact.is_same_entity==False, Contact.is_secondary==False,
+                       *expressions)
+
+        bgn = query.join(Atom, Atom.atom_id==Contact.atom_bgn_id).join(Residue, Residue.residue_id==Atom.residue_id).filter(clauses)
+        end = query.join(Atom, Atom.atom_id==Contact.atom_bgn_id).join(Residue, Residue.residue_id==Atom.residue_id).filter(clauses)
         
-        params = {'chain_id': self.chain_id,
-                  'structural_interaction_type': structural_interaction_type}
+        subquery = bgn.union(end).subquery()
         
-        query = session.query(Residue,'is_covalent','is_vdw_clash','is_vdw','is_proximal',
-                              'is_hbond','is_weak_hbond','is_xbond','is_ionic',
-                              'is_metal_complex','is_aromatic','is_hydrophobic',
-                              'is_carbonyl')
+        # RESIDUE ID AND SUM OF STRUCTURAL INTERACTION FINGERPRINTS
+        fields = (subquery.c.residue_id,
+                  func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)).label('is_covalent'),
+                  func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)).label('is_vdw_clash'),
+                  func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)).label('is_vdw'),
+                  func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)).label('is_proximal'),
+                  func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)).label('is_hbond'),
+                  func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)).label('is_weak_hbond'),
+                  func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)).label('is_xbond'),
+                  func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)).label('is_ionic'),
+                  func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)).label('is_metal_complex'),
+                  func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)).label('is_aromatic'),
+                  func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)).label('is_hydrophobic'),
+                  func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)).label('is_carbonyl'))
+
+        # AGGREGATE TO GET THE SUM
+        sift = session.query(*fields).group_by('residue_id').order_by('residue_id').subquery()
+ 
+        # INCLUDE THE RESIDUE OBJECT IN RESULT SET
+        query = session.query(Residue, sift.c.is_covalent, sift.c.is_vdw_clash,
+                              sift.c.is_vdw, sift.c.is_proximal, sift.c.is_hbond,
+                              sift.c.is_weak_hbond, sift.c.is_xbond, sift.c.is_ionic,
+                              sift.c.is_metal_complex, sift.c.is_aromatic, sift.c.is_hydrophobic,
+                              sift.c.is_carbonyl)
         
-        query = query.from_statement(statement)
-        query = query.params(**params)
+        query = query.join(sift, sift.c.residue_id==Residue.residue_id)
         
         return query.all()
-
+  
+from .contact import Contact
+from .atom import Atom
 from .residue import Residue
 from ..adaptors.peptideadaptor import PeptideAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
