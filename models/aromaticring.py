@@ -38,21 +38,6 @@ class AromaticRing(Model):
         '''
         return "<AromaticRing({self.aromatic_ring_id} {self.size})>".format(self=self)
 
-    def __hash__(self):
-        '''
-        '''
-        return self.aromatic_ring_id
-
-    def __eq__(self, other):
-        '''
-        '''
-        return self.aromatic_ring_id == other.aromatic_ring_id
-
-    def __ne__(self, other):
-        '''
-        '''
-        return self.aromatic_ring_id != other.aromatic_ring_id
-
     @property
     def Centroid(self):
         '''
@@ -74,6 +59,12 @@ class AromaticRing(Model):
         return Vector(normal)
 
     @property
+    def RingInteractions(self):
+        '''
+        '''
+        return RingInteractionAdaptor().fetch_all_by_aromatic_ring_id(self.aromatic_ring_id)
+
+    @property
     def pymolstring(self):
         '''
         Returns a PyMOL selection string in the form
@@ -86,10 +77,5 @@ class AromaticRing(Model):
             PyMOL selection string.
         '''
         return "{self.Residue.pymolstring}/CX{self.ring_number}".format(self=self)
-
-    def get_ring_interactions(self):
-        '''
-        '''
-        return RingInteractionAdaptor().fetch_all_by_aromatic_ring_id(self.aromatic_ring_id)
 
 from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor
