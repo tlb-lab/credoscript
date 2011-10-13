@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import warnings
 
@@ -9,6 +10,12 @@ from sqlalchemy.exc import SAWarning, ProgrammingError
 # CONFIGURATION
 CREDOSCRIPT_PATH= os.path.dirname(os.path.realpath(__file__))
 CONFIG_PATH     = os.path.join(CREDOSCRIPT_PATH, 'config.json')
+
+# EXIT IF THE CONFIGURATION FILE DOES NOT EXIST
+if not os.path.exists(CONFIG_PATH):
+    raise IOError("""cannot find the configuration file config.json in credoscript
+                  directory. Did you forget to rename config-default.json?""")
+
 CONFIG          = json.loads(open(CONFIG_PATH).read())
 
 # DATABASE CONNECTION
@@ -31,7 +38,7 @@ session     = Session()
 # CHECK IF REQUIRED EXTENSIONS/FUNCTIONS IS INSTALLED ON THE SERVER
 HAS_RDKIT_CARTRIDGE = engine.execute("SELECT true where exists (select proname FROM pg_proc where proname = 'rdkit_version')").scalar()
 
-# DETERMINE IF RDKIT IS INSTALLED
+# DETERMINE IF RDKIT IS INSTALLED LOCALLY
 try:
     import rdkit
     HAS_RDKIT = True
