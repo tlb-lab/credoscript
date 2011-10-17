@@ -8,6 +8,8 @@ Contents:
    
    Introduction <introduction>
    The CREDO Database <credo>
+   Chemical components <chemcomps>
+   Structural variations <variations>
    Objects in CREDO <credo-objects>
    Anatomy of credoscript <credoscript>
    Tutorial <tutorial>

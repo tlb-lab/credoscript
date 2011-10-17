@@ -2,7 +2,7 @@
 Introduction
 ************
 
-|credoscript| is an Application Programming Interface (API) for the :doc:`CREDO</credo>` database [Schreyer-2009]_.
+|credoscript| is an Application Programming Interface (API) for the :doc:`CREDO</credo>` database.
 
 Installation
 ------------
@@ -26,7 +26,7 @@ The source code for |credoscript| can be obtained by either downloading a source
 from the `Bitbucket <https://bitbucket.org/aschreyer/credoscript>`_ repository or
 by cloning it with::
 
-    $ hg clone https://aschreyer@bitbucket.org/aschreyer/credoscript
+    $ hg clone https://bitbucket.org/aschreyer/credoscript
 
 The directory containing the |credoscript| source code should be added to the :envvar:`$PYTHONPATH`
 environment variable.
@@ -44,7 +44,7 @@ Testing the installation
 
 Documentation
 -------------
-This documentation is available from http://credoscript.readthedocs.org.
+This documentation is available from the source repository and also from http://credoscript.readthedocs.org.
 
 Software used in CREDO
 ----------------------

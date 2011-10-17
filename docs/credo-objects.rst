@@ -11,4 +11,6 @@ This chapter describes all the |CREDO| objects in more detail.
 .. include:: objects/biomolecule.rst
 .. include:: objects/chain.rst
 .. include:: objects/residue.rst
+.. include:: objects/atom.rst
+.. include:: objects/contact.rst
 .. include:: objects/chemcomp.rst
