@@ -151,7 +151,7 @@ class Ligand(Model):
     @property
     def pdb(self):
         '''
-        Isomeric SMILES string of this Ligand (taken straight from the PDB structure).
+        Chemical structure of this ligand in PDB format.
 
         Returns
         -------
@@ -197,11 +197,6 @@ class Ligand(Model):
         '''
         '''
         return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id, *expressions)
-
-    def get_xrefs(self, *expressions):
-        '''
-        '''
-        return XRefAdaptor().fetch_all_by_ligand_id(self.ligand_id, *expressions)
 
     def get_proximal_water(self, *expressions):
         '''
