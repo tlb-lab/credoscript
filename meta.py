@@ -50,6 +50,7 @@ except ImportError:
 
 # DO NOT MAP AGAINST CLASS
 binding_sites = metadata.tables['credo.binding_sites']
+interface_residues = metadata.tables['credo.interface_residues']
 binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
 chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
 ligand_fragments = metadata.tables['credo.ligand_fragments']

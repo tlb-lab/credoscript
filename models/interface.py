@@ -43,6 +43,11 @@ class Interface(Model):
         '''
         return '<Interface({self.chain_bgn_id} {self.chain_end_id})>'.format(self=self)
 
+    def get_residues(self, *expressions):
+        '''
+        '''
+        return ResidueAdaptor().fetch_all_by_interface_id(self.interface_id, *expressions)
+
     def get_contacts(self, *expressions):
         '''
         Returns all the Contacts that are formed between the two Chains of this
@@ -94,5 +99,6 @@ class Interface(Model):
         '''
         return AtomAdaptor().fetch_all_water_by_interface_id(self.interface_id, *expressions)
 
+from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

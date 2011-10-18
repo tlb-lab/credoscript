@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from ..meta import session, binding_sites, ligand_fragment_atoms
+from ..meta import session, binding_sites, ligand_fragment_atoms, interface_residues
 
 class ResidueAdaptor(object):
     '''
@@ -114,6 +114,43 @@ class ResidueAdaptor(object):
         '''
         query = self.query.join('Chain').filter(and_(Chain.biomolecule_id==biomolecule_id, *expressions))
 
+        return query.all()
+
+    def fetch_all_by_interface_id(self, interface_id, *expressions):
+        '''
+        Returns all the residues (including solvents) that are interacting across
+        the interface.
+
+        Parameters
+        ----------
+        interface_id : int
+            Primary key of the interface.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Residue, interface_residues
+
+        Returns
+        -------
+        contacts : list
+            List of residues.
+
+         Examples
+        --------
+        >>> interface = InterfaceAdaptor().fetch_by_interface_id(128)
+        >>> interface.get_residues(Residue.entity_type_bm==32)
+        >>> [<Residue(VAL 32 )>, <Residue(THR 91 )>, <Residue(LEU 23 )>,
+             <Residue(ASP 30 )>, <Residue(GLY 49 )>, <Residue(ARG 87 )>,...]
+        '''
+        clauses = and_(interface_residues.c.interface_id==interface_id, *expressions)
+        
+        bgn = self.query.join(interface_residues, interface_residues.c.residue_bgn_id==Residue.residue_id).filter(clauses)
+        end = self.query.join(interface_residues, interface_residues.c.residue_end_id==Residue.residue_id).filter(clauses)
+        
+        query = bgn.union(end)
+        
         return query.all()
 
     def fetch_all_in_contact_with_residue_id(self, residue_id, *expressions):
