@@ -214,6 +214,12 @@ mapper(LigandComponent, metadata.tables['credo.ligand_components'],
 
 mapper(LigandUSR, metadata.tables['credo.ligand_usr'])
 
+mapper(LigandMolString, metadata.tables['credo.ligand_molstrings'],
+       properties={
+        'pdb': deferred(metadata.tables['credo.ligand_molstrings'].c.pdb),
+        'oeb': deferred(metadata.tables['credo.ligand_molstrings'].c.oeb),
+    })
+
 mapper(Ligand, metadata.tables['credo.ligands'],
        properties={
         'Components': relationship(LigandComponent,
@@ -227,6 +233,10 @@ mapper(Ligand, metadata.tables['credo.ligands'],
         'XRefs': relationship(XRef, collection_class=column_mapped_collection(XRef.source),
                               primaryjoin=and_(XRef.entity_type=='Ligand', XRef.entity_id==metadata.tables['credo.ligands'].c.ligand_id),
                               foreign_keys=[XRef.entity_type, XRef.entity_id], uselist=True, innerjoin=True),
+        'MolString': relationship(LigandMolString,
+                                  primaryjoin=LigandMolString.ligand_id==metadata.tables['credo.ligands'].c.ligand_id,
+                                  foreign_keys=[LigandMolString.ligand_id], uselist=False, innerjoin=True,
+                                  backref=backref('Ligand', uselist=False, innerjoin=True)),
         'name': metadata.tables['credo.ligands'].c.ligand_name
         })
 

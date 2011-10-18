@@ -52,7 +52,6 @@ except ImportError:
 binding_sites = metadata.tables['credo.binding_sites']
 binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
 chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
-ligand_molstrings = metadata.tables['credo.ligand_molstrings']
 ligand_fragments = metadata.tables['credo.ligand_fragments']
 ligand_fragment_atoms = metadata.tables['credo.ligand_fragment_atoms']
 ligand_usr = metadata.tables['credo.ligand_usr']

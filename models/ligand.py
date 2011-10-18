@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import and_, func
 
 from .model import Model
-from ..meta import session, ligand_usr, ligand_molstrings, binding_site_atom_surface_areas
+from ..meta import session, ligand_usr, binding_site_atom_surface_areas
 
 class Ligand(Model):
     '''
@@ -132,36 +132,6 @@ class Ligand(Model):
             All the Atoms of this Ligand.
         '''
         return AtomAdaptor().fetch_all_by_ligand_id(self.ligand_id)
-
-    @property
-    def ism(self):
-        '''
-        Isomeric SMILES string of this Ligand (taken straight from the PDB structure).
-
-        Returns
-        -------
-        ism : str
-            Isomeric SMILES string of this Ligand.
-        '''
-        query = session.query(ligand_molstrings.c.ism)
-        query = query.filter(ligand_molstrings.c.ligand_id==self.ligand_id)
-
-        return query.scalar()
-
-    @property
-    def pdb(self):
-        '''
-        Chemical structure of this ligand in PDB format.
-
-        Returns
-        -------
-        pdb : str
-            Ligand structure in PDB format.
-        '''
-        query = session.query(ligand_molstrings.c.pdb)
-        query = query.filter(ligand_molstrings.c.ligand_id==self.ligand_id)
-
-        return query.scalar()
 
     @property
     def usr_space(self):

@@ -18,6 +18,7 @@ from .chemcompfragment import ChemCompFragment
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
 from .ligandusr import LigandUSR
+from .ligandmolstring import LigandMolString
 from .resmap import ResMap
 from .peptide import Peptide
 from .nucleotide import Nucleotide
