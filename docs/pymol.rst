@@ -24,7 +24,7 @@ Providing a PDB directory
 
 PDB files to be loaded into PyMOL via |credoscript| are sourced locally. A directory must be provided in config.json in the |credoscript| directory:
 
-.. code-block:: json
+.. code-block:: javascript
 
     "directory":
         {
