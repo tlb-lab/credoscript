@@ -10,7 +10,7 @@ Getting Started
 PyMOL installation
 ~~~~~~~~~~~~~~~~~~
 
-PyMol must be installed on your system. The software can be downloaded from the `PyMOL website <http://www.pymol.org/>`_ for free under an educational license, for a fee for a personal or commercial license. PyMOL is open source, and can be compiled from the freely available source code. More information on installation can be found on the `PyMOL wiki <http://www.pymol.org/>`_.
+PyMol must be installed on your system. The software can be downloaded from the `PyMOL website <http://www.pymol.org/>`_ for free under an educational license, or for a fee for a personal or commercial license. PyMOL is open source, and can be compiled from the freely available source code. More information on installation can be found on the `PyMOL wiki <http://www.pymol.org/>`_.
 
 Running PyMOL
 ~~~~~~~~~~~~~
@@ -22,7 +22,7 @@ To use PyMOL with |credoscript|, PyMOL must be started with the "-R" flag to run
 Providing a PDB directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PDB files to be loaded into PyMOL via |credoscript| are sourced locally. A directory must be provided in config.json in the |credoscript| directory:
+PDB files to be loaded into PyMOL via |credoscript| are sourced locally or from a mounted network drive. A directory must be provided in config.json in the |credoscript| directory:
 
 .. code-block:: javascript
 
@@ -46,18 +46,23 @@ All of the API features are available when importing as above.
 Loading structures
 ------------------
 
-CREDO biomolecules can be loaded into PyMOL via the API. Please note, biomolecules can not be loaded unless the PyMOL XML-RPC server is running and the PDB store is specified (see sections above).
+CREDO biomolecules can be loaded into PyMOL via the API. Please note, biomolecules cannot be loaded unless the PyMOL XML-RPC server is running and the PDB store is specified (see sections above).
+
+For easy use of the API, the `IPython <http://www.ipython.org/>`_ interactive python shell supports tab completion for easy finding of attribute functions and methods.
 
 Biomolecules are loaded into the PyMOL viewer using the Biomolecule object's load() method:
 
 .. code-block:: python
 
-   from credoscript.pymol import *
-   
-   s = StructureAdaptor().fetch_by_pdb("10gs")
-   b = s.Biomolecules[1]
-   b.load()
-   # Structure loads in PyMOL window
+   >>> from credoscript.pymol import *
+   >>> s = StructureAdaptor().fetch_by_pdb("10gs")
+   >>> s
+   <Structure(10GS)>
+   >>> s.Biomolecules
+   {1: <Biomolecule(1)>}
+   >>> b = s.Biomolecules[1]
+   >>> b.load()
+   >>> # Structure loads in PyMOL window
 
 Visualising ligand interactions
 -------------------------------
@@ -66,14 +71,17 @@ Contacts to ligands in a biomolecule can be visualised using API calls via Ligan
 
 .. code-block:: python
 
-   from credoscript.pymol import *
-   
-   s = StructureAdaptor().fetch_by_pdb("10gs")
-   b = s.Biomolecules[1]
-   b.load()
-   
-   l = b.Ligands[0]
-   l.show_contacts()
+   >>> from credoscript.pymol import *
+   >>> s = StructureAdaptor().fetch_by_pdb("10gs")
+   >>> b = s.Biomolecules[1]
+   >>> b.load()
+   >>> b.Ligands
+   [<Ligand(B 210 VWW)>,
+    <Ligand(A 211 MES)>,
+    <Ligand(B 211 MES)>,
+    <Ligand(A 210 VWW)>]
+   >>> l = b.Ligands[0]
+   >>> l.show_contacts()
 
 Visualising protein-protein interactions
 ----------------------------------------
@@ -82,11 +90,11 @@ The same principle applies as with visualising ligand interactions:
 
 .. code-block:: python
 
-   from credoscript.pymol import *
-   
-   s = StructureAdaptor().fetch_by_pdb("10gs")
-   b = s.Biomolecules[1]
-   b.load()
-   
-   i = b.Interfaces[0]
-   i.show_contacts()
+   >>> from credoscript.pymol import *
+   >>> s = StructureAdaptor().fetch_by_pdb("10gs")
+   >>> b = s.Biomolecules[1]
+   >>> b.load()
+   >>> b.Interfaces
+   [<Interface(1 2)>]
+   >>> i = b.Interfaces[0]
+   >>> i.show_contacts()
