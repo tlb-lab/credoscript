@@ -222,4 +222,6 @@ man_pages = [
 rst_prolog = """
 .. |CREDO| replace:: *CREDO*
 .. |credoscript| replace:: *credoscript*
+.. |Python| replace:: *Python*
+.. |IPython| replace:: *IPython*
 """
