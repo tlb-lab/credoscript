@@ -7,6 +7,7 @@ Contents:
    :maxdepth: 2
    
    Introduction <introduction>
+   Short introduction to Python <python-intro>
    The CREDO Database <credo>
    Chemical components <chemcomps>
    Structural variations <variations>
