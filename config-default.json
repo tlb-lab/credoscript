@@ -25,7 +25,7 @@
         {
             "normal": "cyan",
             "disordered_region": "deepsalmon",
-            
+
             "xbond":
             {
                 "vdwclash": "blue",
@@ -84,6 +84,7 @@
 
             "undefined":
             {
+                "covalent": "white",
                 "vdwclash": "grey90",
                 "vdw": "grey60",
                 "proximal": "grey30"
@@ -152,6 +153,7 @@
 
             "undefined":
             {
+                "covalent": 0.16,
                 "vdwclash": 0.12,
                 "vdw": 0.08,
                 "proximal": 0.04
@@ -220,6 +222,7 @@
 
             "undefined":
             {
+                "covalent": 0.0,
                 "vdwclash": 0.25,
                 "vdw": 0.35,
                 "proximal": 0.45
@@ -288,6 +291,7 @@
 
             "undefined":
             {
+                "covalent": 1.0,
                 "vdwclash": 0.08,
                 "vdw": 0.06,
                 "proximal": 0.04
