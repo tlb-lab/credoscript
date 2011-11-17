@@ -131,7 +131,8 @@ class Ligand(Model):
         atoms : list
             All the Atoms of this Ligand.
         '''
-        return AtomAdaptor().fetch_all_by_ligand_id(self.ligand_id)
+        return AtomAdaptor().fetch_all_by_ligand_id(self.ligand_id,
+                                                    Atom.biomolecule_id==self.biomolecule_id) # PARTITION CONSTRAINT-EXCLUSION
 
     @property
     def usr_space(self):
@@ -166,7 +167,9 @@ class Ligand(Model):
     def get_contacts(self, *expressions):
         '''
         '''
-        return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id, *expressions)
+        return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id,
+                                                       Contact.biomolecule_id==self.biomolecule_id,
+                                                       *expressions)
 
     def get_proximal_water(self, *expressions):
         '''
@@ -246,7 +249,9 @@ class Ligand(Model):
         atoms : list
             List of `Atom` objects.
         '''
-        return AtomAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id, *expressions)
+        return AtomAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
+                                                                 Atom.biomolecule_id==self.biomolecule_id,
+                                                                 *expressions)
 
     def get_contacting_residues(self, *expressions):
         '''
@@ -380,6 +385,7 @@ from .ligandusr import LigandUSR
 from .chemcompconformer import ChemCompConformer
 from .chemcomp import ChemComp
 from .atom import Atom
+from .contact import Contact
 from .residue import Residue
 from ..adaptors.chemcompadaptor import ChemCompAdaptor
 from ..adaptors.xrefadaptor import XRefAdaptor

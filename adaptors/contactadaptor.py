@@ -59,7 +59,7 @@ class ContactAdaptor(object):
         bgn = self.query.filter(and_(Contact.atom_bgn_id==atom_id, *expressions))
         end = self.query.filter(and_(Contact.atom_end_id==atom_id, *expressions))
 
-        return bgn.union(end).all()
+        return bgn.union_all(end).all()
 
     def fetch_all_by_residue_id(self, residue_id, *expressions):
         '''
@@ -86,10 +86,14 @@ class ContactAdaptor(object):
         >>> ContactAdaptor().fetch_all_by_residue_id(1)
         <Contact()>
         '''
-        bgn = self.query.join('AtomBgn').filter(and_(Atom.residue_id==residue_id, *expressions))
-        end = self.query.join('AtomEnd').filter(and_(Atom.residue_id==residue_id, *expressions))
+        whereclause = and_(Atom.residue_id==residue_id,
+                           Atom.biomolecule_id==Contact.biomolecule_id,
+                           *expressions)        
+        
+        bgn = self.query.join('AtomBgn').filter(whereclause)
+        end = self.query.join('AtomEnd').filter(whereclause)
 
-        return bgn.union(end).all()
+        return bgn.union_all(end).all()
 
     def fetch_all_by_ligand_id(self, ligand_id, *expressions):
         '''
@@ -116,23 +120,30 @@ class ContactAdaptor(object):
         >>> ContactAdaptor().fetch_all_by_ligand_id(1)
         <Contact()>
         '''
+        whereclause = and_(Ligand.ligand_id==ligand_id, *expressions)       
+        
         bgn = self.query.join(
             (Hetatm, Hetatm.atom_id==Contact.atom_bgn_id)
-            ).filter(and_(Hetatm.ligand_id==ligand_id, *expressions))
+            ).filter(whereclause)
 
         end = self.query.join(
             (Hetatm, Hetatm.atom_id==Contact.atom_end_id)
-            ).filter(and_(Hetatm.ligand_id==ligand_id, *expressions))
+            ).filter(whereclause)
 
-        return bgn.union(end).all()
+        return bgn.union_all(end).all()
 
     def fetch_all_by_chain_id(self, chain_id, *expressions):
         '''
         '''
-        bgn = self.query.join('AtomBgn','Residue').filter(and_(Residue.chain_id==chain_id, *expressions))
-        end = self.query.join('AtomEnd','Residue').filter(and_(Residue.chain_id==chain_id, *expressions))
+        whereclause = and_(Residue.chain_id==chain_id,
+                           Residue.biomolecule_id==Atom.biomolecule_id,
+                           Atom.biomolecule_id==Contact.biomolecule_id,
+                           *expressions)
+        
+        bgn = self.query.join('AtomBgn','Residue').filter(whereclause)
+        end = self.query.join('AtomEnd','Residue').filter(whereclause)
 
-        return bgn.union(end).all()
+        return bgn.union_all(end).all()
 
     def fetch_all_by_interface_id(self, interface_id, *expressions):
         '''
@@ -166,6 +177,12 @@ class ContactAdaptor(object):
         ResidueBgn = aliased(Residue)
         ResidueEnd = aliased(Residue)
 
+        whereclause = and_(Interface.interface_id==interface_id,
+                           Interface.biomolecule_id==Contact.biomolecule_id, # PARTITION CONSTRAINT-EXCLUSION
+                           ResidueBgn.entity_type_bm==32,
+                           ResidueEnd.entity_type_bm==32,
+                           *expressions)
+
         bgn = self.query.join(
             (AtomBgn, AtomBgn.atom_id==Contact.atom_bgn_id),
             (AtomEnd, AtomEnd.atom_id==Contact.atom_end_id),
@@ -173,10 +190,7 @@ class ContactAdaptor(object):
             (ResidueEnd, ResidueEnd.residue_id==AtomEnd.residue_id),
             (Interface, and_(Interface.chain_bgn_id==ResidueBgn.chain_id,
                              Interface.chain_end_id==ResidueEnd.chain_id))
-            ).filter(and_(Interface.interface_id==interface_id,
-                          ResidueBgn.entity_type_bm==32,
-                          ResidueEnd.entity_type_bm==32,
-                          *expressions))
+            ).filter(whereclause)
 
         end = self.query.join(
             (AtomBgn, AtomBgn.atom_id==Contact.atom_bgn_id),
@@ -185,10 +199,7 @@ class ContactAdaptor(object):
             (ResidueEnd, ResidueEnd.residue_id==AtomEnd.residue_id),
             (Interface, and_(Interface.chain_bgn_id==ResidueEnd.chain_id,
                              Interface.chain_end_id==ResidueBgn.chain_id))
-            ).filter(and_(Interface.interface_id==interface_id,
-                          ResidueBgn.entity_type_bm==32,
-                          ResidueEnd.entity_type_bm==32,
-                          *expressions))
+            ).filter(whereclause)
 
         return bgn.union(end).all()
 

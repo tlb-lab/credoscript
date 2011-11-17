@@ -62,11 +62,10 @@ mapper(ChemCompConformer, metadata.tables['pdbchem.chem_comp_conformers'])
 chemcompmapper = mapper(ChemComp, metadata.tables['pdbchem.chem_comps'],
        properties={
         'ChemCompFragments': relationship(ChemCompFragment,
-                                      primaryjoin=ChemCompFragment.het_id==metadata.tables['pdbchem.chem_comps'].c.het_id,
-                                      foreign_keys = [ChemCompFragment.het_id],
-                                      uselist=True, innerjoin=True,
-                                      backref=backref('ChemComp', uselist=False, innerjoin=True)
-                                   ),
+                                          primaryjoin=ChemCompFragment.het_id==metadata.tables['pdbchem.chem_comps'].c.het_id,
+                                          foreign_keys = [ChemCompFragment.het_id],
+                                          uselist=True, innerjoin=True,
+                                          backref=backref('ChemComp', uselist=False, innerjoin=True)),
         'Fragments': relationship(Fragment,
                                   secondary=metadata.tables['pdbchem.chem_comp_fragments'],
                                   primaryjoin=metadata.tables['pdbchem.chem_comps'].c.het_id==ChemCompFragment.het_id,
@@ -107,11 +106,13 @@ mapper(Groove, metadata.tables['credo.grooves'])
 mapper(Contact, metadata.tables['credo.contacts'],
        properties={
         'AtomBgn': relationship(Atom,
-                                primaryjoin=Atom.atom_id==metadata.tables['credo.contacts'].c.atom_bgn_id,
-                                foreign_keys=[Atom.atom_id], uselist=False, innerjoin=True),
+                                primaryjoin=and_(Atom.atom_id==metadata.tables['credo.contacts'].c.atom_bgn_id,
+                                                 Atom.biomolecule_id==metadata.tables['credo.contacts'].c.biomolecule_id), # PARTITION CONSTRAINT-EXCLUSION
+                                foreign_keys=[Atom.atom_id, Atom.biomolecule_id], uselist=False, innerjoin=True),
         'AtomEnd': relationship(Atom,
-                                primaryjoin=Atom.atom_id==metadata.tables['credo.contacts'].c.atom_end_id,
-                                foreign_keys=[Atom.atom_id], uselist=False, innerjoin=True)
+                                primaryjoin=and_(Atom.atom_id==metadata.tables['credo.contacts'].c.atom_end_id,
+                                                 Atom.biomolecule_id==metadata.tables['credo.contacts'].c.biomolecule_id), # PARTITION CONSTRAINT-EXCLUSION
+                                foreign_keys=[Atom.atom_id, Atom.biomolecule_id], uselist=False, innerjoin=True)
         })
 
 mapper(AromaticRing, metadata.tables['credo.aromatic_rings'])
@@ -148,8 +149,9 @@ mapper(RingInteraction, metadata.tables['credo.ring_interactions'],
 mapper(Residue, metadata.tables['credo.residues'],
        properties={
         'Atoms': relationship(Atom,
-                              primaryjoin=Atom.residue_id==metadata.tables['credo.residues'].c.residue_id,
-                              foreign_keys = [Atom.residue_id], uselist=True, innerjoin=True,
+                              primaryjoin=and_(Atom.residue_id==metadata.tables['credo.residues'].c.residue_id,
+                                               Atom.biomolecule_id==metadata.tables['credo.residues'].c.biomolecule_id), # PARTITION CONSTRAINT-EXCLUSION
+                              foreign_keys = [Atom.residue_id, Atom.biomolecule_id], uselist=True, innerjoin=True,
                               collection_class=column_mapped_collection((Atom.atom_name, Atom.alt_loc)),
                               backref=backref('Residue', uselist=False, innerjoin=True)),
         'AromaticRings': relationship(AromaticRing,
@@ -267,8 +269,7 @@ mapper(Interface, metadata.tables['credo.interfaces'],
         'ChainEnd': relationship(Chain,
                                  primaryjoin=Chain.chain_id==metadata.tables['credo.interfaces'].c.chain_end_id,
                                  foreign_keys=[Chain.chain_id], uselist=False, innerjoin=True),
-       }
-       )
+       })
 
 mapper(Biomolecule, metadata.tables['credo.biomolecules'],
        properties={
@@ -293,8 +294,7 @@ mapper(Biomolecule, metadata.tables['credo.biomolecules'],
                               primaryjoin=Atom.biomolecule_id==metadata.tables['credo.biomolecules'].c.biomolecule_id,
                               foreign_keys=[Atom.biomolecule_id], uselist=True, innerjoin=True,
                               backref=backref('Biomolecule', uselist=False, innerjoin=True)),
-       }
-       )
+       })
 
 mapper(Structure, metadata.tables['credo.structures'],
        properties={
@@ -308,5 +308,4 @@ mapper(Structure, metadata.tables['credo.structures'],
                               foreign_keys=[XRef.entity_type, XRef.entity_id], uselist=True, innerjoin=True),
         'title': deferred(metadata.tables['credo.structures'].c.title),
         'authors': deferred(metadata.tables['credo.structures'].c.authors)
-       }
-       )
+       })

@@ -78,7 +78,9 @@ class Residue(Model):
     def get_contacts(self, *expressions):
         '''
         '''
-        return ContactAdaptor().fetch_all_by_residue_id(self.residue_id, *expressions)
+        return ContactAdaptor().fetch_all_by_residue_id(self.residue_id,
+                                                        Atom.biomolecule_id==self.biomolecule_id,
+                                                        *expressions)
 
     def get_proximal_water(self, *expressions):
         '''

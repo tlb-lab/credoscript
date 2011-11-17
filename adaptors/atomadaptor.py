@@ -65,21 +65,26 @@ class AtomAdaptor(object):
     def fetch_all_by_chain_id(self, chain_id, *expressions):
         '''
         '''
-        query = self.query.join('Residue').filter(and_(Residue.chain_id==chain_id, *expressions))
+        query = self.query.join('Residue').filter(and_(Residue.chain_id==chain_id,
+                                                       Residue.biomolecule_id==Atom.biomolecule_id, # PARTITION CONSTRAINT-EXCLUSION
+                                                       *expressions))
 
         return query.all()
 
     def fetch_all_water_by_atom_id(self, atom_id, *expressions):
         '''
         '''
-        bgn = session.query(Contact.atom_end_id.label('atom_other_id')).filter(Contact.atom_bgn_id==atom_id, Contact.is_hbond==True)
-        end = session.query(Contact.atom_bgn_id.label('atom_other_id')).filter(Contact.atom_end_id==atom_id, Contact.is_hbond==True)
+        whereclause = and_(Contact.atom_bgn_id==atom_id, Contact.is_hbond==True)
+        
+        bgn = session.query(Contact.atom_end_id.label('atom_other_id')).filter(whereclause)
+        end = session.query(Contact.atom_bgn_id.label('atom_other_id')).filter(whereclause)
 
-        sq = bgn.union(end).subquery()
+        subquery = bgn.union_all(end).subquery()
 
         query = self.query.join(
-            (sq, sq.c.atom_other_id==Atom.atom_id),
-            (Residue, Residue.residue_id==Atom.residue_id))
+            (subquery, subquery.c.atom_other_id==Atom.atom_id),
+            (Residue, and_(Residue.residue_id==Atom.residue_id,
+                           Residue.biomolecule_id==Atom.biomolecule_id)))
 
         return query.filter(and_(Residue.res_name=='HOH', *expressions)).all()
 

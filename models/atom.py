@@ -74,7 +74,8 @@ class Atom(Model):
     def Contacts(self):
         '''
         '''
-        return ContactAdaptor().fetch_all_by_atom_id(self.atom_id)
+        return ContactAdaptor().fetch_all_by_atom_id(self.atom_id,
+                                                     Contact.biomolecule_id==self.biomolecule_id)
 
     @property
     def Coords(self):
@@ -143,6 +144,8 @@ class Atom(Model):
         meta atom type to filter query constructs.
         '''
         return or_(Atom.element=='O', Atom.element=='N')
+
+from .contact import Contact
 
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

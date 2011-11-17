@@ -144,10 +144,10 @@ class ResidueAdaptor(object):
         >>> [<Residue(VAL 32 )>, <Residue(THR 91 )>, <Residue(LEU 23 )>,
              <Residue(ASP 30 )>, <Residue(GLY 49 )>, <Residue(ARG 87 )>,...]
         '''
-        clauses = and_(interface_residues.c.interface_id==interface_id, *expressions)
+        whereclause = and_(interface_residues.c.interface_id==interface_id, *expressions)
         
-        bgn = self.query.join(interface_residues, interface_residues.c.residue_bgn_id==Residue.residue_id).filter(clauses)
-        end = self.query.join(interface_residues, interface_residues.c.residue_end_id==Residue.residue_id).filter(clauses)
+        bgn = self.query.join(interface_residues, interface_residues.c.residue_bgn_id==Residue.residue_id).filter(whereclause)
+        end = self.query.join(interface_residues, interface_residues.c.residue_end_id==Residue.residue_id).filter(whereclause)
         
         query = bgn.union(end)
         
@@ -186,13 +186,17 @@ class ResidueAdaptor(object):
         Other = aliased(Atom)
         query = self.query.join('Atoms')
         
+        whereclause = and_(Other.residue_id==residue_id,
+                           Atom.biomolecule_id==Contact.biomolecule_id,
+                           *expressions)
+        
         bgn = query.join((Contact, Contact.atom_bgn_id==Atom.atom_id),
                          (Other, Other.atom_id==Contact.atom_end_id)
-                         ).filter(and_(Other.residue_id==residue_id, *expressions))
+                         ).filter(whereclause)
         
         end = query.join((Contact, Contact.atom_end_id==Atom.atom_id),
                          (Other, Other.atom_id==Contact.atom_bgn_id)
-                         ).filter(and_(Other.residue_id==residue_id, *expressions))
+                         ).filter(whereclause)
 
         return bgn.union(end).all()
 
