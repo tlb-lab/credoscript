@@ -73,7 +73,9 @@ class Interface(Model):
         >>> ContactAdaptor().fetch_all_by_interface_id(1)
         <Contact()>
         '''
-        return ContactAdaptor().fetch_all_by_interface_id(self.interface_id, *expressions)
+        return ContactAdaptor().fetch_all_by_interface_id(self.interface_id,
+                                                          Contact.biomolecule_id==self.biomolecule_id,
+                                                          *expressions)
 
     def get_proximal_water(self, *expressions):
         '''
@@ -99,6 +101,7 @@ class Interface(Model):
         '''
         return AtomAdaptor().fetch_all_water_by_interface_id(self.interface_id, *expressions)
 
+from .contact import Contact
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

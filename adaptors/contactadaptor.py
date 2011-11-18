@@ -174,34 +174,26 @@ class ContactAdaptor(object):
         '''
         AtomBgn = aliased(Atom)
         AtomEnd = aliased(Atom)
-        ResidueBgn = aliased(Residue)
-        ResidueEnd = aliased(Residue)
+        PeptideBgn = aliased(Residue)
+        PeptideEnd = aliased(Residue)
 
-        whereclause = and_(Interface.interface_id==interface_id,
-                           Interface.biomolecule_id==Contact.biomolecule_id, # PARTITION CONSTRAINT-EXCLUSION
-                           ResidueBgn.entity_type_bm==32,
-                           ResidueEnd.entity_type_bm==32,
-                           *expressions)
+        whereclause = and_(Interface.interface_id==interface_id, *expressions)
 
-        bgn = self.query.join(
-            (AtomBgn, AtomBgn.atom_id==Contact.atom_bgn_id),
-            (AtomEnd, AtomEnd.atom_id==Contact.atom_end_id),
-            (ResidueBgn, ResidueBgn.residue_id==AtomBgn.residue_id),
-            (ResidueEnd, ResidueEnd.residue_id==AtomEnd.residue_id),
-            (Interface, and_(Interface.chain_bgn_id==ResidueBgn.chain_id,
-                             Interface.chain_end_id==ResidueEnd.chain_id))
-            ).filter(whereclause)
+        query = self.query.join(
+            (AtomBgn, and_(AtomBgn.atom_id==Contact.atom_bgn_id, AtomBgn.biomolecule_id==Contact.biomolecule_id)),
+            (AtomEnd, and_(AtomEnd.atom_id==Contact.atom_end_id, AtomEnd.biomolecule_id==Contact.biomolecule_id)),
+            (PeptideBgn, PeptideBgn.residue_id==AtomBgn.residue_id),
+            (PeptideEnd, PeptideEnd.residue_id==AtomEnd.residue_id))
+        
+        bgn = query.join(Interface, and_(Interface.chain_bgn_id==PeptideBgn.chain_id,
+                                         Interface.chain_end_id==PeptideEnd.chain_id))
+        bgn = bgn.filter(whereclause)
 
-        end = self.query.join(
-            (AtomBgn, AtomBgn.atom_id==Contact.atom_bgn_id),
-            (AtomEnd, AtomEnd.atom_id==Contact.atom_end_id),
-            (ResidueBgn, ResidueBgn.residue_id==AtomBgn.residue_id),
-            (ResidueEnd, ResidueEnd.residue_id==AtomEnd.residue_id),
-            (Interface, and_(Interface.chain_bgn_id==ResidueEnd.chain_id,
-                             Interface.chain_end_id==ResidueBgn.chain_id))
-            ).filter(whereclause)
+        end = query.join(Interface, and_(Interface.chain_bgn_id==PeptideEnd.chain_id,
+                                         Interface.chain_end_id==PeptideBgn.chain_id))
+        end = end.filter(whereclause)
 
-        return bgn.union(end).all()
+        return bgn.union_all(end).all()
 
 from ..models.hetatm import Hetatm
 from ..models.ligandcomponent import LigandComponent
