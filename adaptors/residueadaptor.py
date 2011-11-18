@@ -112,7 +112,7 @@ class ResidueAdaptor(object):
         >>> ResidueAdaptor().fetch_all_by_biomolecule_id(4343)
 
         '''
-        query = self.query.join('Chain').filter(and_(Chain.biomolecule_id==biomolecule_id, *expressions))
+        query = self.query.filter(and_(Residue.biomolecule_id==biomolecule_id, *expressions))
 
         return query.all()
 
