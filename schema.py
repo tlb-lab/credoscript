@@ -101,8 +101,6 @@ if HAS_RDKIT:
 
 mapper(ProtFragment, metadata.tables['credo.prot_fragments'])
 
-mapper(Groove, metadata.tables['credo.grooves'])
-
 mapper(Contact, metadata.tables['credo.contacts'],
        properties={
         'AtomBgn': relationship(Atom,
@@ -170,6 +168,9 @@ mapper(Peptide, metadata.tables['credo.peptides'],
                               collection_class=column_mapped_collection(Atom.atom_name),
                               primaryjoin=Atom.residue_id==metadata.tables['credo.peptides'].c.residue_id,
                               foreign_keys = [Atom.residue_id], uselist=True, innerjoin=True),
+        'AromaticRings': relationship(AromaticRing,
+                                      primaryjoin=AromaticRing.residue_id==metadata.tables['credo.peptides'].c.residue_id,
+                                      foreign_keys = [AromaticRing.residue_id], uselist=True, innerjoin=True),
         'ResMap': relationship(ResMap,
                                primaryjoin=ResMap.res_map_id==metadata.tables['credo.peptides'].c.res_map_id,
                                foreign_keys = [ResMap.res_map_id], uselist=False, innerjoin=True),
@@ -189,6 +190,14 @@ mapper(Nucleotide, metadata.tables['credo.nucleotides'],
                                 primaryjoin=Residue.residue_id==metadata.tables['credo.nucleotides'].c.residue_id,
                                 foreign_keys=[Residue.residue_id], uselist=False, innerjoin=True,
                                 backref=backref('Nucleotide', uselist=False, innerjoin=True)),
+        })
+
+mapper(Saccharide, metadata.tables['credo.saccharides'],
+       properties={
+        'Residue': relationship(Residue,
+                                primaryjoin=Residue.residue_id==metadata.tables['credo.saccharides'].c.residue_id,
+                                foreign_keys=[Residue.residue_id], uselist=False, innerjoin=True,
+                                backref=backref('Saccharide', uselist=False, innerjoin=True)),
         })
 
 mapper(LigandComponent, metadata.tables['credo.ligand_components'],
@@ -249,6 +258,11 @@ mapper(Chain, metadata.tables['credo.chains'],
                                  primaryjoin=Residue.chain_id==metadata.tables['credo.chains'].c.chain_id,
                                  foreign_keys=[Residue.chain_id], uselist=True, innerjoin=True,
                                  backref=backref('Chain', uselist=False, innerjoin=True)),
+        'Peptides': relationship(Peptide,
+                                 collection_class=column_mapped_collection((Peptide.res_num, Peptide.ins_code)),
+                                 primaryjoin=Peptide.chain_id==metadata.tables['credo.chains'].c.chain_id,
+                                 foreign_keys=[Peptide.chain_id], uselist=True, innerjoin=True,
+                                 backref=backref('Chain', uselist=False, innerjoin=True)),
         'ProtFragments': relationship(ProtFragment,
                                       primaryjoin=ProtFragment.chain_id==metadata.tables['credo.chains'].c.chain_id,
                                       foreign_keys=[ProtFragment.chain_id], uselist=True, innerjoin=True,
@@ -260,6 +274,16 @@ mapper(Chain, metadata.tables['credo.chains'],
         'title': deferred(metadata.tables['credo.chains'].c.title)
        }
        )
+
+mapper(Groove, metadata.tables['credo.grooves'],
+       properties={
+        'ChainProt': relationship(Chain,
+                                  primaryjoin=Chain.chain_id==metadata.tables['credo.grooves'].c.chain_prot_id,
+                                  foreign_keys=[Chain.chain_id], uselist=False, innerjoin=True),
+        'ChainNuc': relationship(Chain,
+                                 primaryjoin=Chain.chain_id==metadata.tables['credo.grooves'].c.chain_nuc_id,
+                                 foreign_keys=[Chain.chain_id], uselist=False, innerjoin=True),
+       })
 
 mapper(Interface, metadata.tables['credo.interfaces'],
        properties={
@@ -282,6 +306,10 @@ mapper(Biomolecule, metadata.tables['credo.biomolecules'],
                                    primaryjoin=Interface.biomolecule_id==metadata.tables['credo.biomolecules'].c.biomolecule_id,
                                    foreign_keys=[Interface.biomolecule_id], uselist=True, innerjoin=True,
                                    backref=backref('Biomolecule', uselist=False, innerjoin=True)),
+        'Grooves': relationship(Groove,
+                                primaryjoin=Groove.biomolecule_id==metadata.tables['credo.biomolecules'].c.biomolecule_id,
+                                foreign_keys=[Groove.biomolecule_id], uselist=True, innerjoin=True,
+                                backref=backref('Biomolecule', uselist=False, innerjoin=True)),
         'Ligands': relationship(Ligand,
                                 primaryjoin=Ligand.biomolecule_id==metadata.tables['credo.biomolecules'].c.biomolecule_id,
                                 foreign_keys=[Ligand.biomolecule_id], uselist=True, innerjoin=True,

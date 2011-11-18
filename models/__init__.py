@@ -22,6 +22,7 @@ from .ligandmolstring import LigandMolString
 from .resmap import ResMap
 from .peptide import Peptide
 from .nucleotide import Nucleotide
+from .saccharide import Saccharide
 from .xref import XRef
 from .resmap import ResMap
 from .protfragment import ProtFragment
