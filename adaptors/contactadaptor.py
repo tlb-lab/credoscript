@@ -120,7 +120,7 @@ class ContactAdaptor(object):
         >>> ContactAdaptor().fetch_all_by_ligand_id(1)
         <Contact()>
         '''
-        whereclause = and_(Ligand.ligand_id==ligand_id, *expressions)       
+        whereclause = and_(Hetatm.ligand_id==ligand_id, *expressions)       
         
         bgn = self.query.join(
             (Hetatm, Hetatm.atom_id==Contact.atom_bgn_id)
@@ -136,7 +136,6 @@ class ContactAdaptor(object):
         '''
         '''
         whereclause = and_(Residue.chain_id==chain_id,
-                           Residue.biomolecule_id==Atom.biomolecule_id,
                            Atom.biomolecule_id==Contact.biomolecule_id,
                            *expressions)
         
@@ -159,8 +158,8 @@ class ContactAdaptor(object):
 
         Queried Entities
         ----------------
-        Contact, AtomBgn (Atom), AtomEnd (Atom), ResidueBgn (Residue),
-        ResidueEnd (Residue), Interface
+        Contact, AtomBgn (Atom), AtomEnd (Atom), PeptideBgn (Peptide),
+        PeptideEnd (Peptide), Interface
 
         Returns
         -------
@@ -177,6 +176,7 @@ class ContactAdaptor(object):
         PeptideBgn = aliased(Residue)
         PeptideEnd = aliased(Residue)
 
+        # THE BIOMOLECULE_ID IN CONTACTS SHOULD BE SPECIFIED IN *EXPRESSIONS
         whereclause = and_(Interface.interface_id==interface_id, *expressions)
 
         query = self.query.join(
@@ -186,18 +186,72 @@ class ContactAdaptor(object):
             (PeptideEnd, PeptideEnd.residue_id==AtomEnd.residue_id))
         
         bgn = query.join(Interface, and_(Interface.chain_bgn_id==PeptideBgn.chain_id,
-                                         Interface.chain_end_id==PeptideEnd.chain_id))
-        bgn = bgn.filter(whereclause)
+                                         Interface.chain_end_id==PeptideEnd.chain_id)
+                         ).filter(whereclause)
 
         end = query.join(Interface, and_(Interface.chain_bgn_id==PeptideEnd.chain_id,
-                                         Interface.chain_end_id==PeptideBgn.chain_id))
-        end = end.filter(whereclause)
+                                         Interface.chain_end_id==PeptideBgn.chain_id)
+                         ).filter(whereclause)
+
+        return bgn.union_all(end).all()
+    
+    def fetch_all_by_groove_id(self, groove_id, *expressions):
+        '''
+        Returns all the contacts between the peptides and nucleotides in this groove.
+        This method will NOT return interactions for any non-peptide and non-nucleotide
+        residues, (e.g. water).
+        
+        Parameters
+        ----------
+        groove_id : int
+            Primary key of the groove.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Contact, AtomBgn (Atom), AtomEnd (Atom), Peptide, Nucleotide, Groove
+
+        Returns
+        -------
+        contacts : list
+            all the contacts in this groove.
+
+         Examples
+        --------
+        >>> 
+        '''
+        AtomBgn = aliased(Atom)
+        AtomEnd = aliased(Atom)
+
+        # THE BIOMOLECULE_ID IN CONTACTS SHOULD BE SPECIFIED IN *EXPRESSIONS
+        whereclause = and_(Groove.groove_id==groove_id, *expressions)
+
+        bgn = self.query.join(
+            (AtomBgn, and_(AtomBgn.atom_id==Contact.atom_bgn_id, AtomBgn.biomolecule_id==Contact.biomolecule_id)),
+            (AtomEnd, and_(AtomEnd.atom_id==Contact.atom_end_id, AtomEnd.biomolecule_id==Contact.biomolecule_id)),
+            (Peptide, Peptide.residue_id==AtomBgn.residue_id),
+            (Nucleotide, Nucleotide.residue_id==AtomEnd.residue_id),
+            (Groove, and_(Groove.chain_prot_id==Peptide.chain_id,
+                          Groove.chain_nuc_id==Nucleotide.chain_id))).filter(whereclause)
+
+        end = self.query.join(
+            (AtomBgn, and_(AtomBgn.atom_id==Contact.atom_bgn_id, AtomBgn.biomolecule_id==Contact.biomolecule_id)),
+            (AtomEnd, and_(AtomEnd.atom_id==Contact.atom_end_id, AtomEnd.biomolecule_id==Contact.biomolecule_id)),
+            (Peptide, Peptide.residue_id==AtomEnd.residue_id),
+            (Nucleotide, Nucleotide.residue_id==AtomBgn.residue_id),
+            (Groove, and_(Groove.chain_prot_id==Peptide.chain_id,
+                          Groove.chain_nuc_id==Nucleotide.chain_id))).filter(whereclause)
 
         return bgn.union_all(end).all()
 
 from ..models.hetatm import Hetatm
 from ..models.ligandcomponent import LigandComponent
-from ..models.residue import Residue
+from ..models.ligand import Ligand
 from ..models.contact import Contact
 from ..models.atom import Atom
+from ..models.peptide import Peptide
+from ..models.nucleotide import Nucleotide
+from ..models.residue import Residue
 from ..models.interface import Interface
+from ..models.groove import Groove
