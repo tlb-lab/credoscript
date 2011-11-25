@@ -8,12 +8,16 @@ class Peptide(Model):
         '''
         return '<Peptide({self.residue_id})>'.format(self=self)
 
-    def __getitem__(self):
+    def __getitem__(self, atom):
         '''
         '''
-        pass
+        # ONLY ATOM NAME IS PROVIDED / WILL TREAT ALTERNATE LOCATION AS BLANK
+        if isinstance(atom, str): return self.Atoms.get((atom, ' '))
+
+        # ALTERNATE LOCATION WAS PROVIDED AS WELL
+        elif isinstance(atom, tuple): return self.Atoms.get(atom)
 
     def __iter__(self):
         '''
         '''
-        return self.Atoms
+        return iter(self.Atoms.values())
