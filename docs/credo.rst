@@ -64,7 +64,9 @@ with significantly different atomic coordinates, making these regions very diffi
 to solve. Missing regions are identified in all protein structures in the PDB.
 
 .. figure:: static/images/screenshots/2P33-disordered-regions.png
-   :scale: 60 %
+   :width: 1403 px
+   :height: 865 px
+   :scale: 75 %
    :alt: Disordered regions in PDB entry 2P33
    :align: center
 
