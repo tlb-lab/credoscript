@@ -259,7 +259,9 @@ closest atoms of the aromatic rings. All interactions are recorded where :math:`
 is less than or equal to 6.0Å. The interactions can afterwards be filtered with
 stricter parameters by the user, if desired. 
 
-.. image:: static/images/interaction_types/1Z08-E2F-AROMATIC-RAY.png 
+.. image:: static/images/interaction_types/1Z08-E2F-AROMATIC-RAY.png
+   :width: 1274 px
+   :height: 950 px
    :scale: 50 %                                                
    :alt: Aromatic ring interaction in PDB Entry 1Z08
    :align: center
@@ -284,7 +286,9 @@ Interaction types
 Atom-aromatic ring interactions are labelled as :math:`\pi`-carbon if the atom is
 a weak hydrogen bond donor.
 
-.. image:: static/images/interaction_types/2P33-CARBONPI-RAY.png 
+.. image:: static/images/interaction_types/2P33-CARBONPI-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 %                                                
    :alt: :math:`\pi`-carbon interaction in PDB Entry 2P33
    :align: center
@@ -300,7 +304,9 @@ and occur in protein-ligand interactions (Crowley and Golovin, 2005; Biot *et al
 Ma and Dougherty, 1997). Atom-aromatic ring interactions are labelled as :math:`\pi`-cation
 if the atom is positively ionisable.
 
-.. image:: static/images/interaction_types/3EMD-CATIONPI-RAY.png 
+.. image:: static/images/interaction_types/3EMD-CATIONPI-RAY.png
+   :width: 1274 px
+   :height: 950 px
    :scale: 50 %                                                
    :alt: :math:`pi`-cation interaction in PDB Entry 3EMD
    :align: center
@@ -311,7 +317,9 @@ if the atom is positively ionisable.
 Atom-aromatic ring interactions are labelled as :math:`\pi`-donor if the atom is
 a hydrogen bond donor.
 
-.. image:: static/images/interaction_types/2PD9-DONORPI-RAY-OPQ.png 
+.. image:: static/images/interaction_types/2PD9-DONORPI-RAY-OPQ.png
+   :width: 1271 px
+   :height: 950 px
    :scale: 50 %                                                
    :alt: :math:`pi`-donor interaction in PDB Entry 2PD9
    :align: center
@@ -355,6 +363,8 @@ the height of the triangle formed by an interatomic contact and all possible thi
 contacts are closer to the first than the second.
 
 .. image:: static/images/2p33-secondary-contact.png
+   :width: 1635 px
+   :height: 991 px
    :scale: 50 %
    :alt: Secondary contact
    :align: center
@@ -496,7 +506,9 @@ creating so-called bridged hydrogen bonds between two molecules. The ability to
 identify or engineer these water-mediated hydrogen bonds in protein-binding sites
 can be exploited in drug design (Ladbury, 1996).
 
-.. image:: static/images/interaction_types/2P33-WATER-RAY.png 
+.. image:: static/images/interaction_types/2P33-WATER-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 %                                                
    :alt: Mediated hydrogen bond in PDB Entry 2P33
    :align: center
@@ -517,7 +529,9 @@ almost all proteins as well and cannot be classified as hydrophobic interactions
 (Chakrabarti and Bhattacharyya, 2007; Brandl *et al*., 2001). Hence, they are likely to
 be involved in protein-ligand interactions as well.
 
-.. image:: static/images/interaction_types/2P33-WATER-RAY.png 
+.. image:: static/images/interaction_types/2P33-WHBOND-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Mediated hydrogen bond in PDB Entry 2P33 
    :align: center
@@ -539,6 +553,8 @@ Furthermore, the strength of the interaction depends on the specific halogen ele
 and increases with its atomic mass (Cl < Br < I) (Lu *et al*., 2009).
 
 .. figure:: static/images/Halogen-bond-geometry.jpg
+   :width: 1800 px
+   :height: 1460 px
    :scale: 20 %
    :alt: Halogen bond geometry
    :align: center
@@ -549,6 +565,8 @@ and increases with its atomic mass (Cl < Br < I) (Lu *et al*., 2009).
    the angle of the halogen relative to the O-Y bond. Reprinted from Auffinger *et al*. (2004).
 
 .. image:: static/images/interaction_types/2P33-XBOND-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Halogen bond in PDB Entry 2P33 
    :align: center
@@ -574,6 +592,8 @@ In addition, the force is distance-dependent and ionic interactions therefore wi
 only work on short-range in biological systems.
 
 .. image:: static/images/interaction_types/1PW7-IONIC-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Mediated hydrogen bond in PDB Entry 2P33 
    :align: center
@@ -589,6 +609,8 @@ be of structural importance as well, in zinc fingers for example where the ribbo
 polypeptide chain is stabilised by a zinc coordination complex.
 
 .. image:: static/images/interaction_types/1A65-MCOMPLEX-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Mediated hydrogen bond in PDB Entry 2P33 
    :align: center
@@ -617,6 +639,8 @@ is used, defining hydrophobes as *nonpolar atoms in a nonpolar bonded environmen
 (Bush and Sheridan, 1993).
 
 .. image:: static/images/interaction_types/2P33-HYPHOB-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Mediated hydrogen bond in PDB Entry 2P33 
    :align: center
@@ -633,6 +657,8 @@ hydrogen bonding. The authors determined a maximum cut-off distance value for th
 interaction of 3.62 Å during their ab initio calculations.
 
 .. image:: static/images/interaction_types/2P33-CNYL-RAY.png
+   :width: 1275 px
+   :height: 950 px
    :scale: 50 % 
    :alt: Mediated hydrogen bond in PDB Entry 2P33 
    :align: center

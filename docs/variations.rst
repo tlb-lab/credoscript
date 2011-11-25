@@ -46,6 +46,8 @@ Examples found in the PDB
 =========================
 
 .. figure:: static/images/screenshots/3GWS-MUTATIONS.png
+   :width: 1772 px
+   :height: 945 px
    :scale: 60 %
    :alt: 3GWS
    :align: center
@@ -60,6 +62,8 @@ Examples found in the PDB
    part of the SNPedia collection.
 
 .. figure:: static/images/screenshots/2AIX-MUTATION.png
+   :width: 1772 px
+   :height: 945 px
    :scale: 59 %
    :alt: 2AIX
    :align: center
@@ -74,6 +78,8 @@ Examples found in the PDB
    The substitution is also defined in SNPedia as a cause of Refsum's disease.
 
 .. figure:: static/images/screenshots/1T46-MUTATION-T670I.png
+   :width: 1772 px
+   :height: 945 px
    :scale: 59 %
    :alt: 1T46
    :align: center

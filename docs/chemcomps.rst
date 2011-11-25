@@ -149,6 +149,8 @@ maximum number of allowed heavy atoms was set to 100, which should cover almost
 all important drug-like and endogenous molecules.
 
 .. figure:: static/images/recap-rules.jpeg
+   :width: 4000 px
+   :height: 2821 px
    :scale: 20 %
    :alt: Classic RECAP rules
    :align: center
@@ -206,6 +208,8 @@ To avoid introducing a bias with interaction types, the number of contacts is si
 the number of protein atoms within 4.5Å of the fragment.
 
 .. figure:: static/images/screenshots/1NMQ-FCD.png
+   :width: 2800 px
+   :height: 1672 px
    :scale: 37 %
    :alt: Fragment Contact Density in 1NMQ
    :align: center
