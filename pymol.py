@@ -117,8 +117,9 @@ def load_biomolecule(self, *args, **kwargs):
     path = os.path.join(PDB_DIR, '{0}.pdb'.format(string_id))
 
     if os.path.exists(path): pymol.load(path, string_id)
-    else: raise IOError('No such structure: {0}'.format(path))
+    else: raise IOError('the structure cannot be found: {0}'.format(path))
 
+    # SHOW PROTEIN AS CARTOON WITH SIDE CHAINS
     pymol.show('cartoon')
     pymol.set('cartoon_side_chain_helper', 1)
 
@@ -131,16 +132,17 @@ def load_biomolecule(self, *args, **kwargs):
 
     # CREATE CENTROIDS OF AROMATIC RINGS
     if kwargs.get('show_rings'):
-        for ring in self.AromaticRings: ring.show(obj=string_id, normal=True, group=group)
+        for ring in self.AromaticRings:
+            ring.show(obj=string_id, normal=True, group=group)
 
     # SHOW LIGANDS AS STICKS INCLUDING CENTROIDS
     for ligand in self.Ligands: ligand.show(group=group)
 
     # REMOVE WATER MOLECULES FROM PYMOL (DEFAULT FALSE)
-    if kwargs.get('hide_water'): pymol.hide('everything','resn HOH')
+    if kwargs.get('hide_water', False): pymol.hide('everything','resn HOH')
 
     # HIGHLIGHT MODIFIED RESIDUES
-    show_non_std_res(group=group)
+    if kwargs.get('non_std_res', True): show_non_std_res(group=group)
 
     # SHOW DNA AS CARTOON
     show_nucleotides(group=group)
@@ -224,7 +226,7 @@ def show_aromatic_ring(self, **kwargs):
         if group: pymol.group(group, label)
 
 @defer_update
-def show_contacts(self, *binaryexpressions, **kwargs):
+def show_contacts(self, *expressions, **kwargs):
     '''
     Visualises all interatomic contacts of this entity with other entities through
     colour-coded PyMOL distance objects.
@@ -235,9 +237,6 @@ def show_contacts(self, *binaryexpressions, **kwargs):
         Boolean flag indicating whether distance labels should be kept.
     distance_cut_off : float (default=4.5)
         Maximum allowed distance for inter-atomic contacts.
-    secondary_contacts : bool (default=True)
-        Boolean flag indicating whether secondary contacts should be ignored or
-        not (EXPERIMENTAL). The default value will show all possible contacts.
     water_bridges : bool (default=True)
 
     Examples
@@ -248,42 +247,18 @@ def show_contacts(self, *binaryexpressions, **kwargs):
     # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
     credo_class = self.__class__.__name__
 
-    # EXPLOIT THE FACT THAT THE HASH FUNCTION FOR EACH ENTITY IS OVERLOADED TO RETURN THE PRIMARY KEY
+    # GET THE PRIMARY KEY OF THE ENTITY
     credo_id = self._entity_id
 
     labels = kwargs.get('labels', False)
-    distance_cut_off = kwargs.get('distance_cut_off', 4.5)
 
-    # SHOW ONLY CONTACTS WITH OTHER ENTITIES BY DEFAULT
-    same_entity = kwargs.get('same_entity', False)
-
-    # DO NOT SHOW SECONDARY CONTACTS / only, hide, include
-    secondary_contacts = kwargs.get('secondary_contacts', 'hide')
-
+    # ATOMS
     if hasattr(self, 'Contacts'):
         contacts = self.Contacts
-        if not secondary_contacts: contacts = [c for c in contacts if c.is_secondary==False]
 
+    # OTHER ENTITITES
     elif hasattr(self, 'get_contacts'):
-        
-        contacts = self.get_contacts(*binaryexpressions)
-        
-        # SHOW ONLY SECONDARY CONTACTS
-        #if secondary_contacts == 'only':
-        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
-        #                                 Contact.is_same_entity==same_entity,
-        #                                 Contact.is_secondary==True)
-        #
-        # HIDE SECONDARY AND SHOW ONLY DIRECT CONTACTS
-        #elif secondary_contacts == 'hide':
-        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
-        #                                 Contact.is_same_entity==same_entity,
-        #                                 Contact.is_secondary==False)
-        #
-        # SHOW ALL CONTACTS
-        #else:
-        #    contacts = self.get_contacts(Contact.distance<=distance_cut_off,
-        #                                 Contact.is_same_entity==same_entity)
+        contacts = self.get_contacts(*expressions)
 
     else:
         raise RuntimeError('Entity {entity} does not have contacts associated with it.'.format(entity=credo_class))
@@ -504,7 +479,6 @@ def show_atom_ring_interactions(self, *args, **kwargs):
         if not labels: pymol.hide('labels', label)
 
         pymol.group(group, label)
-
 
 Biomolecule.load = load_biomolecule
 Biomolecule.show_disordered_regions = show_disordered_regions
