@@ -12,24 +12,32 @@ class Ligand(Model):
     ----------
     ligand_id : int
         Primary key of this object.
-    structure_id : int
-        "Foreign key" of the parent `Structure` (Structure.id).
+    biomolecule_id : int
+        "Foreign key" of the parent `Biomolecule` (Structure.id).
+    entity_serial : int
+        Serial number of the ligand as entity. Only used internally for inserts,
+        updates, etc.
+    pdb_chain_id : string
+        PDB chain identifier of this Ligand.    
     ligand_name : string
         String consisting of the concatenated chemical component names (HET ID)
         of all `LigandComponent` objects.
-    pdb_chain_id : string
-        PDB chain identifier of this Ligand.
     res_num : int or None
         PDB residue number. None in case of a `Ligand` with more than one
         `LigandComponent`.
     num_hvy_atoms : int
         Number of all observed heavy atoms of this Ligand.
-    ism : string
-        Canonical isomeric SMILES string of this Ligand. Very useful in cases of
-        ligands consisting of more than one chemical component.
+    gini_index_contacts : float
+        Gini index for the contacts that the ligand atom form with other atoms.
+    is_at_identity : bool
+        True if the ligand is at identity, i.e. no transformation was performed.
     is_incomplete : bool
         Boolean flag indicating whether this Ligand has missing (not observed)
         atoms.
+    is_disordered : bool
+        True if at least one ligand atom is disordered.
+    is_clashing : bool
+        True if the ligand is clashing with other residues.    
     is_substrate : bool
         Boolean flag whether this Ligand is annotated as a substrate in a reaction
         involving the EC code of the chain its in contact with.
@@ -47,16 +55,22 @@ class Ligand(Model):
 
     Mapped Attributes
     -----------------
-    Components : list
-        A list of `LigandComponent` objects.
-    Residues : list
-        The Residues this ligand consists of.
-    LigandFragments : list
-
-    Atoms : list
-        A list of `Atom` objects, i.e. the atoms this Ligand consists of.
     AromaticRings : list
-        A list of `LigandRing` objects, mapped as association_proxy via LigandComponents.
+        All the aromatic rings of this ligand.
+    Atoms : list
+        All the atoms of this ligand.
+    Biomolecule : Biomolecule
+        Biological assembly this ligand is part of.
+    Components : list
+        Chemical components this ligand consists of.
+    LigandFragments : list
+        All the fragments derived from this ligand.
+    MolString : MolString
+        Object containing the ligand structure in various formats as attributes.  
+    Residues : list
+        Residues this ligand consists of.
+    XRefs : list
+        Cross references to external databases.
 
     Overloaded operators
     --------------------
@@ -94,8 +108,9 @@ class Ligand(Model):
             The USR similarity between two ligands.
         '''
         if isinstance(other, Ligand):
-            distance = sum([abs(a - b) for a, b in zip(self.usr_space, other.usr_space)])
-            return 1.0 / (1.0 + distance / 12.0)
+            if self.usr_space and other.usr_space:
+                distance = sum([abs(a - b) for a, b in zip(self.usr_space, other.usr_space)])
+                return 1.0 / (1.0 + distance / 12.0)
 
     @property
     def Residues(self):
