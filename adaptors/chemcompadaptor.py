@@ -437,10 +437,10 @@ class ChemCompAdaptor(object):
 
         # WEIGHTS FOR THE INDIVIDUAL ATOM TYPE MOMENTS
         ow = kwargs.get('ow', 1.0)
-        hw = kwargs.get('hw', 0.125)
-        rw = kwargs.get('rw', 0.125)
-        aw = kwargs.get('aw', 0.125)
-        dw = kwargs.get('dw', 0.125)
+        hw = kwargs.get('hw', 0.25)
+        rw = kwargs.get('rw', 0.25)
+        aw = kwargs.get('aw', 0.25)
+        dw = kwargs.get('dw', 0.25)
 
         # RAISE AN ERROR IF NEITHER A CUBE NOR THE USR MOMENTS HAVE BEEN PROVIDED
         if len(usr_moments) != 60: raise ValueError('The 60 USR shape descriptors are required.')
@@ -453,7 +453,7 @@ class ChemCompAdaptor(object):
             probe = func.cube_enlarge(usr_space, probe_radius, 12).label('probe')
 
         # CUBE DISTANCE GIST INDEX
-        index = ChemCompConformer.usr_space.op('<@')(probe)
+        index = ChemCompConformer.contained_in(probe)
 
         # USRCAT SIMILARITY
         similarity = func.arrayxd_usrcatsim(ChemCompConformer.usr_moments, usr_moments, ow, hw, rw, aw, dw).label('similarity')
