@@ -31,7 +31,9 @@ class ChemComp(Base):
     iupac_name : str
         IUPAC systematic name.
     initial_date :
+    
     modified_date :
+    
     ism : str
         Isomeric SMILES string of the chemical component.
     mw : float
@@ -196,15 +198,7 @@ class ChemComp(Base):
 
             return query.scalar()
 
-    @hybrid_method
-    def like(self, smiles):
-        '''
-        Returns an SQL function expression that uses the PostgreSQL trigram index
-        to compare the SMILES strings.
-        '''
-        warn("Trigram functions at the instance level are not implemented.", UserWarning)
-
-    @like.expression
+    @classmethod
     def like(self, smiles):
         '''
         Returns an SQL function expression that uses the PostgreSQL trigram index
