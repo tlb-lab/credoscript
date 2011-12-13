@@ -1,10 +1,15 @@
 from sqlalchemy.sql.expression import and_, text
 
-from ..meta import session
+from credoscript import session
 
 class AromaticRingAdaptor(object):
     '''
     '''
+    def __init__(self):
+        '''
+        '''
+        self.query = session.query(AromaticRing)
+
     def fetch_by_aromatic_ring_id(self, aromatic_ring_id):
         '''
         Parameters
@@ -22,7 +27,7 @@ class AromaticRingAdaptor(object):
         >>> AromaticRingAdaptor().fetch_by_aromatic_ring_id(1)
         <AromaticRing(1)>
         '''
-        return session.query(AromaticRing).get(aromatic_ring_id)
+        return self.query(AromaticRing).get(aromatic_ring_id)
 
     def fetch_all_by_biomolecule_id(self, biomolecule_id, *expressions):
         '''
@@ -50,7 +55,7 @@ class AromaticRingAdaptor(object):
         >>> AromaticRingAdaptor().fetch_all_by_biomolecule_id(1)
         <Contact()>
         '''
-        query = session.query(AromaticRing).filter(
+        query = self.query(AromaticRing).filter(
             and_(AromaticRing.biomolecule_id==biomolecule_id, *expressions))
 
         return query.all()
@@ -81,7 +86,7 @@ class AromaticRingAdaptor(object):
         >>> AromaticRingAdaptor().fetch_all_by_ligand_id(1)
         <Contact()>
         '''
-        query = session.query(AromaticRing).join(
+        query = self.query(AromaticRing).join(
             (Residue, Residue.residue_id==AromaticRing.residue_id),
             (LigandComponent, LigandComponent.residue_id==Residue.residue_id)
             ).filter(and_(LigandComponent.ligand_id==ligand_id, *expressions))

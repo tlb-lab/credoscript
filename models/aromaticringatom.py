@@ -1,6 +1,6 @@
-from .model import Model
+from credoscript import Base
 
-class AromaticRingAtom(Model):
+class AromaticRingAtom(Base):
     '''
     '''
-    pass
+    __tablename__ = 'credo.aromatic_ring_atoms'

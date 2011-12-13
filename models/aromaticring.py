@@ -1,7 +1,7 @@
-from .model import Model
+from credoscript import Base
 from ..support.vector import Vector
 
-class AromaticRing(Model):
+class AromaticRing(Base):
     '''
     An AromaticRing represents the an aromatic ring system of ANY residue in CREDO.
 
@@ -33,6 +33,8 @@ class AromaticRing(Model):
     AromaticRingAtoms : list
         All atoms of this aromatic ring.
     '''
+    __tablename__ = 'credo.aromatic_rings' 
+    
     def __repr__(self):
         '''
         '''

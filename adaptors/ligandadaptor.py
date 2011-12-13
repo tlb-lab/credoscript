@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, func
 
-from ..meta import session, binding_sites, ligand_usr
+from credoscript import session, binding_sites, ligand_usr
 
 class LigandAdaptor(object):
     '''

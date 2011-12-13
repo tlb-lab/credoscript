@@ -1,8 +1,10 @@
-from .model import Model
+from credoscript import Base
 
-class LigandMolString(Model):
+class LigandMolString(Base):
     '''
     '''
+    __tablename__ = 'credo.ligand_molstrings'    
+    
     def __repr__(self):
         '''
         '''

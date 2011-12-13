@@ -1,11 +1,26 @@
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import func
 
-from .model import Model
-from ..meta import session
+from credoscript import Base, session
 
-class LigandFragment(Model):
+class LigandFragment(Base):
     '''
     '''
+    __tablename__ = 'credo.ligand_fragments'    
+    
+    Fragment = relationship("Fragment",
+                            primaryjoin="Fragment.fragment_id==LigandFragment.fragment_id",
+                            foreign_keys="[Fragment.fragment_id]",
+                            uselist=False, innerjoin=True,
+                            backref=backref('LigandFragments',uselist=True, innerjoin=True))
+    
+    Atoms = relationship("Atom",
+                         secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
+                         primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
+                         secondaryjoin="LigandFragmentAtom.atom_id==Atom.atom_id",
+                         foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
+                         uselist=True, innerjoin=True) 
+    
     def __repr__(self):
         '''
         '''

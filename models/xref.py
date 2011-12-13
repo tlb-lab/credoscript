@@ -1,6 +1,6 @@
-from .model import Model
+from credoscript import Base
 
-class XRef(Model):
+class XRef(Base):
     '''
     Represents a cross reference from an external source to an object in CREDO.
 
@@ -22,31 +22,14 @@ class XRef(Model):
 
     Notes
     -----
+    
     '''
+    __tablename__ = 'credo.xrefs'
+    
     def __repr__(self):
         '''
         '''
         return '<XRef({self.source} {self.xref})>'.format(self=self)
-
-    def __getitem__(self, pdb_chain_id):
-        '''
-        '''
-        return self.Chains[pdb_chain_id]
-
-    def __hash__(self):
-        '''
-        '''
-        return self.xref_id
-
-    def __eq__(self, other):
-        '''
-        '''
-        return self.xref_id == other.xref_id
-
-    def __ne__(self, other):
-        '''
-        '''
-        return self.xref_id != other.xref_id
 
     @property
     def Entity(self):

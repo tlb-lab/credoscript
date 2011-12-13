@@ -1,6 +1,8 @@
-from .model import Model
+from sqlalchemy.orm import relationship
 
-class Contact(Model):
+from credoscript import Base
+
+class Contact(Base):
     '''
     Represents a Contact entity from CREDO
 
@@ -9,6 +11,18 @@ class Contact(Model):
     contact_id : int
         Primary key.
     '''
+    __tablename__ = 'credo.contacts'
+    
+    AtomBgn  = relationship("Atom",
+                            primaryjoin="and_(Atom.atom_id==Contact.atom_bgn_id, Atom.biomolecule_id==Contact.biomolecule_id)", # PARTITION CONSTRAINT-EXCLUSION
+                            foreign_keys="[Atom.atom_id, Atom.biomolecule_id]",
+                            uselist=False, innerjoin=True)
+    
+    AtomEnd = relationship("Atom",
+                           primaryjoin="and_(Atom.atom_id==Contact.atom_end_id, Atom.biomolecule_id==Contact.biomolecule_id)", # PARTITION CONSTRAINT-EXCLUSION
+                           foreign_keys="[Atom.atom_id, Atom.biomolecule_id]",
+                           uselist=False, innerjoin=True)    
+    
     def __repr__(self):
         '''
         '''

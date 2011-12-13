@@ -1,14 +1,14 @@
 from warnings import warn
 
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, backref, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func, text
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from .model import Model
-from ..meta import session
-from ..support import requires
+from credoscript import Base, session
+from credoscript.support import requires
 
-class ChemComp(Model):
+class ChemComp(Base):
     '''
     Represents a chemical component entity from the PDB with additional calculated
     chemical properties.
@@ -113,6 +113,45 @@ class ChemComp(Model):
     - The __mod__ (%) method is overloaded for this class and will return the
       tanimoto similarity between this and another chemical component from CREDO.
     '''
+    __tablename__ = 'pdbchem.chem_comps'
+    
+    ChemCompFragments = relationship("ChemCompFragment",
+                                     primaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
+                                     foreign_keys = "[ChemCompFragment.het_id]",
+                                     uselist=True, innerjoin=True,
+                                     backref=backref('ChemComp', uselist=False, innerjoin=True))
+    
+    Conformers = relationship("ChemCompConformer",
+                              primaryjoin="ChemCompConformer.het_id==ChemComp.het_id",
+                              foreign_keys = "[ChemCompConformer.het_id]",
+                              uselist=True, innerjoin=True,
+                              backref=backref('ChemComp', uselist=False, innerjoin=True))     
+    
+    Fragments = relationship("Fragment",
+                             secondary=Base.metadata.tables['pdbchem.chem_comp_fragments'],
+                             primaryjoin="ChemComp.het_id==ChemCompFragment.het_id",
+                             secondaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
+                             foreign_keys="[ChemCompFragment.het_id, Fragment.fragment_id]",
+                             uselist=True, innerjoin=True,
+                             backref = backref('ChemComps', uselist=True, innerjoin=True))   
+    
+    XRefs = relationship("XRef", collection_class=attribute_mapped_collection("source"),
+                         primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
+                         uselist=True, innerjoin=True)    
+    
+    RDMol = relationship("ChemCompRDMol",
+                         primaryjoin="ChemCompRDMol.het_id==ChemComp.het_id",
+                         foreign_keys="[ChemCompRDMol.het_id]",
+                         uselist=False, innerjoin=True,
+                         backref=backref('ChemComp', uselist=False, innerjoin=True))
+    
+    RDFP = relationship("ChemCompRDFP",
+                        primaryjoin="ChemCompRDFP.het_id==ChemComp.het_id",
+                        foreign_keys="[ChemCompRDFP.het_id]",
+                        uselist=False, innerjoin=True,
+                        backref=backref('ChemComp', uselist=False, innerjoin=True))
+ 
     def __repr__(self):
         '''
         '''

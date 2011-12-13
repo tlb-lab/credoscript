@@ -1,10 +1,10 @@
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from .model import Model
+from credoscript import Base
 from ..support.vector import Vector
 
-class Atom(Model):
+class Atom(Base):
     '''
     Represents an Atom entity from CREDO.
 
@@ -65,10 +65,19 @@ class Atom(Model):
     -----
 
     '''
+    __tablename__ = 'credo.atoms'
+    
     def __repr__(self):
         '''
         '''
         return "<Atom({self.atom_name} {self.alt_loc})>".format(self=self)
+
+    @property
+    def full_name(self):
+        '''
+        Returns the atom name + the alternate location code.
+        '''
+        return ' '.join((self.atom_name,self.alt_loc))
 
     @property
     def Contacts(self):

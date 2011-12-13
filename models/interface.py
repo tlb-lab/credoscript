@@ -1,6 +1,8 @@
-from .model import Model
+from sqlalchemy.orm import relationship
 
-class Interface(Model):
+from credoscript import Base
+
+class Interface(Base):
     '''
     Represents the binary interaction between two polypeptide chains.
 
@@ -38,6 +40,16 @@ class Interface(Model):
     --------
     InterfaceAdaptor : Fetch Interfaces from the database.
     '''
+    __tablename__ = 'credo.interfaces'    
+    
+    ChainBgn = relationship("Chain",
+                            primaryjoin="Chain.chain_id==Interface.chain_bgn_id",
+                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
+    
+    ChainEnd = relationship("Chain",
+                            primaryjoin="Chain.chain_id==Interface.chain_end_id",
+                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)    
+    
     def __repr__(self):
         '''
         '''

@@ -318,6 +318,11 @@
         [
             "DA","DC","DG","DI","DT","A","C","G","U","I","N","DOC"
         ]
+    },
+    
+    "extras":
+    {
+        "rdkit": false,
+        "rdkit-cartridge": true
     }
-
 }

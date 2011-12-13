@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, or_
 
-from ..meta import session
+from credoscript import session
 
 class RingInteractionAdaptor(object):
     '''
@@ -8,7 +8,7 @@ class RingInteractionAdaptor(object):
     def __init__(self):
         '''
         '''
-        self.query = session.query(RingInteraction)
+        self.query = self.session.query(RingInteraction)
 
     def fetch_by_ring_interaction_id(self, ring_interaction_id):
         '''

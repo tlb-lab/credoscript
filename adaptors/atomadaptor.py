@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from ..meta import session, binding_sites, ligand_fragment_atoms
+from credoscript import session, binding_sites
 
 class AtomAdaptor(object):
     '''
@@ -228,13 +228,13 @@ class AtomAdaptor(object):
         '''
         bgn = self.query.join(
             (Contact, Contact.atom_bgn_id==Atom.atom_id),
-            (ligand_fragment_atoms, ligand_fragment_atoms.c.atom_id==Contact.atom_end_id)
-            ).filter(and_(ligand_fragment_atoms.c.ligand_fragment_id==ligand_fragment_id, *expressions))
+            (ligand_fragment_atoms, LigandFragmentAtom.atom_id==Contact.atom_end_id)
+            ).filter(and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expressions))
 
         end = self.query.join(
             (Contact, Contact.atom_end_id==Atom.atom_id),
-            (ligand_fragment_atoms, ligand_fragment_atoms.c.atom_id==Contact.atom_bgn_id)
-            ).filter(and_(ligand_fragment_atoms.c.ligand_fragment_id==ligand_fragment_id, *expressions))
+            (ligand_fragment_atoms, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
+            ).filter(and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expressions))
 
         return bgn.union(end).all()
 
@@ -244,3 +244,4 @@ from ..models.hetatm import Hetatm
 from ..models.residue import Residue
 from ..models.interface import Interface
 from ..models.chain import Chain
+from ..models.ligandfragmentatom import LigandFragmentAtom

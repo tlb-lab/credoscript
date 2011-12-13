@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import func, text, and_
 
-from ..meta import session
-from ..support import requires
+from credoscript import session
+from credoscript.support import requires
 
 class ChemCompAdaptor(object):
     '''
@@ -130,7 +130,7 @@ class ChemCompAdaptor(object):
         return self.query.filter(ChemComp.is_approved_drug==True).all()
 
     @requires.rdkit_catridge
-    def fetch_all_by_substruct(self, smi, *expressions):
+    def fetch_all_by_substruct(self, smi, *expressions, **kwargs):
         '''
         Returns all Chemical Components in the PDB that have the given SMILES
         substructure.
@@ -164,11 +164,15 @@ class ChemCompAdaptor(object):
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         '''
-        return self.query.join('RDMol').filter(
-            and_(ChemCompRDMol.contains(smi), *expressions)).all()
+        limit = kwargs.get('limit', 100) 
+        
+        query = self.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.contains(smi), *expressions))
+
+        return query.limit(limit).all()
 
     @requires.rdkit_catridge
-    def fetch_all_by_superstruct(self, smiles, *expressions):
+    def fetch_all_by_superstruct(self, smiles, *expressions, **kwargs):
         '''
         Returns all Chemical Components in the PDB that have the given SMILES
         superstructure.
@@ -202,11 +206,15 @@ class ChemCompAdaptor(object):
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         '''
-        return self.query.join('RDMol').filter(
-            and_(ChemCompRDMol.contained_in(smiles), *expressions)).all()
+        limit = kwargs.get('limit', 100) 
+        
+        query = self.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.contained_in(smi), *expressions))
+
+        return query.limit(limit).all()        
 
     @requires.rdkit_catridge
-    def fetch_all_by_smarts(self, smarts, *expressions):
+    def fetch_all_by_smarts(self, smarts, *expressions, **kwargs):
         '''
         Returns all chemical components that match the given SMARTS pattern.
 
@@ -241,11 +249,15 @@ class ChemCompAdaptor(object):
         ChemCompAdaptor.fetch_all_by_superstruct
         ChemCompAdaptor.fetch_all_by_sim
         '''
-        return self.query.join('RDMol').filter(
-            and_(ChemCompRDMol.matches(smarts), *expressions)).all()
+        limit = kwargs.get('limit', 100) 
+        
+        query = self.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.matches(smi), *expressions))
+
+        return query.limit(limit).all()        
 
     @requires.rdkit_catridge
-    def fetch_all_by_sim(self, smi, threshold=0.5, fp='circular', *expressions):
+    def fetch_all_by_sim(self, smi, *expressions, **kwargs):
         '''
         Returns all Chemical Components that match the given SMILES string with at
         least the given similarity threshold using chemical fingerprints.
@@ -279,6 +291,10 @@ class ChemCompAdaptor(object):
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         '''
+        threshold = kwargs.get('threshold', 0.5)  
+        fp = kwargs.get('fp', 'circular')  
+        limit = kwargs.get('limit', 100)        
+        
         if fp == 'circular':
             query = func.rdkit.morganbv_fp(smi,2).label('queryfp')
             target = ChemCompRDFP.circular_fp
@@ -304,7 +320,7 @@ class ChemCompAdaptor(object):
         query = session.query(ChemComp, tanimoto).join('RDFP').filter(
             and_(index, *expressions)).order_by('tanimoto DESC')
 
-        return query.all()
+        return query.limit(limit).all()
 
     def fetch_all_by_trgm_sim(self, smiles, *expressions, **kwargs):
         '''

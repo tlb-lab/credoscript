@@ -1,8 +1,10 @@
-from .model import Model
+from credoscript import Base
 
-class FragmentHierarchy(Model):
+class FragmentHierarchy(Base):
     '''
     '''
+    __tablename__ = 'pdbchem.fragments'
+    
     def __repr__(self):
         '''
         '''

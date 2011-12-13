@@ -1,6 +1,9 @@
-from .model import Model
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
-class Biomolecule(Model):
+from credoscript import Base
+
+class Biomolecule(Base):
     '''
     Represents a biological assembly of a PDB structure, henceforth known as
     'Biomolecule'.
@@ -48,6 +51,41 @@ class Biomolecule(Model):
     -----
 
     '''
+    __tablename__ = 'credo.biomolecules'
+    
+    Chains = relationship("Chain",
+                          collection_class=attribute_mapped_collection("pdb_chain_id"),
+                          primaryjoin="Chain.biomolecule_id==Biomolecule.biomolecule_id",
+                          foreign_keys="[Chain.biomolecule_id]", uselist=True, innerjoin=True,
+                          backref=backref('Biomolecule', uselist=False, innerjoin=True))
+    
+    Interfaces = relationship("Interface",
+                              primaryjoin="Interface.biomolecule_id==Biomolecule.biomolecule_id",
+                              foreign_keys="[Interface.biomolecule_id]", uselist=True, innerjoin=True,
+                              backref=backref('Biomolecule', uselist=False, innerjoin=True))
+    
+    Grooves = relationship("Groove",
+                           primaryjoin="Groove.biomolecule_id==Biomolecule.biomolecule_id",
+                           foreign_keys="[Groove.biomolecule_id]", uselist=True, innerjoin=True,
+                           backref=backref('Biomolecule', uselist=False, innerjoin=True))
+    
+    Ligands = relationship("Ligand",
+                           primaryjoin="Ligand.biomolecule_id==Biomolecule.biomolecule_id",
+                           foreign_keys="[Ligand.biomolecule_id]", uselist=True, innerjoin=True,
+                           backref=backref('Biomolecule', uselist=False, innerjoin=True))
+    
+    AromaticRings = relationship("AromaticRing",
+                                 primaryjoin="AromaticRing.biomolecule_id==Biomolecule.biomolecule_id",
+                                 foreign_keys="[AromaticRing.biomolecule_id]",
+                                 uselist=True, innerjoin=True,
+                                 backref=backref('Biomolecule', uselist=False, innerjoin=True))
+    
+    Atoms = relationship("Atom",
+                         primaryjoin="Atom.biomolecule_id==Biomolecule.biomolecule_id",
+                         foreign_keys="[Atom.biomolecule_id]", uselist=True, innerjoin=True,
+                         backref=backref('Biomolecule', uselist=False, innerjoin=True)),
+    
+    
     def __repr__(self):
         '''
         '''

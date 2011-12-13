@@ -5,15 +5,17 @@ from sqlalchemy.sql.expression import func
 try: from rdkit.Chem import Mol, MolFromSmarts
 except ImportError: pass
 
-from .model import Model
+from credoscript import Base
 from ..support import requires
 
-class ChemCompRDMol(Model):
+class ChemCompRDMol(Base):
     '''
     This class contains the RDKit RDMol object for a chemical component from CREDO.
     Only available if the RDKit PostgreSQL cartridge is installed on the server
     and the RDKit Python wrappers are available on the client side.
     '''
+    __tablename__ = 'pdbchem.chem_comp_rdmols'
+    
     def __repr__(self):
         '''
         '''
@@ -60,6 +62,7 @@ class ChemCompRDMol(Model):
         return iter(self.rdmol.GetAtoms())
 
     @reconstructor
+    @requires.rdkit
     def init_on_load(self):
         '''
         Turns the rdmol column that is returned as a SMILES string back into an
@@ -68,6 +71,7 @@ class ChemCompRDMol(Model):
         self.rdmol = Mol(str(self.rdmol))
 
     @hybrid_method
+    @requires.rdkit
     def contains(self, smiles):
         '''
         Returns true if the given SMILES string is a substructure of this RDMol.

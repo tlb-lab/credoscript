@@ -1,35 +1,16 @@
 from sqlalchemy.sql.expression import func
 
-from .model import Model
-from ..meta import session, chem_comp_fragment_atoms
+from credoscript import Base, session, chem_comp_fragment_atoms
 
-class ChemCompFragment(Model):
+class ChemCompFragment(Base):
     '''
     '''
+    __tablename__ = 'pdbchem.chem_comp_fragments'
+    
     def __repr__(self):
         '''
         '''
         return '<ChemCompFragment({self.het_id} {self.fragment_id})>'.format(self=self)
-
-    def __getitem__(self):
-        '''
-        '''
-        pass
-
-    def __hash__(self):
-        '''
-        '''
-        return self.chem_fragment_id
-
-    def __eq__(self, other):
-        '''
-        '''
-        return self.chem_fragment_id == other.chem_fragment_id
-
-    def __ne__(self, other):
-        '''
-        '''
-        return self.chem_fragment_id != other.chem_fragment_id
 
     @property
     def pdb_atom_names(self):

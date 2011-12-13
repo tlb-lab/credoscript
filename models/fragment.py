@@ -1,11 +1,20 @@
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import and_, func
 
-from .model import Model
-from ..meta import session
+from credoscript import Base
 
-class Fragment(Model):
+class Fragment(Base):
     '''
     '''
+    __tablename__ = 'pdbchem.chem_comp_fragments'
+    
+    ChemCompFragments = relationship("ChemCompFragment",
+                                     primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
+                                     foreign_keys = "[ChemCompFragment.fragment_id]",
+                                     uselist=True, innerjoin=True,
+                                     backref=backref('Fragment', uselist=False,
+                                                     remote_side="[ChemCompFragment.fragment_id]"))
+    
     def __repr__(self):
         '''
         '''

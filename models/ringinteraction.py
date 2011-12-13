@@ -1,6 +1,8 @@
-from .model import Model
+from sqlalchemy.orm import backref, relationship
 
-class RingInteraction(Model):
+from credoscript import Base
+
+class RingInteraction(Base):
     '''
     A class that represents a RingInteraction entity from CREDO.
 
@@ -42,22 +44,29 @@ class RingInteraction(Model):
     Notes
     -----
     '''
+    __tablename__ = 'credo.ring_interactions'
+    
+    AromaticRingBgn = relationship("AromaticRing",
+                                   primaryjoin="AromaticRing.aromatic_ring_id==RingInteraction.aromatic_ring_bgn_id",
+                                   foreign_keys="[AromaticRing.aromatic_ring_id]",
+                                   uselist=False, innerjoin=True)
+    
+    AromaticRingEnd = relationship("AromaticRing",
+                                    primaryjoin="AromaticRing.aromatic_ring_id==RingInteraction.aromatic_ring_end_id",
+                                    foreign_keys="[AromaticRing.aromatic_ring_id]",
+                                    uselist=False, innerjoin=True)
+    
+    ClosestAtomBgn = relationship("Atom",
+                                   primaryjoin="Atom.atom_id==RingInteraction.closest_atom_bgn_id",
+                                   foreign_keys = "[Atom.atom_id]",
+                                   uselist=False, innerjoin=True)
+    
+    ClosestAtomEnd = relationship("Atom",
+                                   primaryjoin="Atom.atom_id==RingInteraction.closest_atom_end_id",
+                                   foreign_keys = "[Atom.atom_id]",
+                                   uselist=False, innerjoin=True),
+    
     def __repr__(self):
         '''
         '''
         return "<RingInteraction({self.ring_interaction_id} {self.interaction_type})>".format(self=self)
-
-    def __hash__(self):
-        '''
-        '''
-        return self.ring_interaction_id
-
-    def __eq__(self, other):
-        '''
-        '''
-        return self.ring_interaction_id == other.ring_interaction_id
-
-    def __ne__(self, other):
-        '''
-        '''
-        return self.ring_interaction_id != other.ring_interaction_id

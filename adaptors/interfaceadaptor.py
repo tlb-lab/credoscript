@@ -1,10 +1,13 @@
-from ..meta import *
-from ..models.chain import Chain
-from ..models.interface import Interface
+from credoscript import session
 
 class InterfaceAdaptor(object):
     '''
     '''
+    def __init__(self):
+        '''
+        '''
+        self.query = session.query(Interface)
+
     def fetch_by_interface_id(self, interface_id):
         '''
         Parameters
@@ -22,7 +25,7 @@ class InterfaceAdaptor(object):
         >>> InterfaceAdaptor().fetch_by_interface_id(1)
         <Interface(1)>
         '''
-        return session.query(Interface).get(interface_id)
+        return self.query(Interface).get(interface_id)
 
     def fetch_all_by_biomolecule_id(self, biomolecule_id):
         '''
@@ -43,6 +46,9 @@ class InterfaceAdaptor(object):
         >>> InterfaceAdaptor().fetch_all_by_biomolecule_id(1)
         >>> <Interface()>
         '''
-        query = session.query(Interface).filter(Interface.biomolecule_id==biomolecule_id)
+        query = self.query(Interface).filter(Interface.biomolecule_id==biomolecule_id)
 
         return query.all()
+
+from ..models.chain import Chain
+from ..models.interface import Interface

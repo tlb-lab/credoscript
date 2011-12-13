@@ -1,10 +1,10 @@
 from sqlalchemy.dialects.postgresql import INTEGER
 from sqlalchemy.sql.expression import and_, cast, func
 
-from ..meta import session
-from .model import Model
+from credoscript import Base, session
+from credoscript.mixins import ResidueMixin
 
-class Residue(Model):
+class Residue(Base, ResidueMixin):
     '''
     Represents a PDB Residue of ANY type.
 
@@ -40,40 +40,7 @@ class Residue(Model):
     their names, e.g. Residue['CA']. Returns a list due to atoms with
     possible alternate locations.
     '''
-    def __repr__(self):
-        '''
-        '''
-        return "<Residue({self.res_name} {self.res_num}{self.ins_code})>".format(self=self)
-
-    def __getitem__(self, atom):
-        '''
-        '''
-        # ONLY ATOM NAME IS PROVIDED / WILL TREAT ALTERNATE LOCATION AS BLANK
-        if isinstance(atom, str): return self.Atoms.get((atom, ' '))
-
-        # ALTERNATE LOCATION WAS PROVIDED AS WELL
-        elif isinstance(atom, tuple): return self.Atoms.get(atom)
-
-    def __iter__(self):
-        '''
-        '''
-        return iter(self.Atoms.values())
-
-    @property
-    def pymolstring(self):
-        '''
-        Returns a PyMOL selection string in the form /PDB//PDB-CHAIN-ID/RESNAME`RESNUMINSCODE.
-        Used by the CREDO PyMOL API.
-
-        Returns
-        -------
-        select : string
-            PyMOL selection string.
-        '''
-        return "/{0}-{1}//{2}/{3}`{4}".format(self.Chain.Biomolecule.Structure.pdb,
-                                              self.Chain.Biomolecule.assembly_serial,
-                                              self.Chain.pdb_chain_id, self.res_name,
-                                              str(self.res_num)+self.ins_code.strip())
+    __tablename__ = 'credo.residues' 
 
     def get_contacts(self, *expressions):
         '''
@@ -120,7 +87,10 @@ class Residue(Model):
         sift : tuple
             sum of all the contact types of all contacts this residue has.
         '''
-        whereclause = and_(Atom.residue_id==self.residue_id, *expressions)
+        whereclause = and_(Atom.residue_id==self.residue_id,
+                           Contact.biomolecule_id==self.biomolecule_id,
+                           Atom.biomolecule_id==Contact.biomolecule_id,
+                           *expressions)
 
         bgn = session.query(Contact).join(Atom, Contact.atom_bgn_id==Atom.atom_id).filter(whereclause)
         end = session.query(Contact).join(Atom, Contact.atom_end_id==Atom.atom_id).filter(whereclause)
@@ -140,9 +110,7 @@ class Residue(Model):
                 func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)),
                 func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)))
         
-        query = session.query(*sift)
-
-        return query.first()
+        return session.query(*sift).first()
 
 from .contact import Contact
 from .atom import Atom

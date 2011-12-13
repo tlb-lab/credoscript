@@ -1,9 +1,10 @@
+from sqlalchemy.orm import backref, deferred, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
 
-from .model import Model
-from ..meta import session, ligand_usr, binding_site_atom_surface_areas
+from credoscript import Base, session, ligand_usr, binding_site_atom_surface_areas
 
-class Ligand(Model):
+class Ligand(Base):
     '''
     Represents a `Ligand` entity from CREDO. A `Ligand` object in CREDO can consist
     of more than one chemical component (maximum 10).
@@ -82,10 +83,36 @@ class Ligand(Model):
     --------
     LigandAdaptor : Fetch Ligands from the database.
     '''
+    __tablename__ = 'credo.ligands'
+    
+    Components = relationship("LigandComponent",
+                              primaryjoin = "LigandComponent.ligand_id==Ligand.ligand_id",
+                              foreign_keys = "[LigandComponent.ligand_id]",
+                              uselist=True, innerjoin=True,
+                              backref=backref('Ligand', uselist=False, innerjoin=True))
+    
+    LigandFragments = relationship("LigandFragment",
+                                   primaryjoin = "LigandFragment.ligand_id==Ligand.ligand_id",
+                                   foreign_keys = "[LigandFragment.ligand_id]",
+                                   uselist=True, innerjoin=True,
+                                   backref=backref('Ligand', uselist=False, innerjoin=True))
+        
+    XRefs = relationship("XRef",
+                         collection_class = attribute_mapped_collection("source"),
+                         primaryjoin = "and_(XRef.entity_type=='Ligand', XRef.entity_id==Ligand.ligand_id)",
+                         foreign_keys = "[XRef.entity_type, XRef.entity_id]",
+                         uselist=True, innerjoin=True)
+        
+    MolString = relationship("LigandMolString",
+                             primaryjoin = "LigandMolString.ligand_id==Ligand.ligand_id",
+                             foreign_keys = "[LigandMolString.ligand_id]",
+                             uselist=False, innerjoin=True,
+                             backref=backref('Ligand', uselist=False, innerjoin=True)),
+
     def __repr__(self):
         '''
         '''
-        return '<Ligand({self.pdb_chain_id} {self.res_num} {self.name})>'.format(self=self)
+        return '<Ligand({self.pdb_chain_id} {self.res_num} {self.ligand_name})>'.format(self=self)
 
     def __len__(self):
         '''
@@ -321,7 +348,7 @@ class Ligand(Model):
         '''
         state = kwargs.get('state','delta')
         atom_areas = kwargs.get('atom_areas', False)
-        projection = kwargs.get('projection','complex')
+        projection = kwargs.get('projection','complex')   
         
         # CHOOSE WHICH SURFACE STATE SHOULD BE USED
         if state == 'delta': column = binding_site_atom_surface_areas.c.asa_delta
@@ -354,8 +381,10 @@ class Ligand(Model):
                                   *expressions))
     
         # RETURN SIMPLE SCALAR OR LIST FOR THE ATOMS
-        if not atom_areas: return query.scalar()
-        else: return query.all()
+        if not atom_areas: result = query.scalar()
+        else: result = query.all()     
+        
+        return result
 
     def usr(self, *expressions, **kwargs):
         '''

@@ -1,10 +1,12 @@
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from .model import Model
+from credoscript import Base
 
-class ChemCompRDFP(Model):
+class ChemCompRDFP(Base):
     '''
     '''
+    __tablename__ = 'pdbchem.chem_comp_rdfps'
+    
     def __repr__(self):
         '''
         '''

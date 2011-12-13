@@ -1,8 +1,20 @@
-from .model import Model
+from sqlalchemy.orm import relationship
 
-class Groove(Model):
+from credoscript import Base
+
+class Groove(Base):
     '''
     '''
+    __tablename__ = 'credo.grooves'    
+    
+    ChainProt = relationship("Chain",
+                             primaryjoin="Chain.chain_id==Groove.chain_prot_id",
+                             foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
+    
+    ChainNuc = relationship("Chain",
+                            primaryjoin="Chain.chain_id==Groove.chain_nuc_id",
+                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True),    
+    
     def __repr__(self):
         '''
         '''

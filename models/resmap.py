@@ -1,6 +1,6 @@
-from .model import Model
+from credoscript import Base
 
-class ResMap(Model):
+class ResMap(Base):
     '''
     Reflects a residue in a sequence-to-structure mapping (PDB-UNIPROT-SCOP).
 
@@ -51,6 +51,8 @@ class ResMap(Model):
     MSD SIFTS sequence-to-structure mapping
         http://www.ebi.ac.uk/pdbe/docs/sifts/methodology.html
     '''
+    __tablename__ = 'pdb.res_map'
+    
     def __repr__(self):
         '''
         '''

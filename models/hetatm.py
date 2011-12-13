@@ -1,6 +1,6 @@
-from .model import Model
+from credoscript import Base
 
-class Hetatm(Model):
+class Hetatm(Base):
     '''
     '''
-    pass
+    __tablename__ = 'credo.hetatms'

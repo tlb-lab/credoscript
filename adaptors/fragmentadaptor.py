@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, text
 
-from ..meta import session
+from credoscript import session
 
 class FragmentAdaptor(object):
     '''

@@ -1,11 +1,12 @@
 from sqlalchemy import select
+from sqlalchemy.orm import backref, deferred, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, cast, func, text
 from sqlalchemy.dialects.postgresql import INTEGER
 
-from ..meta import session, disordered_regions
-from .model import Model
+from credoscript import Base, session, disordered_regions
 
-class Chain(Model):
+class Chain(Base):
     '''
     Represents a `Chain` entity from CREDO.
 
@@ -51,6 +52,38 @@ class Chain(Model):
       residue number with Chain[123]. Returns a list in cases where residues have
       insertion codes.
     '''
+    __table__ = Base.metadata.tables['credo.chains']
+    
+    Residues = relationship("Residue",
+                            collection_class=attribute_mapped_collection("full_name"),
+                            primaryjoin="Residue.chain_id==Chain.chain_id",
+                            foreign_keys="[Residue.chain_id]",
+                            uselist=True, innerjoin=True,
+                            backref=backref('Chain', uselist=False, innerjoin=True))
+    
+    Peptides = relationship("Peptide",
+                            collection_class=attribute_mapped_collection("full_name"),
+                            primaryjoin="Peptide.chain_id==Chain.chain_id",
+                            foreign_keys="[Peptide.chain_id]",
+                            uselist=True, innerjoin=True,
+                            backref=backref('Chain', uselist=False, innerjoin=True))
+        
+    ProtFragments = relationship("ProtFragment",
+                                 primaryjoin="ProtFragment.chain_id==Chain.chain_id",
+                                 foreign_keys="[ProtFragment.chain_id]",
+                                 uselist=True, innerjoin=True,
+                                 backref=backref('Chain', uselist=False, innerjoin=True))
+    
+    XRefs = relationship("XRef",
+                         collection_class=attribute_mapped_collection("source"),
+                         primaryjoin="and_(XRef.entity_type=='Chain', XRef.entity_id==Chain.chain_id)",
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]", uselist=True, innerjoin=True),
+      
+    # DEFERRED COLUMNS  
+    title = deferred(__table__.c.title)
+    seq = deferred(__table__.c.chain_seq)
+    seq_md5 = deferred(__table__.c.chain_seq_md5)    
+    
     def __repr__(self):
         '''
         '''
@@ -91,7 +124,7 @@ class Chain(Model):
         '''
         '''
         return ContactAdaptor().fetch_all_by_chain_id(self.chain_id, *expressions)
-    
+
     def get_disordered_regions(self, *expressions):
         '''
         Returns a list of disordered regions inside this Chain (if any).
@@ -130,12 +163,19 @@ class Chain(Model):
         '''
         query = session.query(Residue.residue_id.label('residue_id'), Contact).select_from(Contact)
 
-        clauses = and_(Residue.chain_id==self.chain_id,
-                       Contact.is_same_entity==False, Contact.is_secondary==False,
-                       *expressions)
+        whereclause = and_(Residue.chain_id==self.chain_id,
+                           Contact.biomolecule_id==self.biomolecule_id,
+                           Contact.is_same_entity==False,
+                           Contact.is_secondary==False,
+                           *expressions)
 
-        bgn = query.join(Atom, Atom.atom_id==Contact.atom_bgn_id).join(Residue, Residue.residue_id==Atom.residue_id).filter(clauses)
-        end = query.join(Atom, Atom.atom_id==Contact.atom_bgn_id).join(Residue, Residue.residue_id==Atom.residue_id).filter(clauses)
+        bgn = query.join(Atom, and_(Atom.atom_id==Contact.atom_bgn_id,
+                                    Atom.biomolecule_id==Contact.biomolecule_id)
+                         ).join(Residue, Residue.residue_id==Atom.residue_id).filter(whereclause)
+        
+        end = query.join(Atom, and_(Atom.atom_id==Contact.atom_end_id,
+                                    Atom.biomolecule_id==Contact.biomolecule_id)
+                         ).join(Residue, Residue.residue_id==Atom.residue_id).filter(whereclause)
         
         subquery = bgn.union(end).subquery()
         

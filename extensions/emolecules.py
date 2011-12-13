@@ -2,15 +2,13 @@
 This extension is used to access and query an eMolecules database.
 """
 
-from sqlalchemy import Table
 from sqlalchemy.orm import mapper
 from sqlalchemy.sql.expression import and_, func, text
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from ..meta import engine, metadata, session
-from ..models.model import Model
+from credoscript import Base, session
 
-class Emolecule(Model):
+class Emolecule(Base):
     '''
     Represents a molecule from the eMolecules database.
     
@@ -21,6 +19,8 @@ class Emolecule(Model):
     smiles: str
         SMILES.
     '''
+    __tablename__ = 'emolecules.compounds'
+    
     def __repr__(self):
         '''
         '''
@@ -98,7 +98,3 @@ class EmoleculeAdaptor(object):
         query = query.order_by(similarity.desc()).limit(limit)
 
         return query.all()
-
-emolecules_table = Table('compounds', metadata, autoload=True, autoload_with=engine, schema='emolecules')
-
-mapper(Emolecule,emolecules_table)

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from ..meta import session
+from credoscript import session
 
 class ContactAdaptor(object):
     '''

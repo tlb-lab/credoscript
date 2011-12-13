@@ -1,8 +1,10 @@
-from .model import Model
+from credoscript import Base
 
-class ChemCompConformer(Model):
+class ChemCompConformer(Base):
     '''
     '''
+    __tablename__ = 'pdbchem.chem_comp_conformers'
+    
     def __repr__(self):
         '''
         '''

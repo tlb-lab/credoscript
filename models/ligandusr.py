@@ -1,4 +1,6 @@
-from .model import Model
+from credoscript import Base
 
-class LigandUSR(Model):
-    pass
+class LigandUSR(Base):
+    '''
+    '''
+    __tablename__ = 'credo.ligand_usr'

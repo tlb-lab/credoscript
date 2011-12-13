@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from ..meta import session, binding_sites, ligand_fragment_atoms, interface_residues
+from credoscript import session, binding_sites, interface_residues
 
 class ResidueAdaptor(object):
     '''
@@ -9,8 +9,8 @@ class ResidueAdaptor(object):
     def __init__(self):
         '''
         '''
-        self.query = session.query(Residue)
-
+        self.query = self.session.query(Residue)
+        
     def fetch_by_residue_id(self, residue_id):
         '''
         Parameters
@@ -249,14 +249,14 @@ class ResidueAdaptor(object):
         bgn = self.query.join(
             (Atom, Atom.residue_id==Residue.residue_id),
             (Contact, Contact.atom_bgn_id==Atom.atom_id),
-            (ligand_fragment_atoms, ligand_fragment_atoms.c.atom_id==Contact.atom_end_id)
-            ).filter(and_(ligand_fragment_atoms.c.ligand_fragment_id==ligand_fragment_id, *expressions))
+            (ligand_fragment_atoms, LigandFragmentAtom.atom_id==Contact.atom_end_id)
+            ).filter(and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expressions))
 
         end = self.query.join(
             (Atom, Atom.residue_id==Residue.residue_id),
             (Contact, Contact.atom_end_id==Atom.atom_id),
-            (ligand_fragment_atoms, ligand_fragment_atoms.c.atom_id==Contact.atom_bgn_id)
-            ).filter(and_(ligand_fragment_atoms.c.ligand_fragment_id==ligand_fragment_id, *expressions))
+            (ligand_fragment_atoms, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
+            ).filter(and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expressions))
 
         return bgn.union(end).all()
 
@@ -265,3 +265,4 @@ from ..models.atom import Atom
 from ..models.residue import Residue
 from ..models.chain import Chain
 from ..models.ligandcomponent import LigandComponent
+from ..models.ligandfragmentatom import LigandFragmentAtom

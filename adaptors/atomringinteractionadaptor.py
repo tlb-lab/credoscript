@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_
 
-from ..meta import session
+from credoscript import session
 
 class AtomRingInteractionAdaptor(object):
     '''
@@ -57,7 +57,7 @@ class AtomRingInteractionAdaptor(object):
          <AtomRingInteraction(22275)>, <AtomRingInteraction(22276)>,
          <AtomRingInteraction(22277)>]
         '''
-        query = session.query(AtomRingInteraction).join('AromaticRing')
+        query = self.query(AtomRingInteraction).join('AromaticRing')
         query = query.filter(and_(AromaticRing.biomolecule_id==biomolecule_id, *expressions))
 
         return query.all()

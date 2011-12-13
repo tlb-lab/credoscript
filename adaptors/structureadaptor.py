@@ -1,7 +1,7 @@
 from sqlalchemy import Integer
 from sqlalchemy.sql.expression import and_, cast, func, text
 
-from ..meta import session, citations
+from credoscript import session, citations
 
 class StructureAdaptor(object):
     '''

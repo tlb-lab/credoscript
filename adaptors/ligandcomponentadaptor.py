@@ -1,4 +1,4 @@
-from ..meta import session
+from credoscript import session
 
 class LigandComponentAdaptor(object):
     '''

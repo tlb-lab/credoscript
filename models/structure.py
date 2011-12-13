@@ -1,10 +1,11 @@
 from sqlalchemy import Integer, select
 from sqlalchemy.sql.expression import and_, cast
+from sqlalchemy.orm import backref, deferred, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from ..meta import session, citations
-from .model import Model
+from credoscript import Base, session, citations
 
-class Structure(Model):
+class Structure(Base):
     '''
     Represents a PDB Structure entity from CREDO.
 
@@ -70,6 +71,25 @@ class Structure(Model):
     - The __getitem__ method is overloaded so that `Structure`[1] will return
       the first `Biomolecule` (biological assembly) of this structure
     '''
+    __table__ = Base.metadata.tables['credo.structures']
+
+    Biomolecules = relationship("Biomolecule",
+                                collection_class=attribute_mapped_collection("assembly_serial"),
+                                primaryjoin="Biomolecule.structure_id==Structure.structure_id",
+                                foreign_keys="[Biomolecule.structure_id]",
+                                uselist=True, innerjoin=True,
+                                backref=backref('Structure', uselist=False, innerjoin=True))
+    
+    XRefs = relationship("XRef",
+                         collection_class=attribute_mapped_collection("source"),
+                         primaryjoin="and_(XRef.entity_type=='Structure', XRef.entity_id==Structure.structure_id)",
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
+                         uselist=True, innerjoin=True)
+    
+    # DEFERRED COLUMNS 
+    title = deferred(__table__.c.title)
+    authors = deferred(__table__.c.authors)   
+    
     def __repr__(self):
         '''
         '''

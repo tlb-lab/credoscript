@@ -1,8 +1,10 @@
-from .model import Model
+from credoscript import Base
 
-class ProtFragment(Model):
+class ProtFragment(Base):
     '''
     '''
+    __tablename__ = 'credo.prot_fragments'
+    
     def __repr__(self):
         '''
         '''

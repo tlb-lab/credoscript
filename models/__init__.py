@@ -9,6 +9,7 @@ from .contact import Contact
 from .hetatm import Hetatm
 from .ligandcomponent import LigandComponent
 from .ligandfragment import LigandFragment
+from .ligandfragmentatom import LigandFragmentAtom
 from .ringinteraction import RingInteraction
 from .ligand import Ligand
 from .atomringinteraction import AtomRingInteraction
