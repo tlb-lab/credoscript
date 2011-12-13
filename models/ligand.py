@@ -107,7 +107,7 @@ class Ligand(Base):
                              primaryjoin = "LigandMolString.ligand_id==Ligand.ligand_id",
                              foreign_keys = "[LigandMolString.ligand_id]",
                              uselist=False, innerjoin=True,
-                             backref=backref('Ligand', uselist=False, innerjoin=True)),
+                             backref=backref('Ligand', uselist=False, innerjoin=True))
 
     def __repr__(self):
         '''
@@ -175,14 +175,14 @@ class Ligand(Base):
         '''
         return AtomAdaptor().fetch_all_by_ligand_id(self.ligand_id,
                                                     Atom.biomolecule_id==self.biomolecule_id) # PARTITION CONSTRAINT-EXCLUSION
-
+    
     @property
     def usr_space(self):
         '''
         '''
         return session.query(ligand_usr.c.usr_space).filter(
             ligand_usr.c.ligand_id==self.ligand_id).scalar()
-
+    
     @property
     def usr_moments(self):
         '''
@@ -386,7 +386,7 @@ class Ligand(Base):
         
         return result
 
-    def usr(self, *expressions, **kwargs):
+    def usrcat(self, *expressions, **kwargs):
         '''
         Performs an Ultrast Shape Recognition (USR) search of this Ligand against
         either other Ligand or unbound conformers of chemical components.
