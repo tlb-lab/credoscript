@@ -48,11 +48,5 @@ class Fragment(Base):
         '''
         return FragmentAdaptor().fetch_all_descendants(self.fragment_id)
 
-    def get_chem_comps(self, *expressions):
-        '''
-        '''
-        return ChemCompAdaptor().fetch_all_by_fragment_id(self.fragment_id, *expressions)
-
 from .fragmenthierarchy import FragmentHierarchy
-from ..adaptors.chemcompadaptor import ChemCompAdaptor
 from ..adaptors.fragmentadaptor import FragmentAdaptor
