@@ -6,7 +6,7 @@ from credoscript import Base
 class Fragment(Base):
     '''
     '''
-    __tablename__ = 'pdbchem.chem_comp_fragments'
+    __tablename__ = 'pdbchem.fragments'
     
     ChemCompFragments = relationship("ChemCompFragment",
                                      primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
