@@ -27,12 +27,12 @@ class ResidueMixin(object):
         elif isinstance(atom, tuple): return self.Atoms.get(atom)
     
     @property
-    def full_name(self):
+    def _res_num_ins_code_tuple(self):
             '''
-            Full name of a PDB residue consisting of its three-letter and insertion
-            code.
+            Full name of a PDB residue consisting of its residue number and insertion
+            code. Only used for the Chain.Residues|Peptides mappers.
             '''
-            return ' '.join((self.res_name, self.ins_code))    
+            return self.res_num, str(self.ins_code)   
     
     @property
     def pymolstring(self):
@@ -48,7 +48,7 @@ class ResidueMixin(object):
             return "/{0}-{1}//{2}/{3}`{4}".format(self.Chain.Biomolecule.Structure.pdb,
                                                   self.Chain.Biomolecule.assembly_serial,
                                                   self.Chain.pdb_chain_id, self.res_name,
-                                                  str(self.res_num)+self.ins_code.strip()) 
+                                                  str(self.res_num)+self.ins_code.strip())     
     
     @declared_attr
     def Atoms(self):
@@ -74,4 +74,3 @@ class ResidueMixin(object):
                             uselist=True, innerjoin=True,
                             backref=backref('{cls}'.format(cls=self.__name__),
                                             uselist=False, innerjoin=True))
-        

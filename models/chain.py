@@ -55,14 +55,14 @@ class Chain(Base):
     __table__ = Base.metadata.tables['credo.chains']
     
     Residues = relationship("Residue",
-                            collection_class=attribute_mapped_collection("full_name"),
+                            collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
                             primaryjoin="Residue.chain_id==Chain.chain_id",
                             foreign_keys="[Residue.chain_id]",
                             uselist=True, innerjoin=True,
                             backref=backref('Chain', uselist=False, innerjoin=True))
     
     Peptides = relationship("Peptide",
-                            collection_class=attribute_mapped_collection("full_name"),
+                            collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
                             primaryjoin="Peptide.chain_id==Chain.chain_id",
                             foreign_keys="[Peptide.chain_id]",
                             uselist=True, innerjoin=True,
