@@ -137,10 +137,20 @@ class ChemComp(Base):
                              uselist=True, innerjoin=True,
                              backref = backref('ChemComps', uselist=True, innerjoin=True))   
     
+    Ligands = relationship("Ligand",
+                              primaryjoin="Ligand.ligand_name==ChemComp.het_id",
+                              foreign_keys = "[Ligand.ligand_name]",
+                              uselist=True, innerjoin=True)    
+    
     XRefs = relationship("XRef", collection_class=attribute_mapped_collection("source"),
                          primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          uselist=True, innerjoin=True)    
+    
+    MolString = relationship("ChemCompMolString",
+                             primaryjoin="ChemCompMolString.het_id==ChemComp.het_id",
+                             foreign_keys = "[ChemCompMolString.het_id]",
+                             uselist=False, innerjoin=True)    
     
     RDMol = relationship("ChemCompRDMol",
                          primaryjoin="ChemCompRDMol.het_id==ChemComp.het_id",
