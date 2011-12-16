@@ -2,9 +2,9 @@ from sqlalchemy.dialects.postgresql import INTEGER
 from sqlalchemy.sql.expression import and_, cast, func
 
 from credoscript import Base, session
-from credoscript.mixins import ResidueMixin
+from credoscript.mixins import PathMixin, ResidueMixin
 
-class Residue(Base, ResidueMixin):
+class Residue(Base, PathMixin, ResidueMixin):
     '''
     Represents a PDB Residue of ANY type.
 

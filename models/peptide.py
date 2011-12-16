@@ -2,9 +2,9 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from credoscript import Base
-from credoscript.mixins import ResidueMixin
+from credoscript.mixins import PathMixin, ResidueMixin
 
-class Peptide(Base, ResidueMixin):
+class Peptide(Base, PathMixin, ResidueMixin):
     '''
     '''
     __tablename__ = 'credo.peptides'    
@@ -19,10 +19,10 @@ class Peptide(Base, ResidueMixin):
                           foreign_keys = "[ResMap.res_map_id]",
                           uselist=False, innerjoin=True)
     
-    #ProtFragment = relationship("ProtFragment",
-    #                            secondary = Base.metadata.tables['credo.prot_fragment_residues'],
-    #                            primaryjoin = "Peptide.residue_id==metadata.tables['credo.prot_fragment_residues'].c.residue_id",
-    #                            secondaryjoin = "metadata.tables['credo.prot_fragment_residues'].c.prot_fragment_id==ProtFragment.prot_fragment_id",
-    #                            foreign_keys = "[metadata.tables['credo.prot_fragment_residues'].c.residue_id, metadata.tables['credo.prot_fragment_residues'].c.prot_fragment_id]",
-    #                            uselist=False, innerjoin=True,
-    #                            backref = backref('Peptides', uselist=True, innerjoin=True))    
+    ProtFragment = relationship("ProtFragment",
+                                secondary = Base.metadata.tables['credo.prot_fragment_residues'],
+                                primaryjoin = "Peptide.residue_id==ProtFragmentResidue.residue_id",
+                                secondaryjoin = "ProtFragmentResidue.prot_fragment_id==ProtFragment.prot_fragment_id",
+                                foreign_keys = "[ProtFragmentResidue.residue_id, ProtFragmentResidue.prot_fragment_id]",
+                                uselist=False, innerjoin=True,
+                                backref = backref('Peptides', uselist=True, innerjoin=True))    

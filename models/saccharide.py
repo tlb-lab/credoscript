@@ -1,9 +1,9 @@
 from sqlalchemy.orm import backref, relationship
 
 from credoscript import Base
-from credoscript.mixins import ResidueMixin
+from credoscript.mixins import PathMixin, ResidueMixin
 
-class Saccharide(Base, ResidueMixin):
+class Saccharide(Base, PathMixin, ResidueMixin):
     '''
     '''
     __tablename__ = 'credo.nucleotides'

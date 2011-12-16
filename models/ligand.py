@@ -3,8 +3,9 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
 
 from credoscript import Base, session, ligand_usr, binding_site_atom_surface_areas
+from credoscript.mixins import PathMixin
 
-class Ligand(Base):
+class Ligand(Base, PathMixin):
     '''
     Represents a `Ligand` entity from CREDO. A `Ligand` object in CREDO can consist
     of more than one chemical component (maximum 10).

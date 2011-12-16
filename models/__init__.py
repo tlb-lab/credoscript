@@ -16,6 +16,7 @@ from .atomringinteraction import AtomRingInteraction
 from .groove import Groove
 from .chemcomp import ChemComp
 from .chemcompfragment import ChemCompFragment
+from .chemcompmolstring import ChemCompMolString
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
 from .ligandusr import LigandUSR
@@ -27,6 +28,7 @@ from .saccharide import Saccharide
 from .xref import XRef
 from .resmap import ResMap
 from .protfragment import ProtFragment
+from .protfragmentresidue import ProtFragmentResidue
 from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
