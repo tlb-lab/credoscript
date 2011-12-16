@@ -9,7 +9,7 @@ class ResidueAdaptor(object):
     def __init__(self):
         '''
         '''
-        self.query = self.session.query(Residue)
+        self.query = session.query(Residue)
         
     def fetch_by_residue_id(self, residue_id):
         '''
