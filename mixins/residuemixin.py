@@ -74,3 +74,84 @@ class ResidueMixin(object):
                             uselist=True, innerjoin=True,
                             backref=backref('{cls}'.format(cls=self.__name__),
                                             uselist=False, innerjoin=True))
+
+class ResidueAdaptorMixin(object):
+    '''
+    Implements methods to fetch CREDO residues and its inherited entities (peptides,
+    nucleotides, saccharides).
+    '''  
+    def fetch_by_residue_id(self, residue_id):
+        '''
+        Parameters
+        ----------
+        residue_id : int
+            Primary key of the `Residue` in CREDO.
+
+        Returns
+        -------
+        Residue
+            Residue having the given residue_id as primary key.
+
+        Examples
+        --------
+        >>> ResidueAdaptor().fetch_by_residue_id(1)
+        <Residue(1)>
+        '''
+        return self.query.get(residue_id)
+
+    def fetch_all_by_chain_id(self, chain_id, *expressions):
+        '''
+        Returns all residues that are part of the chain with the specified chain_id.
+        
+        Parameters
+        ----------
+        chain_id : int
+            CREDO chain_id.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Returns
+        -------
+        residues : list
+            residues that are part of the chain with the specified chain_id.
+
+        Examples
+        --------
+
+        '''
+        query = self.query.filter("chain_id = :chain_id").params(chain_id=chain_id)
+        query = query.filter(and_(*expressions))
+        
+        return query.all()
+    
+    def fetch_all_by_biomolecule_id(self, biomolecule_id, *expressions):
+        '''
+        Returns all residues that are part of the biomolecule with the given
+        biomolecule_id.
+
+        Parameters
+        ----------
+        biomolecule_id : int
+            `Biomolecule` identifier.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Residue
+
+        Returns
+        -------
+        residues : list
+            all residues that are part of the biomolecule with the given biomolecule_id.
+
+         Examples
+        --------
+        >>> ResidueAdaptor().fetch_all_by_biomolecule_id(4343)
+
+        '''
+        query = self.query.filter("biomolecule_id = :biomolecule_id").params(biomolecule_id=biomolecule_id)
+        query = query.filter(and_(*expressions))
+        
+        return query.all()
+        

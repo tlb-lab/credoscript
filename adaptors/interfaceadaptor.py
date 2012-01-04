@@ -1,6 +1,7 @@
 from credoscript import session
+from credoscript.mixins import PathAdaptorMixin
 
-class InterfaceAdaptor(object):
+class InterfaceAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):

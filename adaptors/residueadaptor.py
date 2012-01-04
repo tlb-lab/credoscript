@@ -2,59 +2,15 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
 from credoscript import session, binding_sites, interface_residues
+from credoscript.mixins import PathAdaptorMixin, ResidueAdaptorMixin
 
-class ResidueAdaptor(object):
+class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
     '''
     '''
     def __init__(self):
         '''
         '''
         self.query = session.query(Residue)
-        
-    def fetch_by_residue_id(self, residue_id):
-        '''
-        Parameters
-        ----------
-        residue_id : int
-            Primary key of the `Residue` in CREDO.
-
-        Returns
-        -------
-        Residue
-            CREDO `Residue` object having this atom_id as primary key.
-
-        Examples
-        --------
-        >>> ResidueAdaptor().fetch_by_residue_id(1)
-        <Residue(1)>
-        '''
-        return self.query.get(residue_id)
-
-    def fetch_all_by_chain_id(self, chain_id, *expressions):
-        '''
-        Returns all residues that are part of the chain with the specified chain_id.
-        
-        Parameters
-        ----------
-        chain_id : int
-            CREDO chain_id.
-        *expressions : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Queried Entities
-        ----------------
-        Residue
-
-        Returns
-        -------
-        residues : list
-            residues that are part of the chain with the specified chain_id.
-
-        Examples
-        --------
-
-        '''
-        return self.query.filter(and_(Residue.chain_id==chain_id,*expressions)).all()
 
     def fetch_all_by_ligand_id(self, ligand_id, *expressions):
         '''
@@ -84,35 +40,6 @@ class ResidueAdaptor(object):
         query = self.query.join(
             (LigandComponent, LigandComponent.residue_id==Residue.residue_id)
             ).filter(and_(LigandComponent.ligand_id==ligand_id, *expressions))
-
-        return query.all()
-
-    def fetch_all_by_biomolecule_id(self, biomolecule_id, *expressions):
-        '''
-        Returns the `Residue` objects of a `Biomolecule`.
-
-        Parameters
-        ----------
-        biomolecule_id : int
-            `Biomolecule` identifier.
-        *expressions : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Queried Entities
-        ----------------
-        Residue, Chain
-
-        Returns
-        -------
-        contacts : list
-            List of `Residue` objects.
-
-         Examples
-        --------
-        >>> ResidueAdaptor().fetch_all_by_biomolecule_id(4343)
-
-        '''
-        query = self.query.filter(and_(Residue.biomolecule_id==biomolecule_id, *expressions))
 
         return query.all()
 

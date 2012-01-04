@@ -1,8 +1,9 @@
 from sqlalchemy.orm import relationship
 
 from credoscript import Base
+from credoscript.mixins import PathMixin
 
-class Interface(Base):
+class Interface(Base, PathMixin):
     '''
     Represents the binary interaction between two polypeptide chains.
 
@@ -31,10 +32,6 @@ class Interface(Base):
         First Chain of the Interface.
     ChainEnd : Chain
         Second Chain of the Interface.
-
-    Overloaded operators
-    --------------------
-
 
     See Also
     --------

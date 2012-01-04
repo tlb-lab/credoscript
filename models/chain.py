@@ -5,8 +5,9 @@ from sqlalchemy.sql.expression import and_, cast, func, text
 from sqlalchemy.dialects.postgresql import INTEGER
 
 from credoscript import Base, session, disordered_regions
+from credoscript.mixins import PathMixin
 
-class Chain(Base):
+class Chain(Base, PathMixin):
     '''
     Represents a `Chain` entity from CREDO.
 
