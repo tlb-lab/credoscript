@@ -65,7 +65,7 @@ class PathAdaptorMixin(object):
         
         return query.all()
     
-    def fetch_all_path_descendants(self, pquery):
+    def fetch_all_path_descendants(self, pquery, *expressions):
         '''
         Returns all the entities whose path is a descendant of the given pquery.
         
