@@ -51,5 +51,4 @@ class InterfaceAdaptor(PathAdaptorMixin):
 
         return query.all()
 
-from ..models.chain import Chain
 from ..models.interface import Interface
