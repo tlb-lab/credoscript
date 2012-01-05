@@ -1,8 +1,9 @@
 from sqlalchemy.orm import relationship
 
 from credoscript import Base
+from credoscript.mixins import PathMixin
 
-class Groove(Base):
+class Groove(Base, PathMixin):
     '''
     '''
     __tablename__ = 'credo.grooves'    

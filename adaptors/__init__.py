@@ -9,6 +9,7 @@ from .atomadaptor import AtomAdaptor
 from .contactadaptor import ContactAdaptor
 from .atomringinteractionadaptor import AtomRingInteractionAdaptor
 from .interfaceadaptor import InterfaceAdaptor
+from .grooveadaptor import GrooveAdaptor
 from .chemcompadaptor import ChemCompAdaptor
 from .fragmentadaptor import FragmentAdaptor
 from .chemcompconformeradaptor import ChemCompConformerAdaptor
