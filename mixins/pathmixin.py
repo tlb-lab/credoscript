@@ -65,23 +65,23 @@ class PathAdaptorMixin(object):
         
         return query.all()
     
-    def fetch_all_path_descendants(self, pquery, *expressions):
+    def fetch_all_path_descendants(self, ptree, *expressions):
         '''
         Returns all the entities whose path is a descendant of the given pquery.
         
         Parameters
         ----------
-        pquery : str
-            Query string in ltree-compatible syntax, e.g. 1GQF/1/A/HIS`402F.
+        ptree : str
+            ptree, e.g. 1GQF/1/A/HIS`402F.
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.        
         
         Returns
         -------
         matches : list
-            All the entities whose path is a descendant of the given pquery.
+            All the entities whose path is a descendant of the given ptree.
         '''
-        query = self.query.filter("path <@ :pquery").params(pquery=pquery)
+        query = self.query.filter("path <@ :ptree").params(ptree=ptree)
         query = query.filter(and_(*expressions))
         
         return query.all()
