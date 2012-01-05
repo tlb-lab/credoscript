@@ -2,8 +2,9 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from credoscript import Base
+from credoscript.mixins import PathMixin
 
-class Biomolecule(Base):
+class Biomolecule(Base, PathMixin):
     '''
     Represents a biological assembly of a PDB structure, henceforth known as
     'Biomolecule'.
