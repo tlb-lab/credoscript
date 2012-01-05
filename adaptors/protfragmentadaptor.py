@@ -1,8 +1,9 @@
 from sqlalchemy.sql.expression import and_
 
 from credoscript import session
+from credoscript.mixins import PathAdaptorMixin
 
-class ProtFragmentAdaptor(object):
+class ProtFragmentAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):

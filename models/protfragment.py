@@ -1,6 +1,7 @@
 from credoscript import Base
+from credoscript.mixins import PathMixin
 
-class ProtFragment(Base):
+class ProtFragment(Base, PathMixin):
     '''
     '''
     __tablename__ = 'credo.prot_fragments'
