@@ -1,8 +1,9 @@
 from sqlalchemy.sql.expression import and_, text
 
 from credoscript import session
+from credoscript.mixins import PathAdaptorMixin
 
-class AromaticRingAdaptor(object):
+class AromaticRingAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):

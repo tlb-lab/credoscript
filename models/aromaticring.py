@@ -1,7 +1,8 @@
 from credoscript import Base
-from ..support.vector import Vector
+from credoscript.mixins import PathMixin
+from credoscript.support.vector import Vector
 
-class AromaticRing(Base):
+class AromaticRing(Base, PathMixin):
     '''
     An AromaticRing represents the an aromatic ring system of ANY residue in CREDO.
 
