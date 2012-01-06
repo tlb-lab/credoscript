@@ -12,7 +12,8 @@ from sqlalchemy.sql.expression import and_
 class PathMixin(object):
     '''
     This Mixin is used to add methods for the ptree path attribute of some CREDO
-    entities. 
+    entities. Paths in CREDO always start with the tree <PDB>/<ASSEMBLY SERIAL>/
+    <PDB CHAIN ID>/<RESNUM>`<RESNAME>.
     '''
     @classmethod
     def pmatches(self, pquery):
@@ -51,7 +52,8 @@ class PathAdaptorMixin(object):
         Parameters
         ----------
         pquery : str
-            Query string in ltree-compatible syntax, e.g. 1GQF/1/A/HIS`402F.
+            A regular-expression-like pattern for matching p tree values, e.g.
+            1GQF/1/*/HIS`402F.
         *expressions : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.        
         
@@ -64,6 +66,27 @@ class PathAdaptorMixin(object):
         query = query.filter(and_(*expressions))
         
         return query.all()
+    
+    def fetch_all_path_ancestors(self, ptree, *expressions):
+        '''
+        Returns all the entities whose path is an ancestor of the given pquery.
+        
+        Parameters
+        ----------
+        ptree : str
+            ptree, e.g. 1GQF/1/A/HIS`402F.
+        *expressions : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.        
+        
+        Returns
+        -------
+        matches : list
+            All the entities whose path is an ancestor of the given ptree.
+        '''
+        query = self.query.filter("path @> :ptree").params(ptree=ptree)
+        query = query.filter(and_(*expressions))
+        
+        return query.all()    
     
     def fetch_all_path_descendants(self, ptree, *expressions):
         '''
