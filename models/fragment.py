@@ -15,6 +15,14 @@ class Fragment(Base):
                                      backref=backref('Fragment', uselist=False,
                                                      remote_side="[ChemCompFragment.fragment_id]"))
     
+    # MANY-TO-MANY RELATIONSHIP
+    ChemComps = relationship("ChemComp",
+                             secondary=Base.metadata.tables['pdbchem.chem_comp_fragments'],
+                             primaryjoin="Fragment.fragment_id==ChemCompFragment.fragment_id",
+                             secondaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
+                             foreign_keys="[ChemCompFragment.fragment_id, ChemComp.het_id]",
+                             uselist=True, innerjoin=True)       
+    
     def __repr__(self):
         '''
         '''

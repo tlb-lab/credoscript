@@ -134,8 +134,7 @@ class ChemComp(Base):
                              primaryjoin="ChemComp.het_id==ChemCompFragment.het_id",
                              secondaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                              foreign_keys="[ChemCompFragment.het_id, Fragment.fragment_id]",
-                             uselist=True, innerjoin=True,
-                             backref = backref('ChemComps', uselist=True, innerjoin=True))   
+                             uselist=True, innerjoin=True)   
     
     Ligands = relationship("Ligand",
                               primaryjoin="Ligand.ligand_name==ChemComp.het_id",
