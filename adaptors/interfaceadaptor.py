@@ -26,7 +26,7 @@ class InterfaceAdaptor(PathAdaptorMixin):
         >>> InterfaceAdaptor().fetch_by_interface_id(1)
         <Interface(1)>
         '''
-        return self.query(Interface).get(interface_id)
+        return self.query.get(interface_id)
 
     def fetch_all_by_biomolecule_id(self, biomolecule_id):
         '''
@@ -47,7 +47,7 @@ class InterfaceAdaptor(PathAdaptorMixin):
         >>> InterfaceAdaptor().fetch_all_by_biomolecule_id(1)
         >>> <Interface()>
         '''
-        query = self.query(Interface).filter(Interface.biomolecule_id==biomolecule_id)
+        query = self.query.filter(Interface.biomolecule_id==biomolecule_id)
 
         return query.all()
 
