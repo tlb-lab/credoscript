@@ -69,7 +69,7 @@ class ChemCompAdaptor(object):
 
         '''
         query = self.query.join('ChemCompFragments')
-        query = query.filter(and_(ChemCompFragment.fragment_id==fragment_id, *expressions)).all()
+        query = query.filter(and_(ChemCompFragment.fragment_id==fragment_id, *expressions))
 
         return query.all()
 
