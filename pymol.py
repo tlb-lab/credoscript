@@ -266,7 +266,7 @@ def show_contacts(self, *expressions, **kwargs):
         raise RuntimeError('Entity {entity} does not have contacts associated with it.'.format(entity=credo_class))
 
     # ALSO INCLUDE BRIDGED HBONDS
-    if kwargs.get('water_bridges', True):
+    if kwargs.get('water_bridges', False):
         for water in self.get_proximal_water():
     
             # KEEP ONLY THOSE BRIDGES THAT ARE WITHIN THE MAXIMUM DISTANCE OF 6.05 ANGSTROM

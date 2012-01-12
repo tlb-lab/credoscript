@@ -45,4 +45,3 @@ class Base(object):
         PyMOL API.
         '''
         return self._pkey[0]
-        
