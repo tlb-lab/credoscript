@@ -64,7 +64,7 @@ class RingInteraction(Base):
     ClosestAtomEnd = relationship("Atom",
                                    primaryjoin="Atom.atom_id==RingInteraction.closest_atom_end_id",
                                    foreign_keys = "[Atom.atom_id]",
-                                   uselist=False, innerjoin=True),
+                                   uselist=False, innerjoin=True)
     
     def __repr__(self):
         '''

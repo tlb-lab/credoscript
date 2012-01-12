@@ -13,7 +13,7 @@ class Residue(Base, PathMixin, ResidueMixin):
     residue_id : int
         Primary key.
     chain_id : int
-        "Foreign key" of the parent `Chain`.
+        "Foreign key" of the parent Chain.
     res_name : str
         The PDB three-letter chemical component name / Three-letter amino acid code.
     one_letter_code : string
@@ -27,12 +27,12 @@ class Residue(Base, PathMixin, ResidueMixin):
 
     Mapped attributes
     -----------------
-    Atoms : list
-        A list of `Atom` objects.
-    Rings : list
-        A list of `AromaticRing` objects in case of aromatic residues.
-    XRefs : list
-        A list of CREDO `XRef` objects.
+    Rings : Query
+        AromaticRings of this Residue in case is it aromatic.
+    Atoms : Query
+        Atoms of this Residue.
+    XRefs : Query
+        CREDO XRef objects that are associated with this Residue Entity.
 
     Notes
     -----
@@ -42,12 +42,13 @@ class Residue(Base, PathMixin, ResidueMixin):
     '''
     __tablename__ = 'credo.residues' 
 
-    def get_contacts(self, *expressions):
+    @property
+    def Contacts(self):
         '''
         '''
         return ContactAdaptor().fetch_all_by_residue_id(self.residue_id,
                                                         Atom.biomolecule_id==self.biomolecule_id,
-                                                        *expressions)
+                                                        dynamic=True)
 
     def get_proximal_water(self, *expressions):
         '''

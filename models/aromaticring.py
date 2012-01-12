@@ -19,9 +19,9 @@ class AromaticRing(Base, PathMixin):
         to an aromatic ring system .
     size : int
         The number of atoms that are part of this aromatic ring.
-    centroid : vector
+    centroid : str
         The centroid of the aromatic ring (composite type in the database).
-    normal : vector
+    normal : str
         The normal of the aromatic ring (composite type in the database).
     is_hetero_aromatic : bool
         Boolean flag indicating whether this ring contains elements other than
@@ -29,6 +29,8 @@ class AromaticRing(Base, PathMixin):
 
     Mapped Attributes
     -----------------
+    Centroid : Vector
+    Normal : Vector
     Residue : Residue
         The Residue this ring is part of.
     AromaticRingAtoms : list

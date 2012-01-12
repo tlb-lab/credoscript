@@ -19,7 +19,7 @@ class LigandFragment(Base):
                          primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
                          secondaryjoin="LigandFragmentAtom.atom_id==Atom.atom_id",
                          foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
-                         uselist=True, innerjoin=True) 
+                         uselist=True, innerjoin=True, lazy='dynamic') 
     
     def __repr__(self):
         '''

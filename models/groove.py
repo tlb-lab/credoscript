@@ -14,14 +14,15 @@ class Groove(Base, PathMixin):
     
     ChainNuc = relationship("Chain",
                             primaryjoin="Chain.chain_id==Groove.chain_nuc_id",
-                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True),    
+                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True) 
     
     def __repr__(self):
         '''
         '''
         return '<Groove({self.chain_prot_id} {self.chain_nuc_id})>'.format(self=self)
     
-    def get_contacts(self, *expressions):
+    @property
+    def Contacts(self):
         '''
         Returns all the Contacts that are formed between the two Chains of this
         Interface.
@@ -47,7 +48,7 @@ class Groove(Base, PathMixin):
         '''
         return ContactAdaptor().fetch_all_by_groove_id(self.groove_id,
                                                        Contact.biomolecule_id==self.biomolecule_id,
-                                                       *expressions)
+                                                       dynamic=True)
 
 from .contact import Contact
 from ..adaptors.contactadaptor import ContactAdaptor

@@ -57,15 +57,15 @@ class Ligand(Base, PathMixin):
 
     Mapped Attributes
     -----------------
+    Biomolecule : Biomolecule
+        Biological assembly this ligand is part of.
+    Components : Query
+        Chemical components this ligand consists of.    
     AromaticRings : list
         All the aromatic rings of this ligand.
     Atoms : list
         All the atoms of this ligand.
-    Biomolecule : Biomolecule
-        Biological assembly this ligand is part of.
-    Components : list
-        Chemical components this ligand consists of.
-    LigandFragments : list
+    LigandFragments : Query
         All the fragments derived from this ligand.
     MolString : MolString
         Object containing the ligand structure in various formats as attributes.  
@@ -89,20 +89,43 @@ class Ligand(Base, PathMixin):
     Components = relationship("LigandComponent",
                               primaryjoin = "LigandComponent.ligand_id==Ligand.ligand_id",
                               foreign_keys = "[LigandComponent.ligand_id]",
-                              uselist=True, innerjoin=True,
+                              uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Ligand', uselist=False, innerjoin=True))
+    
+    Residues = relationship("Residue",
+                            secondary = Base.metadata.tables['credo.ligand_components'],
+                            primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
+                            secondaryjoin = "LigandComponent.residue_id==Residue.residue_id",
+                            foreign_keys = "[LigandComponent.ligand_id, Residue.residue_id]",
+                            uselist=False, innerjoin=True, lazy='dynamic',
+                            backref=backref('LigandComponent', uselist=False, innerjoin=True))    
+    
+    AromaticRings = relationship("AromaticRing",
+                         secondary = Base.metadata.tables['credo.ligand_components'],
+                         primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
+                         secondaryjoin = "LigandComponent.residue_id==AromaticRing.residue_id",
+                         foreign_keys = "[LigandComponent.ligand_id, AromaticRing.residue_id]",
+                         uselist=False, innerjoin=True, lazy='dynamic',
+                         backref=backref('LigandComponent', uselist=False, innerjoin=True))      
+    
+    Atoms = relationship("Atom",
+                         secondary = Base.metadata.tables['credo.ligand_components'],
+                         primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
+                         secondaryjoin = "LigandComponent.residue_id==Atom.residue_id",
+                         foreign_keys = "[LigandComponent.ligand_id, Atom.residue_id]",
+                         uselist=False, innerjoin=True, lazy='dynamic',
+                         backref=backref('LigandComponent', uselist=False, innerjoin=True))     
     
     LigandFragments = relationship("LigandFragment",
                                    primaryjoin = "LigandFragment.ligand_id==Ligand.ligand_id",
                                    foreign_keys = "[LigandFragment.ligand_id]",
-                                   uselist=True, innerjoin=True,
+                                   uselist=True, innerjoin=True, lazy='dynamic',
                                    backref=backref('Ligand', uselist=False, innerjoin=True))
         
     XRefs = relationship("XRef",
-                         collection_class = attribute_mapped_collection("source"),
                          primaryjoin = "and_(XRef.entity_type=='Ligand', XRef.entity_id==Ligand.ligand_id)",
                          foreign_keys = "[XRef.entity_type, XRef.entity_id]",
-                         uselist=True, innerjoin=True)
+                         uselist=True, innerjoin=True, lazy='dynamic')
         
     MolString = relationship("LigandMolString",
                              primaryjoin = "LigandMolString.ligand_id==Ligand.ligand_id",
@@ -139,43 +162,15 @@ class Ligand(Base, PathMixin):
             if self.usr_space and other.usr_space:
                 distance = sum([abs(a - b) for a, b in zip(self.usr_space, other.usr_space)])
                 return 1.0 / (1.0 + distance / 12.0)
-
+    
     @property
-    def Residues(self):
+    def Contacts(self):
         '''
-        Returns all the Residues this Ligand consists of.
-
-        Returns
-        -------
-        residues : list
-            All the Residues of this Ligand.
+        Returns Query.
         '''
-        return ResidueAdaptor().fetch_all_by_ligand_id(self.ligand_id)
-
-    @property
-    def AromaticRings(self):
-        '''
-        Returns all AromaticRing entities found in this Ligand (if any).
-
-        Returns
-        -------
-        aromatic_rings : list
-            All the AromaticRings of this Ligand.
-        '''
-        return AromaticRingAdaptor().fetch_all_by_ligand_id(self.ligand_id)
-
-    @property
-    def Atoms(self):
-        '''
-        Returns all Atoms of this Ligand.
-
-        Returns
-        -------
-        atoms : list
-            All the Atoms of this Ligand.
-        '''
-        return AtomAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                    Atom.biomolecule_id==self.biomolecule_id) # PARTITION CONSTRAINT-EXCLUSION
+        return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id,
+                                                       Contact.biomolecule_id==self.biomolecule_id,
+                                                       dynamic=True)    
     
     @property
     def usr_space(self):
@@ -206,13 +201,6 @@ class Ligand(Base, PathMixin):
                                           self.Biomolecule.assembly_serial,
                                           self.pdb_chain_id,
                                           self.res_num and self.res_num or '')
-
-    def get_contacts(self, *expressions):
-        '''
-        '''
-        return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                       Contact.biomolecule_id==self.biomolecule_id,
-                                                       *expressions)
 
     def get_proximal_water(self, *expressions):
         '''

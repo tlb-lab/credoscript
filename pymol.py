@@ -2,6 +2,9 @@ import os
 from warnings import warn
 from itertools import combinations
 
+from sqlalchemy.orm import joinedload_all
+from sqlalchemy.sql.expression import and_
+
 from . import config
 from .models import *
 from .adaptors import *
@@ -254,16 +257,9 @@ def show_contacts(self, *expressions, **kwargs):
 
     labels = kwargs.get('labels', False)
 
-    # ATOMS
-    if hasattr(self, 'Contacts'):
-        contacts = self.Contacts
-
-    # OTHER ENTITITES
-    elif hasattr(self, 'get_contacts'):
-        contacts = self.get_contacts(*expressions)
-
-    else:
-        raise RuntimeError('Entity {entity} does not have contacts associated with it.'.format(entity=credo_class))
+    contacts = self.Contacts.options(joinedload_all(Contact.AtomBgn, Contact.AtomEnd, innerjoin=True))
+  
+    contacts = contacts.filter(and_(*expressions)).all()
 
     # ALSO INCLUDE BRIDGED HBONDS
     if kwargs.get('water_bridges', False):

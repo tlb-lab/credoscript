@@ -2,7 +2,7 @@ from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
 from credoscript import Base
-from ..support.vector import Vector
+from credoscript.support.vector import Vector
 
 class Atom(Base):
     '''
@@ -60,6 +60,9 @@ class Atom(Base):
 
     Mapped attributes
     -----------------
+    Coords : Vector
+    Contacts : Query
+        Contacts that this Atom forms with other Atoms.
 
     Notes
     -----
@@ -73,18 +76,21 @@ class Atom(Base):
         return "<Atom({self.atom_name} {self.alt_loc})>".format(self=self)
 
     @property
-    def full_name(self):
-        '''
-        Returns the atom name + the alternate location code.
-        '''
-        return ' '.join((self.atom_name,self.alt_loc))
+    def _atom_name_alt_loc_tuple(self):
+            '''
+            Full name of a PDB residue consisting of its residue number and insertion
+            code. Only used for the Chain.Residues|Peptides mappers.
+            '''
+            return self.atom_name, self.alt_loc
 
     @property
     def Contacts(self):
         '''
+        Returns a Query construct.
         '''
         return ContactAdaptor().fetch_all_by_atom_id(self.atom_id,
-                                                     Contact.biomolecule_id==self.biomolecule_id)
+                                                     Contact.biomolecule_id==self.biomolecule_id,
+                                                     dynamic=True)
 
     @property
     def Coords(self):
@@ -155,6 +161,5 @@ class Atom(Base):
         return or_(Atom.element=='O', Atom.element=='N')
 
 from .contact import Contact
-
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

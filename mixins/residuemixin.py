@@ -15,16 +15,12 @@ class ResidueMixin(object):
     def __iter__(self):
         '''
         '''
-        return iter(self.Atoms.values())
+        return iter(self.Atoms)
      
-    def __getitem__(self, atom):
+    def __getitem__(self, atom_name, alt_loc=' '):
         '''
         '''
-        # ONLY ATOM NAME IS PROVIDED / WILL TREAT ALTERNATE LOCATION AS BLANK
-        if isinstance(atom, str): return self.Atoms.get((atom, ' '))
-
-        # ALTERNATE LOCATION WAS PROVIDED AS WELL
-        elif isinstance(atom, tuple): return self.Atoms.get(atom)
+        return self.AtomMap.get((atom_name, alt_loc))
     
     @property
     def _res_num_ins_code_tuple(self):
@@ -56,12 +52,22 @@ class ResidueMixin(object):
         Returns the atoms of the residue as dictionary collection to allow shortcuts.
         '''
         return relationship("Atom",
-                            collection_class=attribute_mapped_collection("full_name"),
                             primaryjoin="and_(Atom.residue_id=={cls}.residue_id, Atom.biomolecule_id=={cls}.biomolecule_id)".format(cls=self.__name__),
                             foreign_keys = "[Atom.residue_id, Atom.biomolecule_id]",
-                            uselist=True, innerjoin=True,
+                            uselist=True, innerjoin=True, lazy=True,
                             backref=backref('{cls}'.format(cls=self.__name__),
                                             uselist=False, innerjoin=True))
+    
+    @declared_attr
+    def AtomMap(self):
+        '''
+        Returns the atoms of the residue as dictionary collection to allow shortcuts.
+        '''
+        return relationship("Atom",
+                            collection_class=attribute_mapped_collection("_atom_name_alt_loc_tuple"),
+                            primaryjoin="and_(Atom.residue_id=={cls}.residue_id, Atom.biomolecule_id=={cls}.biomolecule_id)".format(cls=self.__name__),
+                            foreign_keys = "[Atom.residue_id, Atom.biomolecule_id]",
+                            uselist=True, innerjoin=True)    
     
     @declared_attr
     def AromaticRings(self):
@@ -71,7 +77,7 @@ class ResidueMixin(object):
         return relationship("AromaticRing",
                             primaryjoin="AromaticRing.residue_id=={cls}.residue_id".format(cls=self.__name__),
                             foreign_keys = "[AromaticRing.residue_id]",
-                            uselist=True, innerjoin=True,
+                            uselist=True, innerjoin=True, lazy=True,
                             backref=backref('{cls}'.format(cls=self.__name__),
                                             uselist=False, innerjoin=True))
 

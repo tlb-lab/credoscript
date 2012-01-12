@@ -5,7 +5,8 @@ from credoscript import session
 
 class ContactAdaptor(object):
     '''
-    Class to fetch interatomic contacts from CREDO.
+    Class to fetch interatomic contacts from CREDO. The contacts table is partitioned
+    by biomolecule_id hence this column should be used to use constraint-exclusion.
     '''
     def __init__(self):
         '''
@@ -31,7 +32,7 @@ class ContactAdaptor(object):
         '''
         return self.query.get(contact_id)
 
-    def fetch_all_by_atom_id(self, atom_id, *expressions):
+    def fetch_all_by_atom_id(self, atom_id, *expressions, **kwargs):
         '''
         Returns a list of `Contact` objects that form interatomic contacts with the atom.
 
@@ -59,9 +60,15 @@ class ContactAdaptor(object):
         bgn = self.query.filter(and_(Contact.atom_bgn_id==atom_id, *expressions))
         end = self.query.filter(and_(Contact.atom_end_id==atom_id, *expressions))
 
-        return bgn.union_all(end).all()
+        query = bgn.union_all(end)
 
-    def fetch_all_by_residue_id(self, residue_id, *expressions):
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
+        # ATOMS AND CONTACTS
+        if kwargs.get('dynamic', False): return query
+
+        return query.all()
+
+    def fetch_all_by_residue_id(self, residue_id, *expressions, **kwargs):
         '''
         Returns a list of `Contact` objects that form interatomic contacts with the residue.
 
@@ -93,9 +100,15 @@ class ContactAdaptor(object):
         bgn = self.query.join('AtomBgn').filter(whereclause)
         end = self.query.join('AtomEnd').filter(whereclause)
 
-        return bgn.union_all(end).all()
+        query = bgn.union_all(end)
 
-    def fetch_all_by_ligand_id(self, ligand_id, *expressions):
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
+        # ATOMS AND CONTACTS
+        if kwargs.get('dynamic', False): return query
+
+        return query.all()
+
+    def fetch_all_by_ligand_id(self, ligand_id, *expressions, **kwargs):
         '''
         Returns a list of `Contact` objects that form interatomic contacts with the atom.
 
@@ -130,7 +143,13 @@ class ContactAdaptor(object):
             (Hetatm, Hetatm.atom_id==Contact.atom_end_id)
             ).filter(whereclause)
 
-        return bgn.union_all(end).all()
+        query = bgn.union_all(end)
+
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
+        # ATOMS AND CONTACTS
+        if kwargs.get('dynamic', False): return query
+
+        return query.all()
 
     def fetch_all_by_chain_id(self, chain_id, *expressions):
         '''
@@ -144,7 +163,7 @@ class ContactAdaptor(object):
 
         return bgn.union_all(end).all()
 
-    def fetch_all_by_interface_id(self, interface_id, *expressions):
+    def fetch_all_by_interface_id(self, interface_id, *expressions, **kwargs):
         '''
         Returns a list of `Contact` objects that exist in the pairwise interaction
         between two chain in an `Interface`.
@@ -193,7 +212,13 @@ class ContactAdaptor(object):
                                          Interface.chain_end_id==PeptideBgn.chain_id)
                          ).filter(whereclause)
 
-        return bgn.union_all(end).all()
+        query = bgn.union_all(end)
+
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
+        # ATOMS AND CONTACTS
+        if kwargs.get('dynamic', False): return query
+
+        return query.all()
     
     def fetch_all_by_groove_id(self, groove_id, *expressions):
         '''
@@ -243,7 +268,13 @@ class ContactAdaptor(object):
             (Groove, and_(Groove.chain_prot_id==Peptide.chain_id,
                           Groove.chain_nuc_id==Nucleotide.chain_id))).filter(whereclause)
 
-        return bgn.union_all(end).all()
+        query = bgn.union_all(end)
+
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
+        # ATOMS AND CONTACTS
+        if kwargs.get('dynamic', False): return query
+
+        return query.all()
 
 from ..models.hetatm import Hetatm
 from ..models.ligandcomponent import LigandComponent

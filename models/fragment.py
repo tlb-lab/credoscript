@@ -5,13 +5,25 @@ from credoscript import Base
 
 class Fragment(Base):
     '''
+        
+    
+    Attributes
+    ----------
+    fragment_id
+    ism
+    
+    Mapped Attributes
+    -----------------
+    ChemCompFragments : Query
+    ChemComps : Query
+        Chemical components that share this fragment.
     '''
     __tablename__ = 'pdbchem.fragments'
     
     ChemCompFragments = relationship("ChemCompFragment",
                                      primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                                      foreign_keys = "[ChemCompFragment.fragment_id]",
-                                     uselist=True, innerjoin=True,
+                                     lazy='dynamic', uselist=True, innerjoin=True,
                                      backref=backref('Fragment', uselist=False,
                                                      remote_side="[ChemCompFragment.fragment_id]"))
     
@@ -21,7 +33,7 @@ class Fragment(Base):
                              primaryjoin="Fragment.fragment_id==ChemCompFragment.fragment_id",
                              secondaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                              foreign_keys="[ChemCompFragment.fragment_id, ChemComp.het_id]",
-                             uselist=True, innerjoin=True)       
+                             lazy='dynamic', uselist=True, innerjoin=True)       
     
     def __repr__(self):
         '''

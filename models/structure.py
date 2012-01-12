@@ -53,38 +53,46 @@ class Structure(Base):
 
     Mapped Attributes
     -----------------
-    Biomolecules : dict
+    Biomolecules : Query
+        All biomolecules that have this `Structure` as parent. '0' means that a
+        stable prediction was not found in PISA.
+    BiomoleculeMap : dict
         Dictionary in the form {biomolecule: Biomolecule} containing all biomolecules
         that have this `Structure` as parent. '0' means that a stable prediction
         was not found in PISA.
-    XRefs : list
-        List of CREDO XRef objects that are associated with this Structure Entity.
+    XRefs : Query
+        CREDO XRef objects that are associated with this Structure Entity.
     abstracts:
     
-
+    
     See Also
     --------
-    `StructureAdaptor` : Fetch Structures from the database.
+    StructureAdaptor : Fetch Structures from the database.
 
     Notes
     -----
-    - The __getitem__ method is overloaded so that `Structure`[1] will return
-      the first `Biomolecule` (biological assembly) of this structure
+    - The __getitem__ method is overloaded so that Structure[1] will return
+      the first Biomolecule (biological assembly) of this structure
     '''
     __table__ = Base.metadata.tables['credo.structures']
 
     Biomolecules = relationship("Biomolecule",
-                                collection_class=attribute_mapped_collection("assembly_serial"),
                                 primaryjoin="Biomolecule.structure_id==Structure.structure_id",
                                 foreign_keys="[Biomolecule.structure_id]",
-                                uselist=True, innerjoin=True,
+                                uselist=True, innerjoin=True, lazy='dynamic',
                                 backref=backref('Structure', uselist=False, innerjoin=True))
     
+    # MAP BIOMOLECULES AS DICTIONARY IN THE FORM {<ASSEMBLY SERIAL>: BIOMOLECULE}
+    BiomoleculeMap = relationship("Biomolecule",
+                                  collection_class=attribute_mapped_collection("assembly_serial"),
+                                  primaryjoin="Biomolecule.structure_id==Structure.structure_id",
+                                  foreign_keys="[Biomolecule.structure_id]",
+                                  uselist=True, innerjoin=True)    
+    
     XRefs = relationship("XRef",
-                         collection_class=attribute_mapped_collection("source"),
                          primaryjoin="and_(XRef.entity_type=='Structure', XRef.entity_id==Structure.structure_id)",
-                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
-                         uselist=True, innerjoin=True)
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]", 
+                         uselist=True, innerjoin=True, lazy='dynamic')
     
     # DEFERRED COLUMNS 
     title = deferred(__table__.c.title)
@@ -110,7 +118,7 @@ class Structure(Base):
         biomolecule : Biomolecule
         
         '''
-        return self.Biomolecules.get(biomolecule)
+        return self.BiomoleculeMap.get(biomolecule)
 
     def __iter__(self):
         '''
@@ -121,7 +129,7 @@ class Structure(Base):
         biomolecules : list
             Biological assemblies derived from this asymmetric unit.
         '''
-        return iter(self.Biomolecules.values())
+        return iter(self.Biomolecules)
 
     @property
     def abstracts(self):

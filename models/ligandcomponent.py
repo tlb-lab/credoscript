@@ -16,9 +16,9 @@ class LigandComponent(Base):
     __tablename__ = 'credo.ligand_components'
     
     Atoms = relationship("Atom",
-                         collection_class=attribute_mapped_collection("atom_name"),
                          primaryjoin = "Atom.residue_id==LigandComponent.residue_id",
-                         foreign_keys = "[Atom.residue_id]", innerjoin=True, uselist=True)
+                         foreign_keys = "[Atom.residue_id]",
+                         innerjoin=True, uselist=True, lazy='dynamic')
     
     Residue = relationship("Residue",
                            primaryjoin="Residue.residue_id==LigandComponent.residue_id",
@@ -35,15 +35,10 @@ class LigandComponent(Base):
     LigandFragments = relationship("LigandFragment",
                                    primaryjoin = "LigandFragment.ligand_component_id==LigandComponent.ligand_component_id",
                                    foreign_keys = "[LigandFragment.ligand_component_id]",
-                                   uselist=True, innerjoin=True,
+                                   uselist=True, innerjoin=True, lazy='dynamic',
                                    backref=backref('LigandComponent', uselist=False, innerjoin=True))    
     
     def __repr__(self):
         '''
         '''
         return '<LigandComponent({self.ligand_id} {self.residue_id})>'.format(self=self)
-
-    def __getitem__(self, other):
-        '''
-        '''
-        if isinstance(other, str): return self.Atoms.get(other)

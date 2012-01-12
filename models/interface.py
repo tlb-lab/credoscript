@@ -52,12 +52,15 @@ class Interface(Base, PathMixin):
         '''
         return '<Interface({self.chain_bgn_id} {self.chain_end_id})>'.format(self=self)
 
-    def get_residues(self, *expressions):
+    @property
+    def Residues(self):
         '''
         '''
-        return ResidueAdaptor().fetch_all_by_interface_id(self.interface_id, *expressions)
+        return ResidueAdaptor().fetch_all_by_interface_id(self.interface_id,
+                                                          *expressions, dynamic=True)
 
-    def get_contacts(self, *expressions):
+    @property
+    def Contacts(self):
         '''
         Returns all the Contacts that are formed between the two Chains of this
         Interface.
@@ -84,7 +87,7 @@ class Interface(Base, PathMixin):
         '''
         return ContactAdaptor().fetch_all_by_interface_id(self.interface_id,
                                                           Contact.biomolecule_id==self.biomolecule_id,
-                                                          *expressions)
+                                                          dynamic=True)
 
     def get_proximal_water(self, *expressions):
         '''

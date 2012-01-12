@@ -95,20 +95,22 @@ class ChemComp(Base):
         
     Mapped Attributes
     -----------------
-    Conformers : list
+    Conformers : Query
         All Conformers that were modelled for this chemical component. Includes
         conformer-dependent information such as surface areas and shape descriptors.
-    ChemCompFragments : list
+    ChemCompFragments : Query
         Entities derived from the mapping between Fragments and Chemical Components.
-    Fragments : list
+    Fragments : Query
         All unique Fragments of this Chemical Component created through RECAP
         fragmentation.
-    XRefs : list
+    Ligands : Query
+    
+    XRefs : Query
         CREDO XRef objects that are associated with this Chemical Component.
 
     See Also
     --------
-    ChemCompAdaptor : Fetch ChemComps from the database.
+    ChemCompAdaptor : Fetch chemical components from the database.
 
     Notes
     -----
@@ -120,13 +122,13 @@ class ChemComp(Base):
     ChemCompFragments = relationship("ChemCompFragment",
                                      primaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                                      foreign_keys = "[ChemCompFragment.het_id]",
-                                     uselist=True, innerjoin=True,
+                                     uselist=True, innerjoin=True, lazy='dynamic',
                                      backref=backref('ChemComp', uselist=False, innerjoin=True))
     
     Conformers = relationship("ChemCompConformer",
                               primaryjoin="ChemCompConformer.het_id==ChemComp.het_id",
                               foreign_keys = "[ChemCompConformer.het_id]",
-                              uselist=True, innerjoin=True,
+                              uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('ChemComp', uselist=False, innerjoin=True))     
     
     Fragments = relationship("Fragment",
@@ -137,14 +139,14 @@ class ChemComp(Base):
                              uselist=True, innerjoin=True)   
     
     Ligands = relationship("Ligand",
-                              primaryjoin="Ligand.ligand_name==ChemComp.het_id",
-                              foreign_keys = "[Ligand.ligand_name]",
-                              uselist=True, innerjoin=True)    
+                           primaryjoin="Ligand.ligand_name==ChemComp.het_id",
+                           foreign_keys = "[Ligand.ligand_name]",
+                           lazy='dynamic', uselist=True, innerjoin=True)    
     
-    XRefs = relationship("XRef", collection_class=attribute_mapped_collection("source"),
+    XRefs = relationship("XRef",
                          primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
-                         uselist=True, innerjoin=True)    
+                         lazy='dynamic', uselist=True, innerjoin=True)    
     
     MolString = relationship("ChemCompMolString",
                              primaryjoin="ChemCompMolString.het_id==ChemComp.het_id",

@@ -43,7 +43,7 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
 
         return query.all()
 
-    def fetch_all_by_interface_id(self, interface_id, *expressions):
+    def fetch_all_by_interface_id(self, interface_id, *expressions, **kwargs):
         '''
         Returns all the residues (including solvents) that are interacting across
         the interface.
@@ -77,7 +77,10 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
         end = self.query.join(interface_residues, interface_residues.c.residue_end_id==Residue.residue_id).filter(whereclause)
         
         query = bgn.union(end)
-        
+
+        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP
+        if kwargs.get('dynamic', False): return query
+
         return query.all()
 
     def fetch_all_in_contact_with_residue_id(self, residue_id, *expressions):

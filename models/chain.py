@@ -56,17 +56,22 @@ class Chain(Base, PathMixin):
     __table__ = Base.metadata.tables['credo.chains']
     
     Residues = relationship("Residue",
-                            collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
                             primaryjoin="Residue.chain_id==Chain.chain_id",
                             foreign_keys="[Residue.chain_id]",
-                            uselist=True, innerjoin=True,
+                            uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('Chain', uselist=False, innerjoin=True))
+    
+    ResidueMap = relationship("Residue",
+                              collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
+                              primaryjoin="Residue.chain_id==Chain.chain_id",
+                              foreign_keys="[Residue.chain_id]",
+                              uselist=True, innerjoin=True, lazy=True)    
     
     Peptides = relationship("Peptide",
                             collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
                             primaryjoin="Peptide.chain_id==Chain.chain_id",
                             foreign_keys="[Peptide.chain_id]",
-                            uselist=True, innerjoin=True,
+                            uselist=True, innerjoin=True, lazy=True, 
                             backref=backref('Chain', uselist=False, innerjoin=True))
         
     ProtFragments = relationship("ProtFragment",
@@ -78,7 +83,7 @@ class Chain(Base, PathMixin):
     XRefs = relationship("XRef",
                          collection_class=attribute_mapped_collection("source"),
                          primaryjoin="and_(XRef.entity_type=='Chain', XRef.entity_id==Chain.chain_id)",
-                         foreign_keys="[XRef.entity_type, XRef.entity_id]", uselist=True, innerjoin=True),
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]", uselist=True, innerjoin=True)
       
     # DEFERRED COLUMNS  
     title = deferred(__table__.c.title)
@@ -90,21 +95,17 @@ class Chain(Base, PathMixin):
         '''
         return '<Chain({self.pdb_chain_id})>'.format(self=self)
 
-    def __getitem__(self, res):
+    def __getitem__(self, res_name, ins_code=' '):
         '''
         '''
-        # ONLY RESIDUE NUMBER IS PROVIDED / WILL TREAT INSERTION CODE AS BLANK
-        if isinstance(res, int): return self.Residues.get((res, ' '))
-
-        # INSERTION CODE WAS PROVIDED AS WELL
-        elif isinstance(res, tuple): return self.Residues.get(res)
+        return self.ResidueMap.get((res_name, ins_code))
 
     def __getslice__(self, m, n):
         '''
         Returns a slice containing the residues within the residue number range.
         '''
         # CHANGE
-        return [self.Residues.get(i) for i in range(m,n+1) if i]
+        return [self.ResidueMap.get(i) for i in range(m,n+1) if i]
 
     def __iter__(self):
         '''
