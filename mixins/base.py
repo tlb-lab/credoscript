@@ -30,3 +30,19 @@ class Base(object):
         Returns a list of values for this entity in proper order.
         '''
         return [getattr(self,k) for k in self._sa_class_manager.mapper.c.keys()]
+    
+    @property
+    def _pkey(self):
+        '''
+        Returns the value of the primary key. Also works for composite keys.
+        '''
+        return tuple(getattr(self,c.name) for c in self._sa_class_manager.mapper.primary_key)
+
+    @property
+    def _entity_id(self):
+        '''
+        Returns the first column of the primary key as scalar value. Used in the
+        PyMOL API.
+        '''
+        return self._pkey[0]
+        
