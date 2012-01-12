@@ -2,10 +2,12 @@ import os
 from warnings import warn
 from itertools import combinations
 
-from .schema import *
+from . import config
+from .models import *
+from .adaptors import *
 from .support.pymolviewer import PyMOLViewer
 
-PDB_DIR = CONFIG['directory']['pdb']
+PDB_DIR = config['directory']['pdb']
 
 TYPES   = ('hbond','weakhbond','xbond','ionic','metalcomplex',
            'aromatic','hydrophobic','carbonyl')
@@ -37,9 +39,9 @@ def show_nucleotides(*args, **kwargs):
     '''
     group = kwargs.get('group')
 
-    pymol.select('NUCLEOTIDES', 'resn {0}'.format('+'.join(CONFIG['residues']['nucleotides'])))
+    pymol.select('NUCLEOTIDES', 'resn {0}'.format('+'.join(config['residues']['nucleotides'])))
 
-    # REMVOE SELECTION IF EMPTY
+    # REMOVE SELECTION IF EMPTY
     if not pymol.count_atoms('NUCLEOTIDES'):
         pymol.delete('NUCLEOTIDES')
 
@@ -56,14 +58,14 @@ def show_non_std_res(*args, **kwargs):
     group = kwargs.get('group')
 
     # SELECT ALL POLYMER RESIDUES THAT ARE NOT DNA AND NOT STANDARD AMINO ACIDS
-    pymol.select('NON-STD-RES', 'polymer and not resn {0} and not resn {1}'.format('+'.join(CONFIG['residues']['peptides']),
-                                                                                   '+'.join(CONFIG['residues']['nucleotides'])))
+    pymol.select('NON-STD-RES', 'polymer and not resn {0} and not resn {1}'.format('+'.join(config['residues']['peptides']),
+                                                                                   '+'.join(config['residues']['nucleotides'])))
 
     if not pymol.count_atoms('NON-STD-RES'):
         pymol.delete('NON-STD-RES')
 
     else:
-        pymol.color(CONFIG['pymol']['colors']['non-std-res'], 'NON-STD-RES and (symbol c)')
+        pymol.color(config['pymol']['colors']['non-std-res'], 'NON-STD-RES and (symbol c)')
         pymol.disable('NON-STD-RES')
 
         if group: pymol.group(group, 'NON-STD-RES')
@@ -90,11 +92,11 @@ def show_disordered_regions(self, *args, **kwargs):
             try:
                 # CREATE A DASHED LINE TO VISUALISE THE DISORDERD REGION
                 pymol.distance('disordered_regions', rbgn['CA'].pymolstring, rend['CA'].pymolstring)
-                pymol.color(CONFIG['pymol']['dashcolor']['disordered_region'], 'disordered_regions')
+                pymol.color(config['pymol']['dashcolor']['disordered_region'], 'disordered_regions')
                 
                 # ALSO COLOR THE CA ATOMS OF THE FLANKING RESIDUES
-                pymol.color(CONFIG['pymol']['dashcolor']['disordered_region'], rbgn['CA'].pymolstring)
-                pymol.color(CONFIG['pymol']['dashcolor']['disordered_region'], rend['CA'].pymolstring)
+                pymol.color(config['pymol']['dashcolor']['disordered_region'], rbgn['CA'].pymolstring)
+                pymol.color(config['pymol']['dashcolor']['disordered_region'], rend['CA'].pymolstring)
                 
                 # REMOVE THE DISTANCE LABELS
                 pymol.hide('labels', 'disordered_regions')
@@ -128,7 +130,7 @@ def load_biomolecule(self, *args, **kwargs):
     pymol.group(group, string_id)
 
     # COLOR ALL CARBONS GREY
-    pymol.color(CONFIG['pymol']['colors']['carbon'],'(symbol c)')
+    pymol.color(config['pymol']['colors']['carbon'],'(symbol c)')
 
     # CREATE CENTROIDS OF AROMATIC RINGS
     if kwargs.get('show_rings'):
@@ -214,10 +216,10 @@ def show_aromatic_ring(self, **kwargs):
         pymol.hide('labels', label)
 
         # FORMAT NORMAL
-        pymol.color(CONFIG['pymol']['dashcolor']['normal'], label)
-        pymol.set('dash_radius', CONFIG['pymol']['dashradius']['normal'], label)
-        pymol.set('dash_gap', CONFIG['pymol']['dashgap']['normal'], label)
-        pymol.set('dash_length', CONFIG['pymol']['dashlength']['normal'], label)
+        pymol.color(config['pymol']['dashcolor']['normal'], label)
+        pymol.set('dash_radius', config['pymol']['dashradius']['normal'], label)
+        pymol.set('dash_gap', config['pymol']['dashgap']['normal'], label)
+        pymol.set('dash_length', config['pymol']['dashlength']['normal'], label)
 
         # HIDE THE PSEUDOATOMS LINES OF THE NORMAL POSITION
         pymol.hide('everything', nselect)
@@ -311,10 +313,10 @@ def show_contacts(self, *expressions, **kwargs):
         label = '{0}-{1}-{2}'.format(credo_id, contact_type, flag)
 
         # UPDATE THE VISUALISATION OF THE INTERACTION TYPES
-        pymol.color(CONFIG['pymol']['dashcolor'][contact_type][flag], label)
-        pymol.set('dash_radius', CONFIG['pymol']['dashradius'][contact_type][flag], label)
-        pymol.set('dash_gap', CONFIG['pymol']['dashgap'][contact_type][flag], label)
-        pymol.set('dash_length', CONFIG['pymol']['dashlength'][contact_type][flag], label)
+        pymol.color(config['pymol']['dashcolor'][contact_type][flag], label)
+        pymol.set('dash_radius', config['pymol']['dashradius'][contact_type][flag], label)
+        pymol.set('dash_gap', config['pymol']['dashgap'][contact_type][flag], label)
+        pymol.set('dash_length', config['pymol']['dashlength'][contact_type][flag], label)
 
         interaction_group = '{0}-{1}'.format(credo_id, contact_type.upper())
 
@@ -430,7 +432,7 @@ def show_ring_interactions(self, *args, **kwargs):
         label = 'RINGINT-{ringint.interaction_type}-{ringint.ring_interaction_id}'.format(ringint=ringint)
         pymol.distance(label, bgn.pymolstring, end.pymolstring)
 
-        pymol.color(CONFIG['pymol']['dashcolor']['aromatic']['vdw'], label)
+        pymol.color(config['pymol']['dashcolor']['aromatic']['vdw'], label)
         pymol.set('dash_radius', '0.08', label)
 
         # HIDE THE TEXT LABELS
@@ -466,11 +468,11 @@ def show_atom_ring_interactions(self, *args, **kwargs):
         pymol.distance(label, atom.pymolstring, aromaticring.pymolstring)
 
         # COLOR THE INTERACTION BASED ON TYPE
-        if atomringint.interaction_type == 'CARBONPI': color = CONFIG['pymol']['dashcolor']['weakhbond']['vdw']
-        elif atomringint.interaction_type == 'HALOGENPI': color = CONFIG['pymol']['dashcolor']['weakhbond']['vdw']
-        elif atomringint.interaction_type == 'DONORPI': color = CONFIG['pymol']['dashcolor']['hbond']['vdw']
-        elif atomringint.interaction_type == 'CATIONPI': color = CONFIG['pymol']['dashcolor']['ionic']['vdw']
-        else: color = CONFIG['pymol']['dashcolor']['undefined']['vdw']
+        if atomringint.interaction_type == 'CARBONPI': color = config['pymol']['dashcolor']['weakhbond']['vdw']
+        elif atomringint.interaction_type == 'HALOGENPI': color = config['pymol']['dashcolor']['weakhbond']['vdw']
+        elif atomringint.interaction_type == 'DONORPI': color = config['pymol']['dashcolor']['hbond']['vdw']
+        elif atomringint.interaction_type == 'CATIONPI': color = config['pymol']['dashcolor']['ionic']['vdw']
+        else: color = config['pymol']['dashcolor']['undefined']['vdw']
 
         pymol.color(color, label)
         pymol.set('dash_radius', '0.08', label)
