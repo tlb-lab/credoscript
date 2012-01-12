@@ -97,4 +97,5 @@ class FragmentAdaptor(object):
             ).filter(and_(ChemCompFragment.het_id==het_id, *expressions)).all()
 
 from ..models.fragment import Fragment
+from ..models.fragmenthierarchy import FragmentHierarchy
 from ..models.chemcompfragment import ChemCompFragment
