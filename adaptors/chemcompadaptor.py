@@ -1,6 +1,5 @@
 from sqlalchemy.sql.expression import func, text, and_
 
-from credoscript import session
 from credoscript.support import requires
 
 class ChemCompAdaptor(object):
@@ -8,10 +7,8 @@ class ChemCompAdaptor(object):
     Adaptor class to fetch chemical components from CREDO.
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(ChemComp)
-
+        self.query = ChemComp.query
+       
     def fetch_by_chem_comp_id(self, chem_comp_id):
         '''
         '''

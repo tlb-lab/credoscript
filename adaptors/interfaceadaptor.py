@@ -1,14 +1,11 @@
-from credoscript import session
 from credoscript.mixins import PathAdaptorMixin
 
 class InterfaceAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Interface)
-
+        self.query = Interface.query
+       
     def fetch_by_interface_id(self, interface_id):
         '''
         Parameters

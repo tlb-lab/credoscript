@@ -1,7 +1,7 @@
 from sqlalchemy import Integer
 from sqlalchemy.sql.expression import and_, cast, func, text
 
-from credoscript import session, citations
+from credoscript import citations
 
 class StructureAdaptor(object):
     '''
@@ -9,10 +9,8 @@ class StructureAdaptor(object):
     selection criterias.
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Structure)
-
+        self.query = Structure.query
+       
     def fetch_by_structure_id(self, structure_id):
         '''
         Returns the Structure with the given CREDO structure_id.
@@ -53,7 +51,6 @@ class StructureAdaptor(object):
         >>> StructureAdaptor().fetch_by_pdb('1OPJ')
         <Structure('1OPJ')>
         '''
-        assert len(pdb) == 4 and isinstance(pdb, str), '{0} is not a valid PDB code'.format(pdb)
         return self.query.filter(Structure.pdb==pdb.upper()).first()
 
     def fetch_all_by_het_id(self, het_id, *expressions):

@@ -1,16 +1,14 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session, binding_sites
+from credoscript import binding_sites
 
 class AtomAdaptor(object):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Atom)
-
+        self.query = Atom.query
+       
     def fetch_by_atom_id(self, atom_id):
         '''
         Parameters

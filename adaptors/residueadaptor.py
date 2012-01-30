@@ -1,17 +1,15 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session, binding_sites, interface_residues
+from credoscript import binding_sites, interface_residues
 from credoscript.mixins import PathAdaptorMixin, ResidueAdaptorMixin
 
 class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Residue)
-
+        self.query = Residue.query
+       
     def fetch_all_by_ligand_id(self, ligand_id, *expressions):
         '''
         Returns a list of `Residues` that are part of the ligand with the given identifier.

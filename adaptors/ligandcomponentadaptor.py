@@ -1,13 +1,9 @@
-from credoscript import session
-
 class LigandComponentAdaptor(object):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(LigandComponent)
-
+        self.query = LigandComponent.query
+       
     def fetch_by_ligand_component_id(self, ligand_component_id):
         '''
         '''

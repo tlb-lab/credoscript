@@ -1,16 +1,13 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session
 from credoscript.mixins import PathAdaptorMixin
 
 class ChainAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Chain)
-
+        self.query = Chain.query
+       
     def fetch_by_chain_id(self, chain_id):
         '''
         Returns the Chain with the given CREDO chain_id.

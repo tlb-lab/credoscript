@@ -1,15 +1,11 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session
-
 class XRefAdaptor(object):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(XRef)
-
+        self.query = XRef.query
+        
     def fetch_by_xref_id(self, xref_id):
         '''
         '''

@@ -1,16 +1,13 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session
 from credoscript.mixins import PathAdaptorMixin
 
 class BiomoleculeAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Biomolecule)
-
+        self.query = Biomolecule.query
+    
     def fetch_by_biomolecule_id(self, biomolecule_id):
         '''
         '''

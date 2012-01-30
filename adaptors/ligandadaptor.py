@@ -1,16 +1,14 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import session, binding_sites, ligand_usr
+from credoscript import binding_sites, ligand_usr
 from credoscript.mixins import PathAdaptorMixin
 
 class LigandAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Ligand)
-
+        self.query = Ligand.query
+       
     def fetch_by_ligand_id(self, ligand_id):
         '''
         '''

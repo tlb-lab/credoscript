@@ -1,15 +1,11 @@
 from sqlalchemy.sql.expression import and_, text
 
-from credoscript import session
-
 class FragmentAdaptor(object):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Fragment)
-
+        self.query = Fragment.query
+       
     def fetch_by_fragment_id(self, fragment_id):
         '''
         '''

@@ -1,15 +1,11 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session
-
 class AtomRingInteractionAdaptor(object):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(AtomRingInteraction)
-
+        self.query = AromaticRingInteraction.query
+       
     def fetch_by_atom_ring_interaction_id(self, atom_ring_interaction_id):
         '''
         Parameters

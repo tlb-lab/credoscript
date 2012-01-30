@@ -1,16 +1,13 @@
 from sqlalchemy.sql.expression import and_, text
 
-from credoscript import session
 from credoscript.mixins import PathAdaptorMixin
 
 class AromaticRingAdaptor(PathAdaptorMixin):
     '''
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(AromaticRing)
-
+        self.query = AromaticRing.query
+       
     def fetch_by_aromatic_ring_id(self, aromatic_ring_id):
         '''
         Parameters

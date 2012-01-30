@@ -1,18 +1,14 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
-from credoscript import session
-
 class ContactAdaptor(object):
     '''
     Class to fetch interatomic contacts from CREDO. The contacts table is partitioned
     by biomolecule_id hence this column should be used to use constraint-exclusion.
     '''
     def __init__(self):
-        '''
-        '''
-        self.query = session.query(Contact)
-
+        self.query = Contact.query
+       
     def fetch_by_contact_id(self, contact_id):
         '''
         Parameters
