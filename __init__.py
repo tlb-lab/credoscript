@@ -4,45 +4,50 @@ import warnings
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.exc import SAWarning
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from credoscript.mixins import Base
-
-# THE FOLLOWING MODULES WILL BE IMPORTED WITH FROM CREDOSCRIPT IMPORT *
+# the following modules will be imported with from credoscript import *
 __all__ = ['adaptors','contrib','extensions','models']
 
-# CONFIGURATION
+# configuration
 CONFIG_PATH = os.path.join(__path__[0], 'config.json')
 
-# EXIT IF THE CONFIGURATION FILE DOES NOT EXIST
+# exit if the configuration file does not exist
 if not os.path.exists(CONFIG_PATH):
     raise IOError("""cannot find the configuration file config.json in credoscript
                   directory. Did you rename config-default.json to config.json?""")
 
 config = json.loads(open(CONFIG_PATH).read())
 
-# DATABASE CONNECTION
+# database connection
+
+execution_options = dict(stream_results=config['connection']['stream_results'])
+
 url      = '{driver}://{user}:{passwd}@{host}:{port}/{db}'.format(**config['connection'])
-engine   = create_engine(url, echo=config['debug']['SQL'])
+engine   = create_engine(url, echo=config['debug']['SQL'], execution_options=execution_options)
+
 metadata = MetaData(bind=engine)
 
-# SUPPRESS WARNINGS CONCERNING POSTGRESQL-SPECIFIC TYPES AND INDEXES
+# suppress warnings concerning postgresql-specific types and indexes
 warnings.simplefilter('ignore', SAWarning)
 
-# REFLECT ALL THE REQUIRED SCHEMAS
+# reflect all the required schemas
 metadata.reflect(schema='credo')
 metadata.reflect(schema='pdbchem')
 metadata.reflect(schema='pdb')
 
-# THE DECLARATIVE BASE THAT IS USED FOR ALL CREDO ENTITIES
-Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
-
-# DATABASE SESSION
-Session = sessionmaker(bind=engine, autocommit=True)
+# database session
+Session = scoped_session(sessionmaker(bind=engine, autocommit=True))
 session = Session()
 
-# DO NOT MAP AGAINST CLASS
+# import Base here because the module imports the Session object
+from credoscript.mixins import Base
+
+# the declarative base that is used for all credo entities
+Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
+
+# do not map against class
 binding_sites = metadata.tables['credo.binding_sites']
 interface_residues = metadata.tables['credo.interface_residues']
 binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
