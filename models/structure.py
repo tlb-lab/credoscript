@@ -137,7 +137,7 @@ class Structure(Base):
         Returns the abstract(s) of the journal articles that are associated with
         this PDB entry.
         '''
-        statement = select([citations.c.abstract],
+        statement = select([citations],
             and_(citations.c.pubmed_id==cast(XRef.xref, Integer),
                  XRef.source=='PubMed', XRef.entity_type=='Structure',
                  XRef.entity_id==self.structure_id))
