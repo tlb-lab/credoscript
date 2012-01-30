@@ -6,7 +6,8 @@
         "passwd": "",
         "host": "",
         "port": 5432,
-        "db": ""
+        "db": "",
+        "stream_results": false
     },
 
     "debug":
