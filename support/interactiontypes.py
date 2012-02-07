@@ -1,46 +1,47 @@
 """
 Each contact in CREDO is classified based on the kind of macromolecular interaction
-it takes part in. This file serves as a namespace containing the structural_interaction_type
-used in the contacts table.
+it takes part in. This file serves as a namespace containing the structural_interaction_type_bm
+used in the contacts table. The structural_interaction_type_bm is created by first
+shifting the bit mask of the first entity type bit mask by six positions to make
+room for the second; the second 
 """
 
-UNKNOWN = 0
-LIG_WAT = 3     # 2 + 1
-LIG_LIG = 4
-SAC_WAT = 5
-SAC_LIG = 6
-SAC_SAC = 8
-RNA_WAT = 9
-RNA_LIG = 10
-RNA_SAC = 12
-RNA_RNA = 16
-DNA_WAT = 17
-DNA_LIG = 18
-DNA_SAC = 20    # 16 + 4
-DNA_RNA = 24
-DNA_DNA = 32
-PRO_WAT = 33
-PRO_LIG = 34
-PRO_SAC = 36
-PRO_RNA = 44
-PRO_DNA = 48    # 32 + 16
-PRO_PRO = 64    # 32 + 32
+try:
+    from itertools import combinations_with_replacement
+except ImportError:
+    def combinations_with_replacement(iterable, r):
+        """
+        combinations_with_replacement('ABC', 2) --> AA AB AC BB BC CC
+        """
+        pool = tuple(iterable)
+        n = len(pool)
+        if not n and r:
+            return
+        indices = [0] * r
+        yield tuple(pool[i] for i in indices)
+        while True:
+            for i in reversed(range(r)):
+                if indices[i] != n - 1:
+                    break
+            else:
+                return
+            indices[i:] = [indices[i] + 1] * (r - i)
+            yield tuple(pool[i] for i in indices)
 
+# tuple list in the form entity / entity type bit mask
+l = [('PRO',32), ('DNA',16), ('RNA',8), ('SAC',4), ('LIG',2), ('WAT',1), ('UNK',0)]
 
+# create combinations of entity types
+for (a, aval), (b, bval) in combinations_with_replacement(l, 2):
+    if a == b: continue
+    
+    struct_int_type_ab = (aval << 6) + bval
+    struct_int_type_ba = (bval << 6) + aval
+    
+    exec("{}_{} = {}".format(a, b, struct_int_type_ab))
+    exec("{}_{} = {}".format(b, a, struct_int_type_ba))
+    
+    exec("{}_{}_OR = {}".format(a, b, struct_int_type_ab | struct_int_type_ba))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# remove unused variables so they will not appear in import
+del a,b,aval,bval,struct_int_type_ab,struct_int_type_ba,l
