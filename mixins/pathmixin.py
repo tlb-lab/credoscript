@@ -45,7 +45,7 @@ class PathAdaptorMixin(object):
     '''
     Adds method for fetching CREDO entities via the (ptree) path attribute.
     '''
-    def fetch_all_by_path_match(self, pquery, *expressions):
+    def fetch_all_by_path_match(self, pquery, *expressions, **kwargs):
         '''
         Returns all the entities whose path matches the given pquery.
         
@@ -65,9 +65,14 @@ class PathAdaptorMixin(object):
         query = self.query.filter("path ~ :pquery").params(pquery=pquery)
         query = query.filter(and_(*expressions))
         
-        return query.all()
+        # enable pagination through entity adaptor
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+            
+        else: return query.limit(limit).all()
     
-    def fetch_all_path_ancestors(self, ptree, *expressions):
+    def fetch_all_path_ancestors(self, ptree, *expressions, **kwargs):
         '''
         Returns all the entities whose path is an ancestor of the given pquery.
         
@@ -88,7 +93,7 @@ class PathAdaptorMixin(object):
         
         return query.all()    
     
-    def fetch_all_path_descendants(self, ptree, *expressions):
+    def fetch_all_path_descendants(self, ptree, *expressions, **kwargs):
         '''
         Returns all the entities whose path is a descendant of the given pquery.
         
