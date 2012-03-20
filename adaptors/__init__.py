@@ -15,3 +15,4 @@ from .fragmentadaptor import FragmentAdaptor
 from .chemcompconformeradaptor import ChemCompConformerAdaptor
 from .peptideadaptor import PeptideAdaptor
 from .protfragmentadaptor import ProtFragmentAdaptor
+from .variationadaptor import VariationAdaptor
