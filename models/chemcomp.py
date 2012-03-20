@@ -5,7 +5,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func, text
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base, session
+from credoscript import Base, Session
 from credoscript.support import requires
 
 class ChemComp(Base):
@@ -146,7 +146,13 @@ class ChemComp(Base):
     XRefs = relationship("XRef",
                          primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
-                         lazy='dynamic', uselist=True, innerjoin=True)    
+                         lazy='dynamic', uselist=True, innerjoin=True)
+    
+    XRefMap = relationship("XRef",
+                           collection_class=attribute_mapped_collection("source"),
+                           primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
+                           foreign_keys="[XRef.entity_type, XRef.entity_id]",
+                           uselist=True, innerjoin=True)   
     
     MolString = relationship("ChemCompMolString",
                              primaryjoin="ChemCompMolString.het_id==ChemComp.het_id",
@@ -202,6 +208,8 @@ class ChemComp(Base):
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         '''
         if isinstance(other, ChemComp):
+            session = Session()
+            
             fp1,fp2 = aliased(ChemCompRDFP), aliased(ChemCompRDFP)
 
             query = session.query(func.rdkit.tanimoto_sml(fp1.torsion_fp, fp2.torsion_fp))
