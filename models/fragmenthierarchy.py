@@ -3,7 +3,7 @@ from credoscript import Base
 class FragmentHierarchy(Base):
     '''
     '''
-    __tablename__ = 'pdbchem.fragments'
+    __tablename__ = 'pdbchem.fragment_hierarchies'
     
     def __repr__(self):
         '''
