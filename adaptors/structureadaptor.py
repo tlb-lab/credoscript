@@ -4,15 +4,16 @@ from sqlalchemy.sql.expression import and_, cast, func, text
 from credoscript import citations
 
 class StructureAdaptor(object):
-    '''
+    """
     Class to fetch Structure objects from CREDO with the help of various
     selection criterias.
-    '''
-    def __init__(self):
-        self.query = Structure.query
+    """
+    def __init__(self, paginate=False, per_page=100):
+        self.paginate = paginate
+        self.per_page = per_page
        
     def fetch_by_structure_id(self, structure_id):
-        '''
+        """
         Returns the Structure with the given CREDO structure_id.
 
         Parameters
@@ -29,11 +30,11 @@ class StructureAdaptor(object):
         --------
         >>> StructureAdaptor().fetch_by_structure_id(1000)
         <Structure('1B8Q')>
-        '''
-        return self.query.get(structure_id)
+        """
+        return Structure.query.get(structure_id)
 
     def fetch_by_pdb(self, pdb):
-        '''
+        """
         Returns the Structure matching the given PDB code.
 
         Parameters
@@ -50,11 +51,11 @@ class StructureAdaptor(object):
         --------
         >>> StructureAdaptor().fetch_by_pdb('1OPJ')
         <Structure('1OPJ')>
-        '''
-        return self.query.filter(Structure.pdb==pdb.upper()).first()
+        """
+        return Structure.query.filter(Structure.pdb==pdb.upper()).first()
 
-    def fetch_all_by_het_id(self, het_id, *expressions):
-        '''
+    def fetch_all_by_het_id(self, het_id, *expressions, **kwargs):
+        """
         Returns all the Structures that contain this chemical component as a Ligand.
 
         Parameters
@@ -77,14 +78,19 @@ class StructureAdaptor(object):
         Examples
         --------
 
-        '''
-        query =  self.query.join('Biomolecules','Ligands').filter(
-            and_(Ligand.ligand_name==het_id.upper(), *expressions))
+        """
+        query = Structure.query.join('Biomolecules','Ligands')
+        query = query.filter(and_(Ligand.ligand_name==het_id.upper(),
+                                  *expressions))
 
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
 
-    def fetch_all_by_uniprot(self, uniprot, *expressions):
-        '''
+        else: return query.all()
+
+    def fetch_all_by_uniprot(self, uniprot, *expressions, **kwargs):
+        """
         Returns all structures that contain polypeptides having the specified
         UniProt accession.
 
@@ -109,17 +115,21 @@ class StructureAdaptor(object):
         --------
         >>> StructureAdaptor().fetch_all_by_uniprot('P03372')
         [<Ligand(B 600 OHT)>, <Ligand(A 600 OHT)>,...]
-        '''
-        query = self.query.join('Biomolecules','Chains','XRefs')
+        """
+        query = Structure.query.join('Biomolecules','Chains','XRefs')
 
         query = query.filter(and_(XRef.source=='UniProt',
                                   XRef.xref==uniprot,
                                   *expressions))
 
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
 
-    def fetch_all_by_tsquery(self, tsquery, **kwargs):
-        '''
+        else: return query.all()
+        
+    def fetch_all_by_tsquery(self, tsquery, *expressions, **kwargs):
+        """
         Returns all structures whose abstract matches the keywords given in the
         keyword string.
 
@@ -169,30 +179,44 @@ class StructureAdaptor(object):
         (<Structure(3G0F)>, u'[imatinib] mesylate and sunitinib malate', 0.230769),
         (<Structure(3G0E)>, u'[imatinib] mesylate and sunitinib malate', 0.230769),
         (<Structure(1T46)>, u'[Imatinib] or Gleevec) demonstrates that', 0.090909100000000007)]
-        '''
+        """
         weights = kwargs.get('weights',[0.1, 0.2, 0.4, 1.0])
         normalization = kwargs.get('normalization', 32)
         min_words, max_words = kwargs.get('min_words', 10), kwargs.get('max_words', 25)
-        
+
+        if kwargs.get('plain'): tsquery = func.plainto_tsquery('english', tsquery)
+        else: tsquery = func.to_tsquery('english', tsquery)
+
         headline_conf = 'StartSel=[, StopSel=], MaxWords={0}, MinWords={1}'.format(max_words, min_words)
         
-        # FUNCTION TO CREATE A PREVIEW SNIPPET OF THE MATCHED AREA
-        snippet = func.ts_headline('english', citations.c.abstract, func.to_tsquery('english', tsquery),
-                                   headline_conf).label('snippet')
+        # function to create a preview snippet of the matched area
+        snippet = func.ts_headline('english', citations.c.abstract,
+                                   tsquery, headline_conf).label('snippet')
         
-        # CALCULATED RANK OF THE HIT
+        # calculated rank of the hit
         rank = func.ts_rank_cd(weights, func.to_tsvector('english', citations.c.abstract),
-                               func.to_tsquery('english', tsquery), normalization).label('rank')
+                               tsquery, normalization).label('rank')
         
-        # GIST INDEX THAT IS USED FOR SEARCHING
-        index = citations.c.abstract.op('@@')(tsquery)
+        # GIST index that is used for searching
+        index = func.to_tsvector('english', citations.c.abstract).op('@@')(tsquery)
         
-        query = session.query(Structure, snippet, rank)
-        query = query.join((XRef, and_(XRef.entity_type=='Structure', XRef.entity_id==Structure.structure_id)))
-        query = query.join((citations, and_(citations.c.pubmed_id==cast(XRef.xref, Integer), XRef.source=='PubMed')))
+        query = Structure.query.filter(and_(*expressions))
+        query = query.add_columns(snippet, rank)
+
+        query = query.join(XRef, and_(XRef.entity_type=='Structure',
+                                      XRef.entity_id==Structure.structure_id))
+        
+        query = query.join(citations,
+                           and_(citations.c.pubmed_id==cast(XRef.xref, Integer),
+                                XRef.source=='PubMed'))
+        
         query = query.filter(index).order_by("rank DESC")
         
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.all()
 
 from ..models.xref import XRef
 from ..models.ligand import Ligand
