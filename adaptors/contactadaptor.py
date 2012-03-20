@@ -2,15 +2,19 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_
 
 class ContactAdaptor(object):
-    '''
+    """
     Class to fetch interatomic contacts from CREDO. The contacts table is partitioned
     by biomolecule_id hence this column should be used to use constraint-exclusion.
-    '''
-    def __init__(self):
+    """
+    def __init__(self, paginate=True, per_page=100):
+        """
+        """
         self.query = Contact.query
+        self.paginate = paginate
+        self.per_page = per_page
        
     def fetch_by_contact_id(self, contact_id):
-        '''
+        """
         Parameters
         ----------
         contact_id : int
@@ -25,11 +29,11 @@ class ContactAdaptor(object):
         --------
         >>> ContactAdaptor().fetch_by_contact_id(1)
         <Contact(1)>
-        '''
-        return self.query.get(contact_id)
+        """
+        return Contact.query.get(contact_id)
 
     def fetch_all_by_atom_id(self, atom_id, *expressions, **kwargs):
-        '''
+        """
         Returns a list of `Contact` objects that form interatomic contacts with the atom.
 
         Parameters
@@ -52,7 +56,7 @@ class ContactAdaptor(object):
         --------
         >>> ContactAdaptor().fetch_all_by_atom_id(1)
         <Contact()>
-        '''
+        """
         bgn = self.query.filter(and_(Contact.atom_bgn_id==atom_id, *expressions))
         end = self.query.filter(and_(Contact.atom_end_id==atom_id, *expressions))
 
@@ -65,7 +69,7 @@ class ContactAdaptor(object):
         return query.all()
 
     def fetch_all_by_residue_id(self, residue_id, *expressions, **kwargs):
-        '''
+        """
         Returns a list of `Contact` objects that form interatomic contacts with the residue.
 
         Parameters
@@ -88,7 +92,7 @@ class ContactAdaptor(object):
         --------
         >>> ContactAdaptor().fetch_all_by_residue_id(1)
         <Contact()>
-        '''
+        """
         whereclause = and_(Atom.residue_id==residue_id,
                            Atom.biomolecule_id==Contact.biomolecule_id,
                            *expressions)        
@@ -105,7 +109,7 @@ class ContactAdaptor(object):
         return query.all()
 
     def fetch_all_by_ligand_id(self, ligand_id, *expressions, **kwargs):
-        '''
+        """
         Returns a list of `Contact` objects that form interatomic contacts with the atom.
 
         Parameters
@@ -128,7 +132,7 @@ class ContactAdaptor(object):
         --------
         >>> ContactAdaptor().fetch_all_by_ligand_id(1)
         <Contact()>
-        '''
+        """
         whereclause = and_(Hetatm.ligand_id==ligand_id, *expressions)       
         
         bgn = self.query.join(
@@ -141,15 +145,15 @@ class ContactAdaptor(object):
 
         query = bgn.union_all(end)
 
-        # RETURN THE QUERY CONSTRUCT TO SIMULATE A DYNAMIC RELATIONSHIP BETWEEN
-        # ATOMS AND CONTACTS
-        if kwargs.get('dynamic', False): return query
-
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+        
+        else: return query.all()   
 
     def fetch_all_by_chain_id(self, chain_id, *expressions):
-        '''
-        '''
+        """
+        """
         whereclause = and_(Residue.chain_id==chain_id,
                            Atom.biomolecule_id==Contact.biomolecule_id,
                            *expressions)
@@ -160,7 +164,7 @@ class ContactAdaptor(object):
         return bgn.union_all(end).all()
 
     def fetch_all_by_interface_id(self, interface_id, *expressions, **kwargs):
-        '''
+        """
         Returns a list of `Contact` objects that exist in the pairwise interaction
         between two chain in an `Interface`.
 
@@ -185,7 +189,7 @@ class ContactAdaptor(object):
         --------
         >>> ContactAdaptor().fetch_all_by_interface_id(1)
         <Contact()>
-        '''
+        """
         AtomBgn = aliased(Atom)
         AtomEnd = aliased(Atom)
         PeptideBgn = aliased(Residue)
@@ -217,7 +221,7 @@ class ContactAdaptor(object):
         return query.all()
     
     def fetch_all_by_groove_id(self, groove_id, *expressions):
-        '''
+        """
         Returns all the contacts between the peptides and nucleotides in this groove.
         This method will NOT return interactions for any non-peptide and non-nucleotide
         residues, (e.g. water).
@@ -241,7 +245,7 @@ class ContactAdaptor(object):
          Examples
         --------
         >>> 
-        '''
+        """
         AtomBgn = aliased(Atom)
         AtomEnd = aliased(Atom)
 
