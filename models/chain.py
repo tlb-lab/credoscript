@@ -4,7 +4,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, cast, func, text
 from sqlalchemy.dialects.postgresql import INTEGER
 
-from credoscript import Base, session, disordered_regions
+from credoscript import Base, Session, disordered_regions
 from credoscript.mixins import PathMixin
 
 class Chain(Base, PathMixin):
@@ -81,9 +81,9 @@ class Chain(Base, PathMixin):
                                  backref=backref('Chain', uselist=False, innerjoin=True))
     
     XRefs = relationship("XRef",
-                         collection_class=attribute_mapped_collection("source"),
                          primaryjoin="and_(XRef.entity_type=='Chain', XRef.entity_id==Chain.chain_id)",
-                         foreign_keys="[XRef.entity_type, XRef.entity_id]", uselist=True, innerjoin=True)
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
+                         lazy='dynamic', uselist=True, innerjoin=True)
       
     # DEFERRED COLUMNS  
     title = deferred(__table__.c.title)
@@ -131,12 +131,18 @@ class Chain(Base, PathMixin):
         '''
         Returns a list of disordered regions inside this Chain (if any).
         '''
+        session = Session()
+        
         statement = select([disordered_regions],
             and_(disordered_regions.c.pdb==self.Biomolecule.Structure.pdb,
                  disordered_regions.c.pdb_chain_id==self.pdb_chain_asu_id,
                  *expressions))
 
-        return session.execute(statement).fetchall()
+        result = session.execute(statement).fetchall()
+        
+        session.close()
+        
+        return result
 
     def get_residue_sifts(self, *expressions):
         '''
@@ -158,11 +164,13 @@ class Chain(Base, PathMixin):
         --------
         >>> structure = StructureAdaptor().fetch_by_pdb('2p33')
         >>> chain = structure[0]['A']
-        >>> chain.get_residue_sifts(Contact.structural_interaction_type=PRO_LIG)
+        >>> chain.get_residue_sifts(Contact.structural_interaction_type==PRO_LIG)
         >>> [(<Residue(ILE 70 )>, 0L, 0L, 0L, 25L, 0L, 1L, 0L, 0L, 0L, 0L, 2L, 0L),
              (<Residue(GLY 71 )>, 0L, 0L, 0L, 4L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L),
              (<Residue(SER 72 )>, 0L, 0L, 0L, 3L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L),...]
         '''
+        session = Session()
+        
         query = session.query(Residue.residue_id.label('residue_id'), Contact).select_from(Contact)
 
         whereclause = and_(Residue.chain_id==self.chain_id,
@@ -208,7 +216,11 @@ class Chain(Base, PathMixin):
         
         query = query.join(sift, sift.c.residue_id==Residue.residue_id)
         
-        return query.all()
+        result = query.all()
+        
+        session.close()
+        
+        return result
   
 from .contact import Contact
 from .atom import Atom
