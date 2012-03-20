@@ -1,32 +1,35 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import binding_sites, ligand_usr
+from credoscript import Session, binding_sites, ligand_usr, binding_site_fuzcav
 from credoscript.mixins import PathAdaptorMixin
 
 class LigandAdaptor(PathAdaptorMixin):
-    '''
-    '''
-    def __init__(self):
-        self.query = Ligand.query
+    """
+    """
+    def __init__(self, paginate=False, per_page=100):
+        """
+        """
+        self.paginate = paginate
+        self.per_page = per_page
        
     def fetch_by_ligand_id(self, ligand_id):
-        '''
-        '''
-        return self.query.get(ligand_id)
+        """
+        """
+        return Ligand.query.get(ligand_id)
 
     def fetch_all_by_het_id(self, het_id, *expressions):
-        '''
-        '''
-        return self.query.filter(and_(Ligand.ligand_name==het_id, *expressions)).all()
+        """
+        """
+        return Ligand.query.filter(and_(Ligand.ligand_name==het_id, *expressions)).all()
 
     def fetch_all_by_structure_id(self, structure_id, *expressions):
-        '''
-        '''
-        return self.query.join('Biomolecule').filter(
+        """
+        """
+        return Ligand.query.join('Biomolecule').filter(
             and_(Biomolecule.structure_id==structure_id, *expressions)).all()
 
     def fetch_all_by_chembl_id(self, chembl_id, *expressions):
-        '''
+        """
         Returns all ligands that contain a chemical components that can be linked
         to a ChEMBL molecule with the specified ChEMBL identifier.
         
@@ -54,15 +57,15 @@ class LigandAdaptor(PathAdaptorMixin):
          <Ligand(B 401 017)>, <Ligand(A 201 017)>, <Ligand(B 203 017)>,
          <Ligand(A 201 017)>, <Ligand(B 203 017)>, <Ligand(B 401 017)>,
          <Ligand(A 402 017)>]
-        '''
-        query = self.query.join('Components','ChemComp','XRefs')
+        """
+        query = Ligand.query.join('Components','ChemComp','XRefs')
         query = query.filter(and_(XRef.source=='ChEMBL Compound', XRef.xref==chembl_id,
                                   *expressions))
 
         return query.all()
 
     def fetch_all_by_uniprot(self, uniprot, *expressions):
-        '''
+        """
         Returns all ligands that are in contact with a protein having the specified
         UniProt accession.
 
@@ -87,8 +90,8 @@ class LigandAdaptor(PathAdaptorMixin):
         --------
         >>> LigandAdaptor().fetch_all_by_uniprot('P03372')
         >>> [<Ligand(B 600 OHT)>, <Ligand(A 600 OHT)>,...]
-        '''
-        query = self.query.join(
+        """
+        query = Ligand.query.join(
             (binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id),
             (Residue, Residue.residue_id==binding_sites.c.residue_id),
             (XRef, and_(XRef.entity=='Chain', XRef.entity_id==Residue.chain_id)))
@@ -100,7 +103,7 @@ class LigandAdaptor(PathAdaptorMixin):
         return query.all()
 
     def fetch_all_by_cath_dmn(self, dmn, *expressions):
-        '''
+        """
         Returns all ligands that are in contact with peptides having the specified
         CATH domain identifier.
 
@@ -125,8 +128,8 @@ class LigandAdaptor(PathAdaptorMixin):
         --------
         >>> LigandAdaptor().fetch_all_by_cath_dmn('1bcuH01')
         >>> [<Ligand(H 280 PRL)>]
-        '''
-        query = self.query.join(
+        """
+        query = Ligand.query.join(
             (binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id),
             (Peptide, Peptide.residue_id==binding_sites.c.residue_id),
             (ResMap, ResMap.res_map_id==Peptide.res_map_id))
@@ -136,7 +139,7 @@ class LigandAdaptor(PathAdaptorMixin):
         return query.all()
 
     def fetch_all_by_usr_moments(self, *expressions, **kwargs):
-        '''
+        """
         Performs an Ultrast Shape Recognition with CREDO Atom Types (USRCAT) search
         of this Ligand against all other Ligands in CREDO.
 
@@ -189,43 +192,128 @@ class LigandAdaptor(PathAdaptorMixin):
          (<Ligand(B 1471 140)>, 0.0334515825641013), (<Ligand(E 6178 VDY)>, 0.0326079480179413),
          (<Ligand(D 473 PAM)>, 0.0284358164031147), (<Ligand(E 1460 PLM)>, 0.0275288778074261),
          (<Ligand(D 2001 VD3)>, 0.0272922654340162), (<Ligand(A 1003 MYR)>, 0.0270479516947393)]
-        '''
+        """
+        session = Session()
+        
+        ligand_id = kwargs.get("ligand_id",0)
         usr_space = kwargs.get('usr_space',[])
         usr_moments = kwargs.get('usr_moments',[])
+        threshold = kwargs.get('threshold', 0.5)
 
-        # RAISE AN ERROR IF NEITHER A CUBE NOR THE USR MOMENTS HAVE BEEN PROVIDED
-        if len(usr_moments) != 60: raise ValueError('The 60 USR shape descriptors are required.')
+        usr_space, usr_moments = list(usr_space), list(usr_moments)
 
-        # FACTOR BY WHICH THE USR SHAPE MOMENTS WILL BE ENLARGED IN USER SPACE
-        probe_radius = kwargs.get('probe_radius', 0.5)
+        # get the moments from a CREDO ligand id an identifier was provided
+        if ligand_id:
+            ligand = Ligand.query.get(ligand_id)
 
-        # MAXIMUM NUMBER OF HITS TO BE RETURNED
-        limit = kwargs.get('limit', 25)
+            if ligand:
+                usr_space, usr_moments = ligand.usr_space, ligand.usr_moments
 
-        # WEIGHTS FOR THE INDIVIDUAL ATOM TYPE MOMENTS
+        # raise an error if neither a cube nor the USR moments have been provided
+        if len(usr_moments) != 60:
+            raise ValueError('The 60 USR shape descriptors are required.')
+
+        # factor by which the usr shape moments will be enlarged in user space
+        probe_radius = kwargs.get('probe_radius', 0.75)
+
+        # weights for the individual atom type moments
         ow = kwargs.get('ow', 1.0)
         hw = kwargs.get('hw', 0.25)
         rw = kwargs.get('rw', 0.25)
         aw = kwargs.get('aw', 0.25)
         dw = kwargs.get('dw', 0.25)
 
-        # CREATE A PROBE AROUND THE QUERY IN USR SPACE
-        probe = func.cube_enlarge(usr_space, probe_radius, 12).label('probe')
+        # create a probe around the query in USR space
+        probe = func.cube_enlarge(func.cube(usr_space), probe_radius, 12).label('probe')
 
-        # CUBE DISTANCE GIST INDEX
-        index = ligand_usr.c.usr_space.op('<@')(probe)
-
-        # USRCAT SIMILARITY
-        similarity = func.arrayxd_usrcatsim(ligand_usr.c.usr_moments, usr_moments, ow, hw, rw, aw, dw).label('similarity')
+        # USRCAT similarity
+        similarity = func.arrayxd_usrcatsim(ligand_usr.c.usr_moments, usr_moments,
+                                            ow, hw, rw, aw, dw).label('similarity')
+        
+        # cube distance GIST index
+        whereclause = and_(ligand_usr.c.usr_space.op('<@')(probe),
+                           similarity >= threshold)
 
         subquery = session.query(ligand_usr.c.ligand_id, similarity)
-        subquery = subquery.filter(index).order_by("2 DESC").limit(limit).subquery()
+        subquery = subquery.filter(whereclause).order_by("2 DESC").subquery()
 
-        ligands = session.query(Ligand, subquery.c.similarity)
-        ligands = ligands.join((subquery, subquery.c.ligand_id==Ligand.ligand_id))
-        ligands = ligands.filter(and_(*expressions))
+        query = Ligand.query.add_column(subquery.c.similarity)
+        query = query.join((subquery, subquery.c.ligand_id==Ligand.ligand_id))
+        query = query.filter(and_(*expressions))
 
-        return ligands.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+            
+        else: return query.limit(limit).all()
+    
+    def fetch_all_by_fuzcav(self, *expressions, **kwargs):
+        """
+        Returns the hits of a FuzCav search executed with this ligand against all
+        ligands in CREDO.
+        
+        References
+        ----------
+        
+
+        Examples
+        --------
+        
+        """
+        session = Session()
+        
+        # get the used parameters for FuzCav
+        ligand_id = kwargs.get("ligand_id")
+        fp = kwargs.get("fp", [])
+        threshold = kwargs.get("threshold", 0.16)
+        fptype = kwargs.get("fptype", "calpha")
+        metric = kwargs.get("metric", "fuzcavglobal")
+        limit = kwargs.get('limit',25)
+        
+        # get the FuzCav fingerprint column corresponding to the query parameter
+        if fptype == "calpha": targetfp = binding_site_fuzcav.c.calphafp
+        elif fptype == "rep": targetfp = binding_site_fuzcav.c.repfp
+        else: raise ValueError("{} is not a valid fingerprint type.".format(fptype))
+        
+        # get the (dis)similarity metric function corresponding to the query parameter
+        if metric == "fuzcavglobal": simfunc = func.arrayxi_fuzcavsim_global
+        elif metric == "fuzcav": simfunc = func.arrayxi_fuzcavsim
+        else: raise ValueError("unknown metric: {}".format(metric))
+        
+        if ligand_id:
+            
+            # get the query FuzCav fingerprint (this ligand)
+            query = session.query(binding_site_fuzcav.c.ligand_id, targetfp)
+            query = query.filter(binding_site_fuzcav.c.ligand_id==ligand_id)
+            query = query.subquery("query")
+            
+            # get the FuzCav query fingerprint corresponding to the query parameter
+            queryfp = query.c.calphafp if fptype == "calpha" else query.c.repfp
+        
+        # use an existing FuzCav fingerprint as query
+        elif fp:
+            
+            queryfp = fp
+            
+        # compile the similarity function
+        similarity = simfunc(targetfp, queryfp)
+        similarity = similarity.label("similarity")        
+        
+        # get the FuzCav hits by cross joining the query fingerprint
+        hits = session.query(binding_site_fuzcav.c.ligand_id, similarity)
+        hits = hits.filter(similarity > threshold)
+        hits = hits.order_by("2 DESC")
+        hits = hits.subquery("hits")
+
+        # join the ligands back in
+        query = Ligand.query.add_column(hits.c.similarity)
+        query = query.join(hits, hits.c.ligand_id==Ligand.ligand_id)
+
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+            
+        else: return query.limit(limit).all()
 
 from ..models.xref import XRef
 from ..models.resmap import ResMap
