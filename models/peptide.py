@@ -42,15 +42,16 @@ class Peptide(Base, PathMixin, ResidueMixin):
     '''
     __tablename__ = 'credo.peptides'    
     
-    Residue = relationship("Residue",
-                            primaryjoin="Residue.residue_id==Peptide.residue_id",
-                            foreign_keys="[Residue.residue_id]", uselist=False, innerjoin=True,
-                            backref=backref('Peptide', uselist=False, innerjoin=True))
-    
     ResMap = relationship("ResMap",
                           primaryjoin="ResMap.res_map_id==Peptide.res_map_id",
                           foreign_keys = "[ResMap.res_map_id]",
                           uselist=False, innerjoin=True)
+    
+    @property
+    def Variations(self):
+        """
+        """
+        return VariationAdaptor().fetch_all_by_res_map_id(self.res_map_id)
     
     @property
     def Contacts(self):
@@ -62,3 +63,4 @@ class Peptide(Base, PathMixin, ResidueMixin):
 
 from .atom import Atom
 from ..adaptors.contactadaptor import ContactAdaptor
+from ..adaptors.variationadaptor import VariationAdaptor
