@@ -1,50 +1,54 @@
 from sqlalchemy.sql.expression import func, text, and_
 
+from credoscript import Session
 from credoscript.support import requires
 
 class ChemCompAdaptor(object):
-    '''
+    """
     Adaptor class to fetch chemical components from CREDO.
-    '''
-    def __init__(self):
-        self.query = ChemComp.query
-       
+    """
+    def __init__(self, paginate=False, per_page=100):
+        """
+        """
+        self.paginate = paginate
+        self.per_page = per_page
+
     def fetch_by_chem_comp_id(self, chem_comp_id):
-        '''
-        '''
+        """
+        """
         return self.query.get(chem_comp_id)
 
     def fetch_by_het_id(self, het_id):
-        '''
+        """
         Returns the ChemComp having the specified HET-ID.
-        
+
         Parameters
         ----------
         het_id : str
             Three-letter code of the chemical component.
-        
+
         Returns
         -------
         chemcomp : ChemComp
             ChemComp having the specified HET-ID
-        
+
         Examples
         --------
         >>>> ChemCompAdaptor().fetch_by_het_id('NIL')
         <ChemComp(NIL)>
-        '''
-        return self.query.filter(ChemComp.het_id==het_id.upper()).first()
+        """
+        return ChemComp.query.filter(ChemComp.het_id==het_id.upper()).first()
 
     def fetch_by_residue_id(self, residue_id):
-        '''
-        '''
-        query = self.query.join((Residue, Residue.res_name==ChemComp.het_id))
+        """
+        """
+        query = ChemComp.query.join((Residue, Residue.res_name==ChemComp.het_id))
         query = query.filter(Residue.residue_id==residue_id)
-        
+
         return query.first()
 
-    def fetch_all_by_fragment_id(self, fragment_id, *expressions):
-        '''
+    def fetch_all_by_fragment_id(self, fragment_id, *expressions, **kwargs):
+        """
         Returns all Chemical Components in the PDB that lead to the fragment with
         the given fragment_id during the RECAP fragmention process.
 
@@ -64,71 +68,78 @@ class ChemCompAdaptor(object):
         Examples
         --------
 
-        '''
-        query = self.query.join('ChemCompFragments')
-        query = query.filter(and_(ChemCompFragment.fragment_id==fragment_id, *expressions))
+        """
+        query = ChemComp.query.join('ChemCompFragments')
+        query = query.filter(and_(ChemCompFragment.fragment_id==fragment_id,
+                                  *expressions))
 
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.all()
 
     def fetch_all_by_xref(self, source, xref):
-        '''
+        """
         Returns all the ChemComps that match the specified cross reference (database
         identifier) in the specified external database.
-        
+
         Parameters
         ----------
         source : str
             Name of the database source of the cross reference, e.g.
         xref : str
             Database identifier in the external database.
-        
+
         Returns
         -------
         xrefs : list
             ChemComps that match the specified cross reference.
-        
+
         Examples
         --------
         >>>> ChemCompAdaptor().fetch_all_by_xref('ChEMBL Compound', 'CHEMBL941')
         [<ChemComp(STI)>]
-        '''
-        query = self.query.join('XRefs').filter(and_(XRef.source==source, XRef.xref==xref))
+        """
+        query = ChemComp.query.join('XRefs')
+        query = query.filter(and_(XRef.source==source, XRef.xref==xref))
+        
         return query.all()
 
     def fetch_all_by_chembl_id(self, chembl_id):
-        '''
+        """
         Returns all chemical components with the same structure as the ChEMBL molecule
         with the specified CHEMBLID.
-        
+
         Parameters
         ----------
         chembl_id : str
             ChEMBL stable identifier.
-        
+
         Returns
         -------
         chemcomps : list
             Chemical components having the same structurea as the ChEMBL molecule
             with the specified CHEMBLID.
-        '''
+        """
         return self.fetch_all_by_xref('ChEMBL Compound', chembl_id)
 
     def fetch_all_approved_drugs(self):
-        '''
+        """
         Returns a list of all the ChemComps that are approved drugs based on the
         information provided by ChEMBL.
-        
+
         Returns
         -------
         chemcomps : list
             All ChemComps that are approved drugs based on the information provided
             by ChEMBL.
-        '''
-        return self.query.filter(ChemComp.is_approved_drug==True).all()
+        """
+        return ChemComp.query.filter(ChemComp.is_approved_drug==True).all()
 
     @requires.rdkit_catridge
     def fetch_all_by_substruct(self, smi, *expressions, **kwargs):
-        '''
+        """
         Returns all Chemical Components in the PDB that have the given SMILES
         substructure.
 
@@ -160,17 +171,22 @@ class ChemCompAdaptor(object):
         Requires
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
-        '''
-        limit = kwargs.get('limit', 100) 
-        
-        query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.contains(smi), *expressions))
+        """
+        limit = kwargs.get('limit', 100)
 
-        return query.limit(limit).all()
+        query = ChemComp.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.contains(smi), *expressions))
+        query = query.order_by(ChemComp.het_id.asc())
+
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
     @requires.rdkit_catridge
     def fetch_all_by_superstruct(self, smiles, *expressions, **kwargs):
-        '''
+        """
         Returns all Chemical Components in the PDB that have the given SMILES
         superstructure.
 
@@ -202,17 +218,22 @@ class ChemCompAdaptor(object):
         Requires
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
-        '''
-        limit = kwargs.get('limit', 100) 
-        
-        query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.contained_in(smi), *expressions))
+        """
+        limit = kwargs.get('limit', 100)
 
-        return query.limit(limit).all()        
+        query = ChemComp.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.contained_in(smiles), *expressions))
+        query = query.order_by(ChemComp.het_id.asc())
+
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
     @requires.rdkit_catridge
     def fetch_all_by_smarts(self, smarts, *expressions, **kwargs):
-        '''
+        """
         Returns all chemical components that match the given SMARTS pattern.
 
         Parameters
@@ -245,17 +266,22 @@ class ChemCompAdaptor(object):
         ChemCompAdaptor.fetch_all_by_substruct
         ChemCompAdaptor.fetch_all_by_superstruct
         ChemCompAdaptor.fetch_all_by_sim
-        '''
-        limit = kwargs.get('limit', 100) 
-        
-        query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.matches(smi), *expressions))
+        """
+        limit = kwargs.get('limit', 100)
 
-        return query.limit(limit).all()        
+        query = ChemComp.query.join('RDMol')
+        query = query.filter(and_(ChemCompRDMol.matches(smarts), *expressions))
+        query = query.order_by(ChemComp.het_id.asc())
+
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
     @requires.rdkit_catridge
     def fetch_all_by_sim(self, smi, *expressions, **kwargs):
-        '''
+        """
         Returns all Chemical Components that match the given SMILES string with at
         least the given similarity threshold using chemical fingerprints.
 
@@ -287,11 +313,13 @@ class ChemCompAdaptor(object):
         Requires
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
-        '''
-        threshold = kwargs.get('threshold', 0.5)  
-        fp = kwargs.get('fp', 'circular')  
-        limit = kwargs.get('limit', 100)        
+        """
+        session = Session()
         
+        threshold = kwargs.get('threshold', 0.5)
+        fp = kwargs.get('fp', 'circular')
+        limit = kwargs.get('limit', 100)
+
         if fp == 'circular':
             query = func.rdkit.morganbv_fp(smi,2).label('queryfp')
             target = ChemCompRDFP.circular_fp
@@ -308,19 +336,24 @@ class ChemCompAdaptor(object):
             msg = "The fingerprint type [{0}] does not exist.".format(fp)
             raise RuntimeError(msg)
 
-        # SET THE SIMILARITY THRESHOLD FOR THE INDEX
+        # set the similarity threshold for the index
         session.execute(text("SET rdkit.tanimoto_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
 
         tanimoto = func.rdkit.tanimoto_sml(query, target).label('tanimoto')
         index = func.rdkit.tanimoto_sml_op(query,target)
 
-        query = session.query(ChemComp, tanimoto).join('RDFP').filter(
-            and_(index, *expressions)).order_by('tanimoto DESC')
+        query = ChemComp.query.add_column(tanimoto)
+        query = query.join('RDFP').filter(and_(index, *expressions))
+        query = query.order_by('tanimoto DESC')
 
-        return query.limit(limit).all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
     def fetch_all_by_trgm_sim(self, smiles, *expressions, **kwargs):
-        '''
+        """
         Returns all chemical components that are similar to the given SMILES string
         using trigam similarity (similar to LINGO).
 
@@ -352,7 +385,9 @@ class ChemCompAdaptor(object):
         Requires
         --------
         .. important:: `pg_trgm  <http://www.postgresql.org/docs/current/static/pgtrgm.html>`_ PostgreSQL extension.
-        '''
+        """
+        session = Session()
+        
         threshold = kwargs.get('threshold', 0.6)
         limit = kwargs.get('limit', 25)
 
@@ -361,16 +396,20 @@ class ChemCompAdaptor(object):
 
         similarity = func.similarity(ChemComp.ism,smiles).label('similarity')
 
-        query = session.query(ChemComp, similarity)
+        query = ChemComp.query.add_column(similarity)
         query = query.filter(and_(ChemComp.like(smiles), *expressions))
-        
-        # KNN-GIST
-        query = query.order_by(ChemComp.ism.op('<->')(smiles)).limit(limit)
 
-        return query.all()
+        # KNN-GIST
+        query = query.order_by(ChemComp.ism.op('<->')(smiles))
+
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
     def fetch_all_by_usr_moments(self, *expressions, **kwargs):
-        '''
+        """
         Returns all Chemical Components whose conformers have an ultrafast-shape
         recognition (USR) similarity above the given threshold.
 
@@ -422,49 +461,63 @@ class ChemCompAdaptor(object):
         -----
         Depending on the weights, the USR similarity might be above 1.0 or return
         lower values.
-        '''
-        usr_space = kwargs.get('usr_space')
+        """
+        session = Session()
+        
+        usr_space = kwargs.get('usr_space',[])
         usr_moments = kwargs.get('usr_moments',[])
+        threshold = kwargs.get('threshold', 0.6)
 
-        # FACTOR BY WHICH THE USR SHAPE MOMENTS WILL BE ENLARGED IN USER SPACE
-        probe_radius = kwargs.get('probe_radius', 0.5)
+        usr_space, usr_moments = list(usr_space), list(usr_moments)
 
-        # MAXIMUM NUMBER OF CHEMICAL COMPONENTS TO BE RETURNED
+        # factor by which the usr shape moments will be enlarged in user space
+        probe_radius = kwargs.get('probe_radius', 0.75)
+
+        # maximum number of chemical components to be returned
         limit = kwargs.get('limit', 25)
 
-        # WEIGHTS FOR THE INDIVIDUAL ATOM TYPE MOMENTS
+        # weights for the individual atom type moments
         ow = kwargs.get('ow', 1.0)
         hw = kwargs.get('hw', 0.25)
         rw = kwargs.get('rw', 0.25)
         aw = kwargs.get('aw', 0.25)
         dw = kwargs.get('dw', 0.25)
 
-        # RAISE AN ERROR IF NEITHER A CUBE NOR THE USR MOMENTS HAVE BEEN PROVIDED
-        if len(usr_moments) != 60: raise ValueError('The 60 USR shape descriptors are required.')
+        # raise an error if neither a cube nor the usr moments have been provided
+        if len(usr_moments) != 60:
+            raise ValueError('The 60 USR shape descriptors are required.')
 
-        # CREATE A PROBE AROUND THE QUERY IN USR SPACE IF NONE IS PROVIDED
+        # create a probe around the query in usr space if none is provided
         if usr_space:
-            probe = func.cube_enlarge(usr_space, probe_radius, 12).label('probe')
+            probe = func.cube_enlarge(func.cube(usr_space), probe_radius, 12).label('probe')
         else:
-            usr_space = func.cube(usr_moments)
-            probe = func.cube_enlarge(usr_space, probe_radius, 12).label('probe')
+            usr_space = usr_moments[:12]
+            probe = func.cube_enlarge(func.cube(usr_space), probe_radius, 12).label('probe')
 
-        # CUBE DISTANCE GIST INDEX
+        # USRCAT similarity
+        similarity = func.max(func.arrayxd_usrcatsim(ChemCompConformer.usr_moments,
+                                                     usr_moments, ow, hw, rw, aw, dw)).label('similarity')
+
+        # cube distance GIST index and similarity threshold
         index = ChemCompConformer.contained_in(probe)
 
-        # USRCAT SIMILARITY
-        similarity = func.arrayxd_usrcatsim(ChemCompConformer.usr_moments, usr_moments, ow, hw, rw, aw, dw).label('similarity')
+        # USRCAT search against conformers in subquery
+        subquery = session.query(ChemCompConformer.het_id, similarity)
+        subquery = subquery.filter(index)
+        subquery = subquery.group_by(ChemCompConformer.het_id)
+        subquery = subquery.having(similarity >= threshold)
+        subquery = subquery.subquery()
 
-        # USRCAT SEARCH AGAINST CONFORMERS IN SUBQUERY
-        subquery = session.query(ChemCompConformer.het_id, func.max(similarity).label('similarity'))
-        subquery = subquery.filter(index).group_by(ChemCompConformer.het_id)
-        subquery = subquery.order_by("2 DESC").limit(limit).subquery()
+        # get the chemcomp entities
+        query = ChemComp.query.add_column(subquery.c.similarity)
+        query = query.join((subquery, subquery.c.het_id==ChemComp.het_id))
+        query = query.filter(and_(*expressions)).order_by("similarity DESC")
 
-        # GET THE CHEMCOMP ENTITIES
-        query = session.query(ChemComp, subquery.c.similarity)
-        query = query.join((subquery, subquery.c.het_id==ChemComp.het_id)).filter(and_(*expressions))
-        
-        return query.all()
+        if self.paginate:
+            page = kwargs.get('page',1)
+            return query.paginate(page=page, per_page=self.per_page)
+
+        else: return query.limit(limit).all()
 
 from ..models.xref import XRef
 from ..models.chemcomp import ChemComp
