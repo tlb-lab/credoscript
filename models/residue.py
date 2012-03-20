@@ -1,7 +1,7 @@
 from sqlalchemy.dialects.postgresql import INTEGER
 from sqlalchemy.sql.expression import and_, cast, func
 
-from credoscript import Base, session
+from credoscript import Base, Session
 from credoscript.mixins import PathMixin, ResidueMixin
 
 class Residue(Base, PathMixin, ResidueMixin):
@@ -88,6 +88,8 @@ class Residue(Base, PathMixin, ResidueMixin):
         sift : tuple
             sum of all the contact types of all contacts this residue has.
         '''
+        session = Session()
+        
         whereclause = and_(Atom.residue_id==self.residue_id,
                            Contact.biomolecule_id==self.biomolecule_id,
                            Atom.biomolecule_id==Contact.biomolecule_id,
@@ -112,6 +114,8 @@ class Residue(Base, PathMixin, ResidueMixin):
                 func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)))
         
         return session.query(*sift).first()
+        
+        session.close()
 
 from .contact import Contact
 from .atom import Atom
