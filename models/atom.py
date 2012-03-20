@@ -98,10 +98,7 @@ class Atom(Base):
         Returns the coordinates of this atom as Vector object that supports linear
         algebra routines.
         '''
-        # POSTGRESQL COMPOSITE TYPE IS RETURNED AS STRING
-        centroid = map(float, self.coords[1:-1].split(','))
-
-        return Vector(centroid)
+        return self.coords
 
     @property
     def pymolstring(self):
