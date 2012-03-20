@@ -2,7 +2,7 @@ from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Base, session, ligand_usr, binding_site_atom_surface_areas
+from credoscript import (Base, Session, binding_sites, ligand_usr, binding_site_atom_surface_areas)
 from credoscript.mixins import PathMixin
 
 class Ligand(Base, PathMixin):
@@ -169,13 +169,14 @@ class Ligand(Base, PathMixin):
         Returns Query.
         '''
         return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                       Contact.biomolecule_id==self.biomolecule_id,
-                                                       dynamic=True)    
+                                                       Contact.biomolecule_id==self.biomolecule_id)    
     
     @property
     def usr_space(self):
         '''
         '''
+        session = Session()
+        
         return session.query(ligand_usr.c.usr_space).filter(
             ligand_usr.c.ligand_id==self.ligand_id).scalar()
     
@@ -183,6 +184,8 @@ class Ligand(Base, PathMixin):
     def usr_moments(self):
         '''
         '''
+        session = Session()
+        
         return session.query(ligand_usr.c.usr_moments).filter(
             ligand_usr.c.ligand_id==self.ligand_id).scalar()
 
@@ -201,6 +204,22 @@ class Ligand(Base, PathMixin):
                                           self.Biomolecule.assembly_serial,
                                           self.pdb_chain_id,
                                           self.res_num and self.res_num or '')
+    
+    def bs_class(self, system="cath"):
+        """
+        Returns a list of the structural classification identifiers of all the
+        residues that are interacting with this ligand.
+        """
+        
+        if system == "cath": column = Peptide.cath
+        elif system == "scop": column = Peptide.px
+        else: raise ValueError("unknown structural classification system: {}".format(system))
+        
+        query = session.query(column.distinct())
+        query = query.join(binding_sites, binding_sites.c.residue_id==Peptide.residue_id)
+        query = query.filter(binding_sites.c.ligand_id==self.ligand_id)
+        
+        return query.all()
 
     def get_proximal_water(self, *expressions):
         '''
