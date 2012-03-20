@@ -3,10 +3,10 @@ from sqlalchemy.sql.expression import and_, cast
 from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from credoscript import Base, session, citations
+from credoscript import Base, Session, citations
 
 class Structure(Base):
-    '''
+    """
     Represents a PDB Structure entity from CREDO.
 
     Attributes
@@ -73,7 +73,7 @@ class Structure(Base):
     -----
     - The __getitem__ method is overloaded so that Structure[1] will return
       the first Biomolecule (biological assembly) of this structure
-    '''
+    """
     __table__ = Base.metadata.tables['credo.structures']
 
     Biomolecules = relationship("Biomolecule",
@@ -99,12 +99,12 @@ class Structure(Base):
     authors = deferred(__table__.c.authors)   
     
     def __repr__(self):
-        '''
-        '''
+        """
+        """
         return "<Structure({self.pdb})>".format(self=self)
 
     def __getitem__(self, biomolecule):
-        '''
+        """
         Returns the Biomolecule with the specified biomolecule serial number or
         None.
         
@@ -117,26 +117,28 @@ class Structure(Base):
         -------
         biomolecule : Biomolecule
         
-        '''
+        """
         return self.BiomoleculeMap.get(biomolecule)
 
     def __iter__(self):
-        '''
+        """
         Returns the Biomolecules of this Structure.
         
         Returns
         -------
         biomolecules : list
             Biological assemblies derived from this asymmetric unit.
-        '''
-        return iter(self.Biomolecules)
+        """
+        return iter(self.Biomolecules.all())
 
     @property
     def abstracts(self):
-        '''
+        """
         Returns the abstract(s) of the journal articles that are associated with
         this PDB entry.
-        '''
+        """
+        session = Session()
+        
         statement = select([citations],
             and_(citations.c.pubmed_id==cast(XRef.xref, Integer),
                  XRef.source=='PubMed', XRef.entity_type=='Structure',
