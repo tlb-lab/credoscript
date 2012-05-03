@@ -12,7 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import credoscript.util.psycopg2
 
 # the following modules will be imported with from credoscript import *
-__all__ = ['adaptors','contrib','extensions','models']
+__all__ = ['adaptors','contrib','ext','models']
 
 # configuration
 CONFIG_PATH = os.path.join(__path__[0], 'config.json')
