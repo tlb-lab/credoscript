@@ -17,7 +17,44 @@
 
     "directory":
     {
-        "pdb": ""
+        "pdb": "/merlin/Store/PDB/QUAT/Assemblies/PDB"
+    },
+
+    "schema":
+    {
+        "credo":
+        {
+            "reflect": ["aromatic_ring_atoms","aromatic_rings","atom_ring_interactions",
+                        "atoms","binding_site_atom_surface_areas","binding_site_fuzcav",
+                        "binding_sites","biomolecules","chains","contacts","groove_residues",
+                        "grooves","hetatms","interface_residues","interfaces",
+                        "ligand_components","ligand_fcd","ligand_fragments",
+                        "ligand_fragment_atoms","ligand_molstrings","ligand_usr",
+                        "ligands","nucleotides","oligonucleotides","peptides",
+                        "polypeptides","polysaccharides","prot_fragment_residues",
+                        "prot_fragments","residue_interaction_pairs","residues",
+                        "ring_interactions","saccharides","structures","xrefs"]
+        },
+
+        "pdb":
+        {
+            "reflect": ["res_map","citations","disordered_regions"]
+        },
+
+        "pdbchem":
+        {
+            "reflect": ["chem_comps","chem_comp_conformers","chem_comp_fragment_atoms",
+                        "chem_comp_fragments","chem_comp_oefps","chem_comp_rdfps",
+                        "chem_comp_rdmols","chem_comp_structures","fragments",
+                        "fragment_hierarchies"]
+        },
+
+        "variations":
+        {
+            "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
+                        "phenotypes","annotations","phenotype_to_ligand",
+                        "phenotype_to_interface"]
+        }
     },
 
     "pymol":
@@ -320,7 +357,7 @@
             "DA","DC","DG","DI","DT","A","C","G","U","I","N","DOC"
         ]
     },
-    
+
     "extras":
     {
         "rdkit": false,
