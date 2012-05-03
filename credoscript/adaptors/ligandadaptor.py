@@ -48,6 +48,16 @@ class LigandAdaptor(PathAdaptorMixin):
         return query.distinct()
 
     @paginate
+    def fetch_all_in_contact_with_residue_id(self, residue_id, *expr, **kwargs):
+        """
+        """
+        query = self.query.join(binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide, Peptide.residue_id==binding_sites.c.residue_id)
+        query = query.filter(and_(Peptide.residue_id==residue_id, *expr))
+
+        return query.distinct()
+
+    @paginate
     def fetch_all_by_phenotype_id(self, phenotype_id, *expr, **kwargs):
         """
         Returns all ligands whose binding sites contain residues that are linked
@@ -354,3 +364,4 @@ from ..models.peptide import Peptide
 from ..models.residue import Residue
 from ..models.ligand import Ligand
 from ..models.biomolecule import Biomolecule
+from ..models.ligandcomponent import LigandComponent
