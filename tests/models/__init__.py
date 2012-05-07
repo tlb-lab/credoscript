@@ -9,6 +9,7 @@ from .interfacetestcase import InterfaceTestCase
 from .protfragmenttestcase import ProtFragmentTestCase
 from .aromaticringtestcase import AromaticRingTestCase
 from .ringinteractiontestcase import RingInteractionTestCase
-
 from .chemcomptestcase import ChemCompTestCase
 from .fragmenttestcase import FragmentTestCase
+
+from .ligandmatchtestcase import LigandMatchTestCase

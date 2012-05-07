@@ -186,7 +186,7 @@ class Ligand(Base, PathMixin):
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -216,7 +216,7 @@ class Ligand(Base, PathMixin):
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -244,7 +244,7 @@ class Ligand(Base, PathMixin):
                                                                          dynamic=True)
 
     @property
-    def BindingSiteResidues(self):
+    def ProximalResidues(self):
         """
         Returns all residues that are in contact with the ligand having the specified
         ligand identifier.
@@ -253,7 +253,7 @@ class Ligand(Base, PathMixin):
         ----------
         ligand_id : int
             `Ligand` identifier.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -269,7 +269,7 @@ class Ligand(Base, PathMixin):
                                                                     dynamic=True)
 
     @property
-    def BindingSiteAtoms(self):
+    def ProximalAtoms(self):
         """
         Returns all atoms that are in contact with the ligand having the specified
         ligand identifier.
@@ -278,7 +278,7 @@ class Ligand(Base, PathMixin):
         ----------
         ligand_id : int
             `Ligand` identifier.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -312,13 +312,18 @@ class Ligand(Base, PathMixin):
         return session.query(ligand_usr.c.usr_moments).filter(
             ligand_usr.c.ligand_id==self.ligand_id).scalar()
 
-    def buried_surface_area(self, *expressions, **kwargs):
+    def sift(self, *expr, **kwargs):
+        """
+        """
+        return SIFtAdaptor().fetch_by_ligand_id(self.ligand_id, self.biomolecule_id, *expr)
+
+    def buried_surface_area(self, *expr, **kwargs):
         """
         Returns the buried solvent-accessible surface areas of the ligand.
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
         state: str, {'apo','bound','delta'}, default='delta'
             State of the surface.
@@ -379,7 +384,7 @@ class Ligand(Base, PathMixin):
             query = query.filter(Residue.entity_type_bm.op('&')(3) == 0)
 
         query = query.filter(and_(binding_site_atom_surface_areas.c.ligand_id==self.ligand_id,
-                                  *expressions))
+                                  *expr))
 
         # CONSIDER ONLY POLAR ATOMS IN SURFACE AREAS
         if polar: query = query.filter(Atom.is_polar==True)
@@ -390,7 +395,7 @@ class Ligand(Base, PathMixin):
 
         return result
 
-    def usrcat(self, *expressions, **kwargs):
+    def usrcat(self, *expr, **kwargs):
         """
         Performs an Ultrast Shape Recognition (USR) search of this Ligand against
         either other Ligand or unbound conformers of chemical components.
@@ -423,78 +428,13 @@ class Ligand(Base, PathMixin):
 
         # DO A USR SEARCH AGAINST THE MODELLED CONFORMERS AND RETURN THE TOP RANKED CHEMCOMPS
         if kwargs.get('target', 'ligands') == 'chemcomps':
-            return ChemCompAdaptor().fetch_all_by_usr_moments(*expressions, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
+            return ChemCompAdaptor().fetch_all_by_usr_moments(*expr, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
 
         # DO A USR SEARCH AGAINST ALL BOUND LIGANDS
         else:
-            return LigandAdaptor().fetch_all_by_usr_moments(*expressions, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
-
-    def binding_site_sifts(self, *expressions, **kwargs):
-        """
-        Queried Entities
-        ----------------
-        Contact, Atom, Residue, binding_sites
-        """
-        session = Session()
-
-        query = session.query(Residue.residue_id.label('residue_id'), Contact).select_from(Contact)
-
-        whereclause = and_(binding_sites.c.ligand_id==self.ligand_id,
-                           Contact.biomolecule_id==self.biomolecule_id,
-                           Contact.is_secondary==False,
-                           *expressions)
-
-        bgn = query.join(Atom, and_(Atom.atom_id==Contact.atom_bgn_id,
-                                    Atom.biomolecule_id==Contact.biomolecule_id))
-        bgn = bgn.join(Residue, Residue.residue_id==Atom.residue_id)
-        bgn = bgn.join(binding_sites, binding_sites.c.residue_id==Residue.residue_id)
-        bgn = bgn.filter(whereclause)
-
-        end = query.join(Atom, and_(Atom.atom_id==Contact.atom_end_id,
-                                    Atom.biomolecule_id==Contact.biomolecule_id))
-        end = end.join(Residue, Residue.residue_id==Atom.residue_id)
-        end = end.join(binding_sites, binding_sites.c.residue_id==Residue.residue_id)
-        end = end.filter(whereclause)
-
-        subquery = bgn.union(end).subquery()
-
-        # RESIDUE ID AND SUM OF STRUCTURAL INTERACTION FINGERPRINTS
-        fields = (subquery.c.residue_id,
-                  func.sum(cast(subquery.c.credo_contacts_is_clash, INTEGER)).label('is_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)).label('is_covalent'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)).label('is_vdw_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)).label('is_vdw'),
-                  func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)).label('is_proximal'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)).label('is_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)).label('is_weak_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)).label('is_xbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)).label('is_ionic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)).label('is_metal_complex'),
-                  func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)).label('is_aromatic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)).label('is_hydrophobic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)).label('is_carbonyl'))
-
-        # AGGREGATE TO GET THE SUM
-        sift = session.query(*fields).group_by('residue_id').order_by('residue_id').subquery()
-
-        # INCLUDE THE RESIDUE OBJECT IN RESULT SET
-        query = session.query(Residue, sift.c.is_clash, sift.c.is_covalent,
-                              sift.c.is_vdw_clash, sift.c.is_vdw, sift.c.is_proximal,
-                              sift.c.is_hbond, sift.c.is_weak_hbond, sift.c.is_xbond,
-                              sift.c.is_ionic, sift.c.is_metal_complex,
-                              sift.c.is_aromatic, sift.c.is_hydrophobic,
-                              sift.c.is_carbonyl)
-
-        query = query.join(sift, sift.c.residue_id==Residue.residue_id)
-
-        result = query.all()
-
-        session.close()
-
-        return result
+            return LigandAdaptor().fetch_all_by_usr_moments(*expr, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
 
 from .ligandusr import LigandUSR
-from .chemcompconformer import ChemCompConformer
 from .chemcomp import ChemComp
 from .atom import Atom
 from .contact import Contact
@@ -509,3 +449,4 @@ from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor
 from ..adaptors.atomringinteractionadaptor import AtomRingInteractionAdaptor
 from ..adaptors.ligandadaptor import LigandAdaptor
 from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
+from ..adaptors.siftadaptor import SIFtAdaptor

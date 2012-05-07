@@ -57,7 +57,7 @@ class Residue(Base, PathMixin, ResidueMixin):
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried entities
@@ -77,7 +77,14 @@ class Residue(Base, PathMixin, ResidueMixin):
                                                                         self.biomolecule_id,
                                                                         dynamic=True)
 
-    def sift(self, *expressions):
+    @property
+    def ProximalLigands(self):
+        """
+        """
+        return LigandAdaptor().fetch_all_in_contact_with_residue_id(self.residue_id,
+                                                                    dynamic=True)
+
+    def sift(self, *expr):
         """
         Returns the sum of all the contact types of all the contacts this residue
         has as a tuple.
@@ -91,38 +98,11 @@ class Residue(Base, PathMixin, ResidueMixin):
         sift : tuple
             sum of all the contact types of all contacts this residue has.
         """
-        session = Session()
-
-        whereclause = and_(Atom.residue_id==self.residue_id,
-                           Contact.biomolecule_id==self.biomolecule_id,
-                           Atom.biomolecule_id==Contact.biomolecule_id,
-                           *expressions)
-
-        bgn = session.query(Contact).join(Atom, Contact.atom_bgn_id==Atom.atom_id).filter(whereclause)
-        end = session.query(Contact).join(Atom, Contact.atom_end_id==Atom.atom_id).filter(whereclause)
-
-        subquery = bgn.union(end).subquery(name='contacts')
-
-        sift = (func.sum(cast(subquery.c.credo_contacts_is_clash, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)))
-
-        return session.query(*sift).first()
-
-        session.close()
+        return SIFtAdaptor().fetch_by_residue_id(self.ligand_id, self.biomolecule_id, *expr)
 
 from .contact import Contact
 from .atom import Atom
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
+from ..adaptors.siftadaptor import SIFtAdaptor

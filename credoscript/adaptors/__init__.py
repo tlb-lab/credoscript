@@ -17,3 +17,6 @@ from .chemcompconformeradaptor import ChemCompConformerAdaptor
 from .peptideadaptor import PeptideAdaptor
 from .protfragmentadaptor import ProtFragmentAdaptor
 from .variationadaptor import VariationAdaptor
+
+from .siftadaptor import SIFtAdaptor
+from .ligandmatchadaptor import LigandMatchAdaptor

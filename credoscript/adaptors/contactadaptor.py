@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased, joinedload
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript.mixins.base import paginate
 
@@ -38,7 +38,7 @@ class ContactAdaptor(object):
         <Contact(1)>
         """
         query = self.query.filter_by(contact_id=contact_id, biomolecule_id=biomolecule_id)
-        
+
         return query.first()
 
     @paginate
@@ -51,7 +51,7 @@ class ContactAdaptor(object):
         atom_id : int
             `Atom` identifier.
         biomolecule_id : int
-        
+
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
@@ -88,7 +88,7 @@ class ContactAdaptor(object):
         residue_id : int
             `Residue` identifier.
         biomolecule_id : int
-        
+
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
@@ -128,7 +128,7 @@ class ContactAdaptor(object):
         ligand_id : int
             `Ligand` identifier.
         biomolecule_id : int
-        
+
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
@@ -195,7 +195,7 @@ class ContactAdaptor(object):
         interface_id : int
             `Interface` identifier.
         biomolecule_id : int
-        
+
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
@@ -227,12 +227,12 @@ class ContactAdaptor(object):
                            (PeptideEnd, PeptideEnd.residue_id==AtomEnd.residue_id))
         query = query.join(Interface, and_(Interface.chain_bgn_id==PeptideBgn.chain_id,
                                            Interface.chain_end_id==PeptideEnd.chain_id))
-        
+
         query = query.filter(and_(Interface.interface_id==interface_id,
                                   Contact.biomolecule_id==biomolecule_id, *expr))
-        
+
         return query
-        
+
     @paginate
     def fetch_all_by_groove_id(self, groove_id, biomolecule_id, *expr, **kwargs):
         """
@@ -289,9 +289,75 @@ class ContactAdaptor(object):
 
         return query
 
+    @paginate
+    def fetch_all_by_ligand_fragment_id(self, ligand_fragment_id, biomolecule_id,
+                                        *expr, **kwargs):
+        """
+        """
+        where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
+                     Contact.biomolecule_id==biomolecule_id, *expr)
+
+        bgn = self.query.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
+        bgn = bgn.filter(where)
+
+        end = self.query.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_end_id)
+        end = end.filter(where)
+
+        # eager-load the interacting atoms
+        if kwargs.get('load_atoms'):
+            bgn = bgn.options(joinedload(Contact.AtomBgn, innerjoin=True),
+                              joinedload(Contact.AtomEnd, innerjoin=True))
+            end = end.options(joinedload(Contact.AtomBgn, innerjoin=True),
+                              joinedload(Contact.AtomEnd, innerjoin=True))
+
+        query = bgn.union_all(end)
+
+        return query
+
+    @paginate
+    def fetch_all_by_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
+                                              atom_names, *expr, **kwargs):
+        """
+        Returns all contacts that are part of the ligand with the given ligand identifier
+        and match the specified list of atom names.
+
+        Parameters
+        ----------
+        ligand__id : int
+            `Ligand` identifier.
+        biomolecule_id : int
+
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        -----
+        Contact, Atom, Hetatm
+
+        Returns
+        -------
+        contacts : list
+            List of `Contact` objects.
+        """
+        where = and_(Hetatm.ligand_id==ligand_id,
+                     Atom.biomolecule_id==biomolecule_id,
+                     Contact.biomolecule_id==biomolecule_id,
+                     Atom.atom_name==func.any(atom_names), *expr)
+
+        bgn = self.query.join(Atom, Atom.atom_id==Contact.atom_bgn_id)
+        bgn = bgn.join(Hetatm, Hetatm.atom_id==Atom.atom_id)
+        bgn = bgn.filter(where)
+
+        end = self.query.join(Atom, Atom.atom_id==Contact.atom_end_id)
+        end = end.join(Hetatm, Hetatm.atom_id==Atom.atom_id)
+        end = end.filter(where)
+
+        return bgn.union_all(end)
+
 from ..models.hetatm import Hetatm
 from ..models.ligandcomponent import LigandComponent
 from ..models.ligand import Ligand
+from ..models.ligandfragmentatom import LigandFragmentAtom
 from ..models.contact import Contact
 from ..models.atom import Atom
 from ..models.peptide import Peptide

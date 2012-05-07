@@ -66,10 +66,6 @@ class ChainTestCase(CredoEntityTestCase):
 
         assert isinstance(disordered_regions, list), "disordered_regions() does not return a list."
 
-    def test_residue_sifts(self):
+    def test_residue_sift(self):
         """"""
-        sifts = self.entity.residue_sifts()
-
-        for row in sifts:
-            residue, sift = row[0], row[1:]
-            assert isinstance(residue, models.Residue) and len(sift) == 13, "residue_sifts method of Chain does not return the correct result."
+        self.assertValidSIFt(self.entity, 'residue_sift')

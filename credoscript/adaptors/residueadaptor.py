@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript import binding_sites, interface_residues, residue_interaction_pairs
 from credoscript.mixins import PathAdaptorMixin, ResidueAdaptorMixin
@@ -79,7 +79,7 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
         bgn = self.query.join(interface_residues,
                               interface_residues.c.residue_bgn_id==Residue.residue_id)
         bgn = bgn.filter(whereclause)
-        
+
         end = self.query.join(interface_residues,
                               interface_residues.c.residue_end_id==Residue.residue_id)
         end = end.filter(whereclause)
@@ -203,8 +203,39 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
 
         return query
 
+    @paginate
+    def fetch_all_in_contact_with_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
+                                                           atom_names, *expr, **kwargs):
+        """
+        Returns all residues that are in contact with the ligand atoms that are
+        part of the ligand with the given ligand_id and its atoms that match the
+        given atom names.
+        """
+        MatchAtom = aliased(Atom)
+
+        where = and_(MatchAtom.atom_name==func.any(atom_names),
+                     Contact.biomolecule_id==biomolecule_id,
+                     Hetatm.ligand_id==ligand_id, *expr)
+
+        query = self.query.select_from(Contact)
+
+        bgn = query.join('AtomBgn','Residue')
+        bgn = bgn.join(MatchAtom, and_(MatchAtom.atom_id==Contact.atom_end_id,
+                                       MatchAtom.biomolecule_id==Contact.biomolecule_id))
+        bgn = bgn.join(Hetatm, Hetatm.atom_id==MatchAtom.atom_id)
+        bgn = bgn.filter(where).distinct()
+
+        end = query.join('AtomEnd','Residue')
+        end = end.join(MatchAtom, and_(MatchAtom.atom_id==Contact.atom_bgn_id,
+                                       MatchAtom.biomolecule_id==Contact.biomolecule_id))
+        end = end.join(Hetatm, Hetatm.atom_id==MatchAtom.atom_id)
+        end = end.filter(where).distinct()
+
+        return bgn.union(end)
+
 from ..models.contact import Contact
 from ..models.atom import Atom
+from ..models.hetatm import Hetatm
 from ..models.residue import Residue
 from ..models.chain import Chain
 from ..models.ligandcomponent import LigandComponent

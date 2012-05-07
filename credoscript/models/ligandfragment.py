@@ -1,26 +1,27 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func, and_, cast
+from sqlalchemy.dialects.postgresql import INTEGER
 
 from credoscript import Base, Session, ligand_fcd
 
 class LigandFragment(Base):
     """
     """
-    __tablename__ = 'credo.ligand_fragments'    
-    
+    __tablename__ = 'credo.ligand_fragments'
+
     Fragment = relationship("Fragment",
                             primaryjoin="Fragment.fragment_id==LigandFragment.fragment_id",
                             foreign_keys="[Fragment.fragment_id]",
                             uselist=False, innerjoin=True,
                             backref=backref('LigandFragments',uselist=True, innerjoin=True))
-    
+
     Atoms = relationship("Atom",
                          secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
                          primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
                          secondaryjoin="LigandFragmentAtom.atom_id==Atom.atom_id",
                          foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
-                         uselist=True, innerjoin=True, lazy='dynamic') 
-    
+                         uselist=True, innerjoin=True, lazy='dynamic')
+
     def __repr__(self):
         """
         """
@@ -37,24 +38,24 @@ class LigandFragment(Base):
         Returns the fragment contact density (FCD) for this ligand fragment.
         """
         session = Session()
-        
+
         query = session.query(ligand_fcd.c.fcd)
         query = query.filter(ligand_fcd.c.ligand_fragment_id==self.ligand_fragment_id)
-        
+
         fcd = query.scalar()
-        
+
         session.close()
-        
+
         return fcd
 
     @property
-    def BindingSiteAtoms(self):
+    def ProximalAtoms(self):
         """
         Returns all atoms that are in contact with this ligand fragment.
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -71,14 +72,14 @@ class LigandFragment(Base):
                                                                           dynamic=True)
 
     @property
-    def BindingSiteResidues(self):
+    def ProximalResidues(self):
         """
         Returns all residues that are in contact with the ligand fragment having
         the specified ligand fragment identifier.
 
         Parameters
         ----------
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -94,5 +95,20 @@ class LigandFragment(Base):
                                                                              self.biomolecule_id,
                                                                              dynamic=True)
 
+    def sift(self, *expr, **kwargs):
+        """
+        Queried Entities
+        ----------------
+        Contact, Atom, binding_sites
+        """
+        return SIFtAdaptor().fetch_by_ligand_fragment_id(self.ligand_id,
+                                                         self.biomolecule_id,
+                                                         *expr)
+
+from .ligandfragmentatom import LigandFragmentAtom
+from .atom import Atom
+from .contact import Contact
+from .residue import Residue
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.residueadaptor import ResidueAdaptor
+from ..adaptors.siftadaptor import SIFtAdaptor

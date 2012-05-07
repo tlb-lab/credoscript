@@ -17,6 +17,12 @@ class LigandAdaptorTestCase(CredoAdaptorTestCase):
     def test_fetch_all_by_het_id(self):
         self.assertPaginatedResult('fetch_all_by_het_id', 'STI')
 
+    def test_fetch_all_in_contact_with_residue_id(self):
+        """Fetch ligands in contact with a binding site residue identifier"""
+        residue = models.Residue.query.filter_by(path='2P33/0/A/SER`72').first()
+        self.assertPaginatedResult('fetch_all_in_contact_with_residue_id',
+                                   residue.residue_id)
+
     def test_fetch_all_in_contact_with_chain_id(self):
         """Fetch ligands in contact with binding site residues by chain_id"""
         chain = models.Chain.query.filter_by(path='2P33/0/A').first()

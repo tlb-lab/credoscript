@@ -157,11 +157,10 @@ class Chain(Base, PathMixin):
 
         return result
 
-    def residue_sifts(self, *expr):
+    def residue_sift(self, *expr):
         """
-        Returns all polymer residues of this chain and their summed structural
-        interaction fingerprint (SIFt). Only intermolecular contacts are considered
-        and secondary contacts are ignored.
+        Returns all polymer residues of THIS chain and their summed structural
+        interaction fingerprint (SIFt). Only intermolecular contacts are considered.
 
         Parameters
         ----------
@@ -177,64 +176,13 @@ class Chain(Base, PathMixin):
         --------
         >>> structure = StructureAdaptor().fetch_by_pdb('2p33')
         >>> chain = structure[0]['A']
-        >>> chain.get_residue_sifts(Contact.structural_interaction_type_bm==PRO_LIG)
+        >>> chain.residue_sifts()
         >>> [(<Residue(ILE 70 )>, 0L, 0L, 0L, 25L, 0L, 1L, 0L, 0L, 0L, 0L, 2L, 0L),
              (<Residue(GLY 71 )>, 0L, 0L, 0L, 4L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L),
              (<Residue(SER 72 )>, 0L, 0L, 0L, 3L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L),...]
         """
-        session = Session()
-
-        query = session.query(Residue.residue_id.label('residue_id'), Contact).select_from(Contact)
-
-        whereclause = and_(Residue.chain_id==self.chain_id,
-                           Contact.biomolecule_id==self.biomolecule_id,
-                           Contact.is_same_entity==False,
-                           Contact.is_secondary==False,
-                           *expr)
-
-        bgn = query.join(Atom, and_(Atom.atom_id==Contact.atom_bgn_id,
-                                    Atom.biomolecule_id==Contact.biomolecule_id)
-                         ).join(Residue, Residue.residue_id==Atom.residue_id).filter(whereclause)
-
-        end = query.join(Atom, and_(Atom.atom_id==Contact.atom_end_id,
-                                    Atom.biomolecule_id==Contact.biomolecule_id)
-                         ).join(Residue, Residue.residue_id==Atom.residue_id).filter(whereclause)
-
-        subquery = bgn.union(end).subquery()
-
-        # RESIDUE ID AND SUM OF STRUCTURAL INTERACTION FINGERPRINTS
-        fields = (subquery.c.residue_id,
-                  func.sum(cast(subquery.c.credo_contacts_is_clash, INTEGER)).label('is_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)).label('is_covalent'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)).label('is_vdw_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)).label('is_vdw'),
-                  func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)).label('is_proximal'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)).label('is_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)).label('is_weak_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)).label('is_xbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)).label('is_ionic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)).label('is_metal_complex'),
-                  func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)).label('is_aromatic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)).label('is_hydrophobic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)).label('is_carbonyl'))
-
-        # AGGREGATE TO GET THE SUM
-        sift = session.query(*fields).group_by('residue_id').order_by('residue_id').subquery()
-
-        # INCLUDE THE RESIDUE OBJECT IN RESULT SET
-        query = session.query(Residue, sift.c.is_clash, sift.c.is_covalent, sift.c.is_vdw_clash,
-                              sift.c.is_vdw, sift.c.is_proximal, sift.c.is_hbond,
-                              sift.c.is_weak_hbond, sift.c.is_xbond, sift.c.is_ionic,
-                              sift.c.is_metal_complex, sift.c.is_aromatic, sift.c.is_hydrophobic,
-                              sift.c.is_carbonyl)
-
-        query = query.join(sift, sift.c.residue_id==Residue.residue_id)
-
-        result = query.all()
-
-        session.close()
-
-        return result
+        return SIFtAdaptor().fetch_by_own_chain_id(self.chain_id, self.biomolecule_id,
+                                                   *expr)
 
 from .contact import Contact
 from .atom import Atom
@@ -243,3 +191,4 @@ from ..adaptors.peptideadaptor import PeptideAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.variationadaptor import VariationAdaptor
 from ..adaptors.ligandadaptor import LigandAdaptor
+from ..adaptors.siftadaptor import SIFtAdaptor

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript import Session, binding_sites, interface_residues
 from credoscript.mixins.base import paginate
@@ -235,34 +235,6 @@ class AtomAdaptor(object):
         """
         Returns the water atoms that form interactions with both chains in the
         `Interface`.
-
-        SELECT a.*
-            FROM credo.atoms a
-            JOIN credo.contacts cs
-                 ON cs.atom_bgn_id = a.atom_id
-                 AND a.biomolecule_id = cs.biomolecule_id
-            JOIN credo.atoms ia
-                 ON ia.atom_id = cs.atom_end_id
-                 AND ia.biomolecule_id = cs.biomolecule_id
-            JOIN credo.interface_residues ir
-                 ON ir.residue_end_id = ia.residue_id
-           WHERE a.biomolecule_id = 11
-                 AND ir.interface_id = 1
-                 AND cs.structural_interaction_type_bm & 64 = 64
-           UNION
-           SELECT DISTINCT a.*
-            FROM credo.atoms a
-            JOIN credo.contacts cs
-                 ON cs.atom_end_id = a.atom_id
-                 AND a.biomolecule_id = cs.biomolecule_id
-            JOIN credo.atoms ia
-                 ON ia.atom_id = cs.atom_bgn_id
-                 AND ia.biomolecule_id = cs.biomolecule_id
-            JOIN credo.interface_residues ir
-                 ON ir.residue_bgn_id = ia.residue_id
-           WHERE a.biomolecule_id = 11
-                 AND ir.interface_id = 1
-                 AND cs.structural_interaction_type_bm & 1 = 1
         """
         IAtom = aliased(Atom)
 
@@ -287,6 +259,39 @@ class AtomAdaptor(object):
                               *expr))
 
         return bgn.union(end)
+
+    @paginate
+    def fetch_all_by_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
+                                              atom_names, *expr, **kwargs):
+        """
+        Returns all atoms that are part of the ligand with the given ligand identifier
+        and match the specified list of atom names.
+
+        Parameters
+        ----------
+        ligand__id : int
+            `Ligand` identifier.
+        biomolecule_id : int
+
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        -----
+        Atom, Hetatm
+
+        Returns
+        -------
+        atoms : list
+            List of `Atom` objects.
+        """
+        query = self.query.join(Hetatm, Hetatm.atom_id==Atom.atom_id)
+        query = query.filter(and_(Hetatm.ligand_id==ligand_id,
+                                  Atom.biomolecule_id==biomolecule_id,
+                                  Atom.atom_name==func.any(atom_names),
+                                  *expr))
+
+        return query
 
 from ..models.contact import Contact
 from ..models.aromaticringatom import AromaticRingAtom

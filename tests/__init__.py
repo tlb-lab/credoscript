@@ -6,6 +6,7 @@ from sqlalchemy.orm import Query
 from sqlalchemy.orm.dynamic import AppenderQuery
 from sqlalchemy.orm.collections import MappedCollection
 
+from credoscript.models import Residue
 from credoscript.mixins import Pagination
 
 class CredoAdaptorTestCase(unittest.TestCase):
@@ -52,20 +53,20 @@ class CredoAdaptorTestCase(unittest.TestCase):
 
         self.adaptor.paginate = False
 
-    def assertPaginatedSimilarityHits(self, method, *expressions, **kwargs):
+    def assertPaginatedSimilarityHits(self, method, *expr, **kwargs):
         """
         """
         # this should return a list of tuples in the form (similarity, entity)
-        result = getattr(self.adaptor, method)(*expressions, **kwargs)
+        result = getattr(self.adaptor, method)(*expr, **kwargs)
         assert all(isinstance(ent, self.expected_entity) and isinstance(sim, float)
                    for ent, sim in result), "{} does not return the correct result tuple.".format(method)
 
-        result = getattr(self.adaptor, method)(*expressions, dynamic=True, **kwargs)
+        result = getattr(self.adaptor, method)(*expr, dynamic=True, **kwargs)
         self.assertIsInstance(result, Query, "{} does not support dynamic results.".format(method))
 
         # this should return a Pagination object
         self.adaptor.paginate = True
-        result = getattr(self.adaptor, method)(*expressions, page=1, **kwargs)
+        result = getattr(self.adaptor, method)(*expr, page=1, **kwargs)
 
         self.assertIsInstance(result, Pagination, "{} does not support pagination.".format(method))
         self.adaptor.paginate = False
@@ -126,3 +127,13 @@ class CredoEntityTestCase(unittest.TestCase):
         # check that result has the appropriate type
         else:
             assert all(isinstance(obj, other) for obj in result), "{} does not return the correct entity type.".format(prop)
+
+    def assertValidSIFt(self, entity, method, *expr, **kwargs):
+        """
+        """
+        result = getattr(entity, method)(*expr, **kwargs)
+
+        for row in result:
+            residue, sift = row[0], row[1:]
+            self.assertIsInstance(residue, Residue)
+            self.assertEqual(len(sift), 13)
