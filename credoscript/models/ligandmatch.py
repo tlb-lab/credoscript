@@ -4,9 +4,10 @@ class LigandMatch(object):
     implements convenience attributes and methods to obtain contacts for a specific
     match, for example.
     """
-    def __init__(self, pattern, ligand_id, biomolecule_id, atom_names):
+    def __init__(self, pattern, ligand_id, biomolecule_id, ism, atom_names):
         self.ligand_id = ligand_id
         self.biomolecule_id = biomolecule_id
+        self.ism = ism
         self.pattern = pattern
         self.atom_names = atom_names
 
