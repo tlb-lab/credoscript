@@ -102,7 +102,10 @@ class BaseQuery(Query):
         """
         items = self.limit(per_page).offset((page - 1) * per_page).all()
 
-        return Pagination(self, page, per_page, self.count(), items)
+        # remove unncessary ORDER BY clause from counting
+        count = self.order_by(False).count()
+
+        return Pagination(self, page, per_page, count, items)
 
 class Base(object):
     """
