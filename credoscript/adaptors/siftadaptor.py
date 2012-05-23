@@ -2,125 +2,89 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, cast, func
 from sqlalchemy.dialects.postgresql import INTEGER
 
-from credoscript import Session, binding_sites
-
 class SIFtAdaptor(object):
     """
     This adaptors is used to fetch Structural Interaction Fingerprints (SIFt) in
     the form [(Residue, sum of interactions),...] for various CREDO entities.
     """
-    def _fetch_sift(self, session, subquery):
+    @property
+    def _sift(self):
+        sift = (func.sum(cast(Contact.is_clash, INTEGER)).label('is_clash'),
+                func.sum(cast(Contact.is_covalent, INTEGER)).label('is_covalent'),
+                func.sum(cast(Contact.is_vdw_clash, INTEGER)).label('is_vdw_clash'),
+                func.sum(cast(Contact.is_vdw, INTEGER)).label('is_vdw'),
+                func.sum(cast(Contact.is_proximal, INTEGER)).label('is_proximal'),
+                func.sum(cast(Contact.is_hbond, INTEGER)).label('is_hbond'),
+                func.sum(cast(Contact.is_weak_hbond, INTEGER)).label('is_weak_hbond'),
+                func.sum(cast(Contact.is_xbond, INTEGER)).label('is_xbond'),
+                func.sum(cast(Contact.is_ionic, INTEGER)).label('is_ionic'),
+                func.sum(cast(Contact.is_metal_complex, INTEGER)).label('is_metal_complex'),
+                func.sum(cast(Contact.is_aromatic, INTEGER)).label('is_aromatic'),
+                func.sum(cast(Contact.is_hydrophobic, INTEGER)).label('is_hydrophobic'),
+                func.sum(cast(Contact.is_carbonyl, INTEGER)).label('is_carbonyl'))
+
+        return sift
+
+    def _fetch_sift(self, subquery):
         """
         """
-        # residue id and sum of structural interaction fingerprints
-        fields = (subquery.c.residue_id,
-                  func.sum(cast(subquery.c.credo_contacts_is_clash, INTEGER)).label('is_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)).label('is_covalent'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)).label('is_vdw_clash'),
-                  func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)).label('is_vdw'),
-                  func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)).label('is_proximal'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)).label('is_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)).label('is_weak_hbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)).label('is_xbond'),
-                  func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)).label('is_ionic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)).label('is_metal_complex'),
-                  func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)).label('is_aromatic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)).label('is_hydrophobic'),
-                  func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)).label('is_carbonyl'))
-
-        # aggregate to get the sum
-        sift = session.query(*fields).group_by('residue_id').order_by('residue_id').subquery()
-
-        # include the residue object in result set
-        query = session.query(Residue, sift.c.is_clash, sift.c.is_covalent,
-                              sift.c.is_vdw_clash, sift.c.is_vdw, sift.c.is_proximal,
-                              sift.c.is_hbond, sift.c.is_weak_hbond, sift.c.is_xbond,
-                              sift.c.is_ionic, sift.c.is_metal_complex,
-                              sift.c.is_aromatic, sift.c.is_hydrophobic,
-                              sift.c.is_carbonyl)
-
-        query = query.join(sift, sift.c.residue_id==Residue.residue_id)
+        query = Residue.query.join(subquery, subquery.c.residue_id==Residue.residue_id)
+        query = query.add_columns(subquery.c.is_clash, subquery.c.is_covalent,
+                                  subquery.c.is_vdw_clash, subquery.c.is_vdw,
+                                  subquery.c.is_proximal, subquery.c.is_hbond,
+                                  subquery.c.is_weak_hbond, subquery.c.is_xbond,
+                                  subquery.c.is_ionic, subquery.c.is_metal_complex,
+                                  subquery.c.is_aromatic, subquery.c.is_hydrophobic,
+                                  subquery.c.is_carbonyl)
 
         return query.all()
 
-    def fetch_by_residue_id(self, residue_id, biomolecule_id, *expr):
+    def fetch_by_own_residue_id(self, residue_id, biomolecule_id, *expr):
         """
         """
-        session = Session()
-
         where = and_(Atom.residue_id==residue_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
+                     Contact.is_secondary==False,
                      *expr)
 
-        bgn = session.query(Contact).join('AtomBgn').filter(where)
-        end = session.query(Contact).join('AtomEnd').filter(where)
+        query = Contact.query.join('Atoms').filter(where)
 
-        subquery = bgn.union(end).subquery(name='contacts')
-
-        sift = (func.sum(cast(subquery.c.credo_contacts_is_clash, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_covalent, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_vdw_clash, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_vdw, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_proximal, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_hbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_weak_hbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_xbond, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_ionic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_metal_complex, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_aromatic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_hydrophobic, INTEGER)),
-                func.sum(cast(subquery.c.credo_contacts_is_carbonyl, INTEGER)))
-
-        return session.query(*sift).first()
+        return query.with_entities(*self._sift).first()
 
     def fetch_by_own_chain_id(self, chain_id, biomolecule_id, *expr, **kwargs):
         """
         Returns the SIFt of all OTHER entities with residues that are part of THIS
         chain.
         """
-        session = Session()
-
-        query = session.query(Atom.residue_id.label('residue_id'), Contact)
-        query = query.select_from(Contact)
-
         where = and_(Residue.chain_id==chain_id,
                      Contact.biomolecule_id==biomolecule_id,
-                     Contact.is_same_entity==False, Contact.is_secondary==False,
+                     Contact.is_same_entity==False,
+                     Contact.is_secondary==False,
                      *expr)
 
-        bgn = query.join('AtomBgn','Residue').filter(where)
-        end = query.join('AtomBgn','Residue').filter(where)
+        query = Residue.query.join('Atoms','Contacts').filter(where)
+        query = query.add_columns(*self._sift)
+        query = query.group_by(Residue.residue_id).order_by(Residue.residue_id)
 
-        subquery = bgn.union(end).subquery()
-
-        return self._fetch_sift(session, subquery)
+        return query.all()
 
     def fetch_by_ligand_id(self, ligand_id, biomolecule_id, *expr, **kwargs):
         """
         Returns the SIFt of a ligand.
         """
-        session = Session()
-
-        where = and_(binding_sites.c.ligand_id==ligand_id,
+        where = and_(BindingSiteResidue.ligand_id==ligand_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
+                     Contact.is_secondary==False,
                      *expr)
 
-        query = session.query(Atom.residue_id.label('residue_id'), Contact)
-        query = query.select_from(Contact)
+        query = Residue.query.join('Atoms','Contacts').filter(where)
+        query = query.join(BindingSiteResidue, BindingSiteResidue.residue_id==Atom.residue_id)
+        query = query.group_by(Residue.residue_id).order_by(Residue.residue_id)
+        query = query.add_columns(*self._sift)
 
-        bgn = query.join('AtomBgn')
-        bgn = bgn.join(binding_sites, binding_sites.c.residue_id==Atom.residue_id)
-        bgn = bgn.filter(where)
-
-        end = query.join('AtomEnd')
-        end = end.join(binding_sites, binding_sites.c.residue_id==Atom.residue_id)
-        end = end.filter(where)
-
-        subquery = bgn.union_all(end).subquery()
-
-        return self._fetch_sift(session, subquery)
+        return query.all()
 
     def fetch_by_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
                                           atom_names, *expr, **kwargs):
@@ -131,16 +95,15 @@ class SIFtAdaptor(object):
         ----------------
         Contact, Atom, MatchAtom (Atom), Hetatm
         """
-        session = Session()
         MatchAtom = aliased(Atom)
 
         where = and_(MatchAtom.atom_name==func.any(atom_names),
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
+                     Contact.is_secondary==False,
                      Hetatm.ligand_id==ligand_id, *expr)
 
-        query = session.query(Atom.residue_id.label('residue_id'), Contact)
-        query = query.select_from(Contact)
+        query = Contact.query.add_columns(Atom.residue_id.label('residue_id'))
 
         bgn = query.join('AtomBgn')
         bgn = bgn.join(MatchAtom, and_(MatchAtom.atom_id==Contact.atom_end_id,
@@ -154,22 +117,21 @@ class SIFtAdaptor(object):
         end = end.join(Hetatm, Hetatm.atom_id==MatchAtom.atom_id)
         end = end.filter(where)
 
-        subquery = bgn.union_all(end).subquery()
+        query = bgn.union_all(end).group_by('residue_id').order_by('residue_id')
+        subquery = query.with_entities(Atom.residue_id, *self._sift).subquery()
 
-        return self._fetch_sift(session, subquery)
+        return self._fetch_sift(subquery)
 
     def fetch_by_ligand_fragment_id(self, ligand_fragment_id, biomolecule_id, *expr):
         """
         """
-        session = Session()
-
         where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
+                     Contact.is_secondary==False,
                      *expr)
 
-        query = session.query(Atom.residue_id.label('residue_id'), Contact)
-        query = query.select_from(Contact)
+        query = Contact.query.add_columns(Atom.residue_id.label('residue_id'))
 
         bgn = query.join(Atom, and_(Atom.atom_id==Contact.atom_bgn_id,
                                     Atom.biomolecule_id==Contact.biomolecule_id))
@@ -181,12 +143,14 @@ class SIFtAdaptor(object):
         end = end.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
         end = end.filter(where)
 
-        subquery = bgn.union(end).subquery()
+        query = bgn.union_all(end).group_by('residue_id').order_by('residue_id')
+        subquery = query.with_entities(Atom.residue_id, *self._sift).subquery()
 
-        return self._fetch_sift(session, subquery)
+        return self._fetch_sift(subquery)
 
 from ..models.contact import Contact
 from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue
 from ..models.ligandfragmentatom import LigandFragmentAtom
+from ..models.bindingsiteresidue import BindingSiteResidue

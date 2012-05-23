@@ -10,8 +10,12 @@ from .hetatm import Hetatm
 from .ligandcomponent import LigandComponent
 from .ligandfragment import LigandFragment
 from .ligandfragmentatom import LigandFragmentAtom
-from .ringinteraction import RingInteraction
+from .ligandusr import LigandUSR
+from .ligandmolstring import LigandMolString
 from .ligand import Ligand
+from .ligandmatch import LigandMatch
+from .bindingsiteresidue import BindingSiteResidue
+from .ringinteraction import RingInteraction
 from .atomringinteraction import AtomRingInteraction
 from .groove import Groove
 from .chemcomp import ChemComp
@@ -19,8 +23,6 @@ from .chemcompfragment import ChemCompFragment
 from .chemcompmolstring import ChemCompMolString
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
-from .ligandusr import LigandUSR
-from .ligandmolstring import LigandMolString
 from .resmap import ResMap
 from .peptide import Peptide
 from .nucleotide import Nucleotide
@@ -33,5 +35,3 @@ from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
 from .variation import Variation, Annotation, Phenotype
-
-from .ligandmatch import LigandMatch

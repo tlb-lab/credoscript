@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased, joinedload
-from sqlalchemy.sql.expression import and_, func
+from sqlalchemy.sql.expression import and_, func, or_
 
 from credoscript.mixins.base import paginate
 
@@ -69,12 +69,9 @@ class ContactAdaptor(object):
         >>> ContactAdaptor().fetch_all_by_atom_id(1)
         <Contact()>
         """
-        bgn = self.query.filter(and_(Contact.atom_bgn_id==atom_id,
-                                     Contact.biomolecule_id==biomolecule_id, *expr))
-        end = self.query.filter(and_(Contact.atom_end_id==atom_id,
-                                     Contact.biomolecule_id==biomolecule_id, *expr))
-
-        query = bgn.union_all(end)
+        query = self.query.filter(and_(or_(Contact.atom_bgn_id==atom_id,
+                                           Contact.atom_end_id==atom_id),
+                                       Contact.biomolecule_id==biomolecule_id, *expr))
 
         return query
 
@@ -107,14 +104,11 @@ class ContactAdaptor(object):
         <Contact()>
         """
         where = and_(Atom.residue_id==residue_id,
-                           Contact.biomolecule_id==biomolecule_id,
-                           Atom.biomolecule_id==Contact.biomolecule_id,
-                           *expr)
+                     Contact.biomolecule_id==biomolecule_id,
+                     Atom.biomolecule_id==Contact.biomolecule_id,
+                     *expr)
 
-        bgn = self.query.join('AtomBgn').filter(where)
-        end = self.query.join('AtomEnd').filter(where)
-
-        query = bgn.union_all(end)
+        query = self.query.join('Atoms').filter(where)
 
         return query
 
@@ -149,13 +143,10 @@ class ContactAdaptor(object):
         where = and_(Contact.biomolecule_id==biomolecule_id,
                      Hetatm.ligand_id==ligand_id, *expr)
 
-        bgn = self.query.join((Hetatm, Hetatm.atom_id==Contact.atom_bgn_id))
-        bgn = bgn.filter(where)
+        query = self.query.join(Hetatm, or_(Hetatm.atom_id==Contact.atom_bgn_id,
+                                            Hetatm.atom_id==Contact.atom_end_id))
 
-        end = self.query.join((Hetatm, Hetatm.atom_id==Contact.atom_end_id))
-        end = end.filter(where)
-
-        query = bgn.union_all(end)
+        query = query.filter(where)
 
         # eager-load the interacting atoms
         if kwargs.get('load_atoms'):
@@ -172,15 +163,12 @@ class ContactAdaptor(object):
                      Contact.biomolecule_id==biomolecule_id,
                      *expr)
 
-        bgn = self.query.join('AtomBgn','Residue').filter(where)
-        end = self.query.join('AtomEnd','Residue').filter(where)
+        query = self.query.join('Atoms','Residue').filter(where).distinct()
 
         # eager-load the interacting atoms
         if kwargs.get('load_atoms'):
             query = query.options(joinedload(Contact.AtomBgn, innerjoin=True),
                                   joinedload(Contact.AtomEnd, innerjoin=True))
-
-        query = bgn.union(end)
 
         return query
 
@@ -297,20 +285,15 @@ class ContactAdaptor(object):
         where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
                      Contact.biomolecule_id==biomolecule_id, *expr)
 
-        bgn = self.query.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
-        bgn = bgn.filter(where)
+        query = self.query.join(LigandFragmentAtom, or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id,
+                                                        LigandFragmentAtom.atom_id==Contact.atom_end_id))
 
-        end = self.query.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_end_id)
-        end = end.filter(where)
+        query = query.filter(where)
 
         # eager-load the interacting atoms
         if kwargs.get('load_atoms'):
-            bgn = bgn.options(joinedload(Contact.AtomBgn, innerjoin=True),
-                              joinedload(Contact.AtomEnd, innerjoin=True))
-            end = end.options(joinedload(Contact.AtomBgn, innerjoin=True),
-                              joinedload(Contact.AtomEnd, innerjoin=True))
-
-        query = bgn.union_all(end)
+            query = query.options(joinedload(Contact.AtomBgn, innerjoin=True),
+                                  joinedload(Contact.AtomEnd, innerjoin=True))
 
         return query
 

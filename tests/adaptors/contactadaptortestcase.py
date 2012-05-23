@@ -48,3 +48,10 @@ class ContactAdaptorTestCase(CredoAdaptorTestCase):
         lf = ligand.LigandFragments[3]
         self.assertPaginatedResult('fetch_all_by_ligand_fragment_id',
                                    lf.ligand_fragment_id, ligand.ligand_id)
+
+    def test_fetch_by_ligand_id_and_atom_names(self):
+        """Fetch the SIFt with a ligand_id and atom names"""
+        ligand = models.Ligand.query.filter_by(path='3EFW/0/A/AK8`404').first()
+        result = self.adaptor.fetch_all_by_ligand_id_and_atom_names(ligand.ligand_id,
+                                                                    ligand.biomolecule_id,
+                                                                    [['C7', 'C6', 'C5', 'C9', 'N3', 'C8', 'C2', 'C3', 'C4', 'N2', 'C1', 'N1']])

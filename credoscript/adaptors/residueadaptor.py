@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import binding_sites, interface_residues, residue_interaction_pairs
+from credoscript import interface_residues, residue_interaction_pairs
 from credoscript.mixins import PathAdaptorMixin, ResidueAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -146,15 +146,16 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
 
         Queried Entities
         ----------------
-        Residue, binding_sites
+        Residue, BindingSiteResidue
 
         Returns
         -------
         residues : list
             List of `Residue` objects.
         """
-        query = self.query.join(binding_sites, binding_sites.c.residue_id==Residue.residue_id)
-        query = query.filter(and_(binding_sites.c.ligand_id==ligand_id, *expr))
+        query = self.query.join(BindingSiteResidue,
+                                BindingSiteResidue.residue_id==Residue.residue_id)
+        query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id, *expr))
 
         return query
 
@@ -240,3 +241,4 @@ from ..models.residue import Residue
 from ..models.chain import Chain
 from ..models.ligandcomponent import LigandComponent
 from ..models.ligandfragmentatom import LigandFragmentAtom
+from ..models.bindingsiteresidue import BindingSiteResidue

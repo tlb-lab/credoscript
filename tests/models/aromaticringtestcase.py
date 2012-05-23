@@ -5,7 +5,7 @@ from tests import CredoEntityTestCase
 
 class AromaticRingTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.entity = models.AromaticRing.query.get(1)
+        self.entity = models.AromaticRing.query.limit(1).first()
 
     def test_has_biomolecule(self):
         """test if AromaticRing has a Biomolecule parent"""

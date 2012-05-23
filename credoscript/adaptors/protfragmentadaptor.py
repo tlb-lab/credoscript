@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import binding_sites, prot_fragment_residues
+from credoscript import prot_fragment_residues
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -52,12 +52,13 @@ class ProtFragmentAdaptor(PathAdaptorMixin):
         query = self.query
         query = query.join(prot_fragment_residues,
                            prot_fragment_residues.c.prot_fragment_id==ProtFragment.prot_fragment_id)
-        query = query.join(binding_sites,
-                           binding_sites.c.residue_id==prot_fragment_residues.c.residue_id)
-        query = query.filter(and_(binding_sites.c.ligand_id==ligand_id, *expr))
+        query = query.join(BindingSiteResidue,
+                           BindingSiteResidue.residue_id==prot_fragment_residues.c.residue_id)
+        query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id, *expr))
 
         return query.distinct()
 
 from ..models.structure import Structure
 from ..models.chain import Chain
 from ..models.protfragment import ProtFragment
+from ..models.bindingsiteresidue import BindingSiteResidue

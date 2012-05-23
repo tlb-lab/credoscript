@@ -31,15 +31,14 @@ class RingInteractionAdaptor(object):
         """
         where = and_(LigandComponent.ligand_id==ligand_id, *expr)
 
-        bgn = self.query.join(AromaticRing, AromaticRing.aromatic_ring_id==RingInteraction.aromatic_ring_bgn_id)
-        bgn = bgn.join(LigandComponent, LigandComponent.residue_id==AromaticRing.residue_id)
-        bgn = bgn.filter(where)
+        query = self.query.join(AromaticRing,
+                                or_(RingInteraction.aromatic_ring_bgn_id==AromaticRing.aromatic_ring_id,
+                                    RingInteraction.aromatic_ring_end_id==AromaticRing.aromatic_ring_id))
 
-        end = self.query.join(AromaticRing, AromaticRing.aromatic_ring_id==RingInteraction.aromatic_ring_end_id)
-        end = end.join(LigandComponent, LigandComponent.residue_id==AromaticRing.residue_id)
-        end = end.filter(where)
+        query = query.join(LigandComponent,
+                           LigandComponent.residue_id==AromaticRing.residue_id)
 
-        query = bgn.union(end)
+        query = query.filter(where)
 
         return query
 

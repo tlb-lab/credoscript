@@ -3,7 +3,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, cast, func
 from sqlalchemy.dialects.postgresql import INTEGER
 
-from credoscript import (Base, Session, binding_sites, ligand_usr, binding_site_atom_surface_areas)
+from credoscript import Base, Session, binding_site_atom_surface_areas
 from credoscript.mixins import PathMixin
 
 class Ligand(Base, PathMixin):
@@ -58,21 +58,21 @@ class Ligand(Base, PathMixin):
 
     Mapped Attributes
     -----------------
-    biomolecule : Biomolecule
+    Biomolecule : Biomolecule
         Biological assembly this ligand is part of.
-    components : Query
+    Components : Query
         Chemical components this ligand consists of.
-    aromatic_rings : list
+    Aromatic_rings : list
         All the aromatic rings of this ligand.
-    atoms : list
+    Atoms : list
         All the atoms of this ligand.
-    ligand_fragments : Query
+    Ligand_fragments : Query
         All the fragments derived from this ligand.
-    molstring : MolString
+    MolString : MolString
         Object containing the ligand structure in various formats as attributes.
-    residues : list
+    Residues : list
         Residues this ligand consists of.
-    xrefs : list
+    Xrefs : list
         Cross references to external databases.
 
     Overloaded operators
@@ -93,12 +93,13 @@ class Ligand(Base, PathMixin):
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    # the residues this ligand consists of
     Residues = relationship("Residue",
                             secondary = Base.metadata.tables['credo.ligand_components'],
                             primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
                             secondaryjoin = "LigandComponent.residue_id==Residue.residue_id",
                             foreign_keys = "[LigandComponent.ligand_id, Residue.residue_id]",
-                            uselist=False, innerjoin=True, lazy='dynamic',
+                            uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     AromaticRings = relationship("AromaticRing",
@@ -106,7 +107,7 @@ class Ligand(Base, PathMixin):
                                   primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
                                   secondaryjoin = "LigandComponent.residue_id==AromaticRing.residue_id",
                                   foreign_keys = "[LigandComponent.ligand_id, AromaticRing.residue_id]",
-                                  uselist=False, innerjoin=True, lazy='dynamic',
+                                  uselist=True, innerjoin=True, lazy='dynamic',
                                   backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     Atoms = relationship("Atom",
@@ -114,7 +115,7 @@ class Ligand(Base, PathMixin):
                          primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
                          secondaryjoin = "and_(LigandComponent.residue_id==Atom.residue_id, Ligand.biomolecule_id==Atom.biomolecule_id)",
                          foreign_keys = "[LigandComponent.ligand_id, Atom.residue_id, Atom.biomolecule_id]",
-                         uselist=False, innerjoin=True, lazy='dynamic')
+                         uselist=True, innerjoin=True, lazy='dynamic')
 
     LigandFragments = relationship("LigandFragment",
                                    primaryjoin = "LigandFragment.ligand_id==Ligand.ligand_id",
@@ -132,6 +133,18 @@ class Ligand(Base, PathMixin):
                              foreign_keys = "[LigandMolString.ligand_id]",
                              uselist=False, innerjoin=True,
                              backref=backref('Ligand', uselist=False, innerjoin=True))
+
+    LigandUSR = relationship("LigandUSR",
+                              primaryjoin = "LigandUSR.ligand_id==Ligand.ligand_id",
+                              foreign_keys = "[LigandUSR.ligand_id]",
+                              uselist=False, innerjoin=True,
+                              backref=backref('Ligand', uselist=False, innerjoin=True))
+
+    BindingSiteResidues = relationship("BindingSiteResidue",
+                          primaryjoin="BindingSiteResidue.ligand_id==Ligand.ligand_id",
+                          foreign_keys="[BindingSiteResidue.ligand_id]",
+                          uselist=False, innerjoin=True, lazy='dynamic',
+                          backref=backref('Ligand', uselist=False, innerjoin=True))
 
     def __repr__(self):
         """
@@ -248,22 +261,6 @@ class Ligand(Base, PathMixin):
         """
         Returns all residues that are in contact with the ligand having the specified
         ligand identifier.
-
-        Parameters
-        ----------
-        ligand_id : int
-            `Ligand` identifier.
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Queried Entities
-        ----------------
-        Residue, binding_sites
-
-        Returns
-        -------
-        residues : list
-            List of `Residue` objects.
         """
         return ResidueAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
                                                                     dynamic=True)
@@ -273,22 +270,6 @@ class Ligand(Base, PathMixin):
         """
         Returns all atoms that are in contact with the ligand having the specified
         ligand identifier.
-
-        Parameters
-        ----------
-        ligand_id : int
-            `Ligand` identifier.
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Queried Entities
-        ----------------
-        Atom, binding_sites
-
-        Returns
-        -------
-        atoms : list
-            List of `Atom` objects.
         """
         return AtomAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
                                                                  self.biomolecule_id,
@@ -298,19 +279,13 @@ class Ligand(Base, PathMixin):
     def usr_space(self):
         """
         """
-        session = Session()
-
-        return session.query(ligand_usr.c.usr_space).filter(
-            ligand_usr.c.ligand_id==self.ligand_id).scalar()
+        return self.LigandUSR.usr_space
 
     @property
     def usr_moments(self):
         """
         """
-        session = Session()
-
-        return session.query(ligand_usr.c.usr_moments).filter(
-            ligand_usr.c.ligand_id==self.ligand_id).scalar()
+        return self.LigandUSR.usr_moments
 
     def sift(self, *expr, **kwargs):
         """

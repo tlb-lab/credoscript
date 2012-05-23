@@ -3,7 +3,7 @@ from tests import CredoEntityTestCase
 
 class ChainTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.entity = models.Chain.query.get(12345)
+        self.entity = models.Chain.query.limit(1).first()
 
     def test_getitem(self):
         """

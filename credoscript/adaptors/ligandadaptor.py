@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Session, binding_sites, ligand_usr, binding_site_fuzcav, phenotype_to_ligand
+from credoscript import Session, binding_site_fuzcav, phenotype_to_ligand
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -41,8 +41,8 @@ class LigandAdaptor(PathAdaptorMixin):
         Returns all ligands that can be found in contact with binding-site residues
         belonging to the chain with the given chain_id.
         """
-        query = self.query.join(binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==binding_sites.c.residue_id)
+        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
         query = query.filter(and_(Peptide.chain_id==chain_id, *expr))
 
         return query.distinct()
@@ -51,8 +51,8 @@ class LigandAdaptor(PathAdaptorMixin):
     def fetch_all_in_contact_with_residue_id(self, residue_id, *expr, **kwargs):
         """
         """
-        query = self.query.join(binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==binding_sites.c.residue_id)
+        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
         query = query.filter(and_(Peptide.residue_id==residue_id, *expr))
 
         return query.distinct()
@@ -122,7 +122,7 @@ class LigandAdaptor(PathAdaptorMixin):
 
         Joins
         -----
-        Ligand, binding_sites, Peptide, XRef
+        Ligand, BindingSiteResidue, Peptide, XRef
 
         Returns
         -------
@@ -135,8 +135,8 @@ class LigandAdaptor(PathAdaptorMixin):
         >>> LigandAdaptor().fetch_all_by_uniprot('P03372')
         >>> [<Ligand(B 600 OHT)>, <Ligand(A 600 OHT)>,...]
         """
-        query = self.query.join(binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==binding_sites.c.residue_id)
+        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
         query = query.join(XRef, and_(XRef.entity_type=='Chain',
                                       XRef.entity_id==Peptide.chain_id))
 
@@ -160,7 +160,7 @@ class LigandAdaptor(PathAdaptorMixin):
 
         Joins
         -----
-        Ligand, binding_sites, Peptide
+        Ligand, BindingSiteResidue, Peptide
 
         Returns
         -------
@@ -173,8 +173,8 @@ class LigandAdaptor(PathAdaptorMixin):
         >>> LigandAdaptor().fetch_all_by_cath_dmn('1bcuH01')
         >>> [<Ligand(H 280 PRL)>]
         """
-        query = self.query.join(binding_sites, binding_sites.c.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==binding_sites.c.residue_id)
+        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
 
         query = query.filter(and_(Peptide.cath==dmn, *expr)).distinct()
 
@@ -236,13 +236,11 @@ class LigandAdaptor(PathAdaptorMixin):
          (<Ligand(D 473 PAM)>, 0.0284358164031147), (<Ligand(E 1460 PLM)>, 0.0275288778074261),
          (<Ligand(D 2001 VD3)>, 0.0272922654340162), (<Ligand(A 1003 MYR)>, 0.0270479516947393)]
         """
-        session = Session()
-
         ligand_id = kwargs.get("ligand_id", 0)
         usr_space = kwargs.get('usr_space', [])
         usr_moments = kwargs.get('usr_moments', [])
         threshold = kwargs.get('threshold', 0.5)
-        limit = kwargs.get('limit', 100)
+        limit = kwargs.get('limit', 50)
 
         usr_space, usr_moments = list(usr_space), list(usr_moments)
 
@@ -252,7 +250,6 @@ class LigandAdaptor(PathAdaptorMixin):
 
             if ligand:
                 usr_space, usr_moments = ligand.usr_space, ligand.usr_moments
-
             else:
                 raise ValueError('Ligand with ligand_id {} does not exist.'
                                  .format(ligand_id))
@@ -275,17 +272,18 @@ class LigandAdaptor(PathAdaptorMixin):
         probe = func.cube_enlarge(func.cube(usr_space), probe_radius, 12).label('probe')
 
         # USRCAT similarity
-        similarity = func.arrayxd_usrcatsim(ligand_usr.c.usr_moments, usr_moments,
-                                            ow, hw, rw, aw, dw).label('similarity')
+        sim = func.arrayxd_usrcatsim(LigandUSR.usr_moments, usr_moments,
+                                     ow, hw, rw, aw, dw).label('similarity')
 
         # cube distance GIST index
-        whereclause = and_(ligand_usr.c.usr_space.op('<@')(probe),
-                           similarity >= threshold)
+        where = and_(LigandUSR.usr_space.op('<@')(probe), sim >= threshold)
 
-        subquery = session.query(ligand_usr.c.ligand_id, similarity)
-        subquery = subquery.filter(whereclause).order_by("2 DESC").limit(limit)
-        subquery = subquery.subquery()
+        # create a subquery with the actual USR search
+        query = LigandUSR.query.filter(where).order_by("2 DESC").limit(limit)
+        query = query.with_entities(LigandUSR.ligand_id, sim)
+        subquery = query.subquery()
 
+        # join in the ligands on the top hits
         query = self.query.add_column(subquery.c.similarity)
         query = query.join((subquery, subquery.c.ligand_id==Ligand.ligand_id))
         query = query.filter(and_(*expr))
@@ -365,3 +363,5 @@ from ..models.residue import Residue
 from ..models.ligand import Ligand
 from ..models.biomolecule import Biomolecule
 from ..models.ligandcomponent import LigandComponent
+from ..models.ligandusr import LigandUSR
+from ..models.bindingsiteresidue import BindingSiteResidue

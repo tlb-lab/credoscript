@@ -50,7 +50,7 @@ class ChemCompAdaptor(object):
         return query.first()
 
     @paginate
-    def fetch_all_by_fragment_id(self, fragment_id, *expressions, **kwargs):
+    def fetch_all_by_fragment_id(self, fragment_id, *expr, **kwargs):
         """
         Returns all Chemical Components in the PDB that lead to the fragment with
         the given fragment_id during the RECAP fragmention process.
@@ -60,7 +60,7 @@ class ChemCompAdaptor(object):
         fragment_id : int
             Primary key of the fragment for which all chemical components should
             be returned.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Returns
@@ -74,7 +74,7 @@ class ChemCompAdaptor(object):
         """
         query = self.query.join('ChemCompFragments')
         query = query.filter(and_(ChemCompFragment.fragment_id==fragment_id,
-                                  *expressions))
+                                  *expr))
 
         return query
 
@@ -125,7 +125,7 @@ class ChemCompAdaptor(object):
         return self.fetch_all_by_xref('ChEMBL Compound', chembl_id, **kwargs)
 
     @paginate
-    def fetch_all_approved_drugs(self, *expressions, **kwargs):
+    def fetch_all_approved_drugs(self, *expr, **kwargs):
         """
         Returns a list of all the ChemComps that are approved drugs based on the
         information provided by ChEMBL.
@@ -137,13 +137,13 @@ class ChemCompAdaptor(object):
             by ChEMBL.
         """
         query = self.query.filter(and_(ChemComp.is_approved_drug==True,
-                                       *expressions))
+                                       *expr))
 
         return query
 
     @requires.rdkit_catridge
     @paginate
-    def fetch_all_by_substruct(self, smi, *expressions, **kwargs):
+    def fetch_all_by_substruct(self, smi, *expr, **kwargs):
         """
         Returns all Chemical Components in the PDB that have the given SMILES
         substructure.
@@ -153,7 +153,7 @@ class ChemCompAdaptor(object):
         smi : str
             SMILES string of the substructure to be used for substructure
             searching.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -178,14 +178,14 @@ class ChemCompAdaptor(object):
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         """
         query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.contains(smi), *expressions))
+        query = query.filter(and_(ChemCompRDMol.contains(smi), *expr))
         query = query.order_by(ChemComp.het_id.asc())
 
         return query
 
     @requires.rdkit_catridge
     @paginate
-    def fetch_all_by_superstruct(self, smiles, *expressions, **kwargs):
+    def fetch_all_by_superstruct(self, smiles, *expr, **kwargs):
         """
         Returns all Chemical Components in the PDB that have the given SMILES
         superstructure.
@@ -195,7 +195,7 @@ class ChemCompAdaptor(object):
         smiles : string
             SMILES string of the superstructure to be used for superstructure
             searching.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -220,14 +220,14 @@ class ChemCompAdaptor(object):
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
         """
         query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.contained_in(smiles), *expressions))
+        query = query.filter(and_(ChemCompRDMol.contained_in(smiles), *expr))
         query = query.order_by(ChemComp.het_id.asc())
 
         return query
 
     @requires.rdkit_catridge
     @paginate
-    def fetch_all_by_smarts(self, smarts, *expressions, **kwargs):
+    def fetch_all_by_smarts(self, smarts, *expr, **kwargs):
         """
         Returns all chemical components that match the given SMARTS pattern.
 
@@ -263,14 +263,14 @@ class ChemCompAdaptor(object):
         ChemCompAdaptor.fetch_all_by_sim
         """
         query = self.query.join('RDMol')
-        query = query.filter(and_(ChemCompRDMol.matches(smarts), *expressions))
+        query = query.filter(and_(ChemCompRDMol.matches(smarts), *expr))
         query = query.order_by(ChemComp.het_id.asc())
 
         return query
 
     @requires.rdkit_catridge
     @paginate
-    def fetch_all_by_sim(self, smi, *expressions, **kwargs):
+    def fetch_all_by_sim(self, smi, *expr, **kwargs):
         """
         Returns all Chemical Components that match the given SMILES string with at
         least the given similarity threshold using chemical fingerprints.
@@ -283,7 +283,7 @@ class ChemCompAdaptor(object):
             The similarity threshold that will be used for searching.
         fp : {'circular','atompair','torsion'}
             RDKit fingerprint type to be used for similarity searching.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -332,13 +332,13 @@ class ChemCompAdaptor(object):
         index = func.rdkit.tanimoto_sml_op(query,target)
 
         query = self.query.add_column(tanimoto)
-        query = query.join('RDFP').filter(and_(index, *expressions))
+        query = query.join('RDFP').filter(and_(index, *expr))
         query = query.order_by('tanimoto DESC')
 
         return query
 
     @paginate
-    def fetch_all_by_trgm_sim(self, smiles, *expressions, **kwargs):
+    def fetch_all_by_trgm_sim(self, smiles, *expr, **kwargs):
         """
         Returns all chemical components that are similar to the given SMILES string
         using trigam similarity (similar to LINGO).
@@ -382,7 +382,7 @@ class ChemCompAdaptor(object):
         similarity = func.similarity(ChemComp.ism,smiles).label('similarity')
 
         query = self.query.add_column(similarity)
-        query = query.filter(and_(ChemComp.like(smiles), *expressions))
+        query = query.filter(and_(ChemComp.like(smiles), *expr))
 
         # KNN-GIST
         query = query.order_by(ChemComp.ism.op('<->')(smiles))
@@ -390,7 +390,7 @@ class ChemCompAdaptor(object):
         return query
 
     @paginate
-    def fetch_all_by_usr_moments(self, *expressions, **kwargs):
+    def fetch_all_by_usr_moments(self, *expr, **kwargs):
         """
         Returns all Chemical Components whose conformers have an ultrafast-shape
         recognition (USR) similarity above the given threshold.
@@ -490,7 +490,7 @@ class ChemCompAdaptor(object):
         # get the chemcomp entities
         query = self.query.add_column(subquery.c.similarity)
         query = query.join((subquery, subquery.c.het_id==ChemComp.het_id))
-        query = query.filter(and_(*expressions)).order_by("similarity DESC")
+        query = query.filter(and_(*expr)).order_by("similarity DESC")
 
         return query
 

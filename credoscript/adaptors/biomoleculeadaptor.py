@@ -17,11 +17,11 @@ class BiomoleculeAdaptor(PathAdaptorMixin):
         return self.query.get(biomolecule_id)
 
     @paginate
-    def fetch_all_by_pdb(self, pdb, *expressions, **kwargs):
+    def fetch_all_by_pdb(self, pdb, *expr, **kwargs):
         """
         """
         query = self.query.join('Structure')
-        query = query.filter(and_(Structure.pdb==pdb, *expressions))
+        query = query.filter(and_(Structure.pdb==pdb, *expr))
 
         return query
 

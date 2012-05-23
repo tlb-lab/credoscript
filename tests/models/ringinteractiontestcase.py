@@ -5,7 +5,7 @@ from tests import CredoEntityTestCase
 
 class RingInteractionTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.entity = models.RingInteraction.query.get(1)
+        self.entity = models.RingInteraction.query.limit(1).first()
 
     def test_has_biomolecule(self):
         """test if RingInteraction has a Biomolecule parent"""

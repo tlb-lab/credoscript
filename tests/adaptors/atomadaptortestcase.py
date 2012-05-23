@@ -8,7 +8,7 @@ class AtomAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_by_atom_id(self):
         """Fetch a single Atom by atom_id"""
-        atom = models.Atom.query.get(1)
+        atom = models.Atom.query.limit(1).first()
         self.assertSingleResult('fetch_by_atom_id',
                                 atom.atom_id, atom.biomolecule_id)
 
@@ -32,13 +32,13 @@ class AtomAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_water_in_contact_with_atom_id(self):
         """Fetch all (water) atoms that are interacting with the atom_id."""
-        atom = models.Atom.query.get(1)
+        atom = models.Atom.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_water_in_contact_with_atom_id',
                                    atom.atom_id, atom.biomolecule_id)
 
     def test_fetch_all_water_in_contact_with_residue_id(self):
         """Fetch all (water) atoms that are interacting with the residue_id."""
-        atom = models.Atom.query.get(1)
+        atom = models.Atom.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_water_in_contact_with_residue_id',
                                    atom.residue_id, atom.biomolecule_id)
 

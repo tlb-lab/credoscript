@@ -1,4 +1,4 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
@@ -72,6 +72,12 @@ class Atom(Base, PathMixin):
     """
     __tablename__ = 'credo.atoms'
 
+    Contacts  = relationship("Contact",
+                             primaryjoin="and_(or_(Contact.atom_bgn_id==Atom.atom_id, Contact.atom_end_id==Atom.atom_id), Contact.biomolecule_id==Atom.biomolecule_id)",
+                             foreign_keys="[Contact.atom_bgn_id, Contact.atom_end_id, Contact.biomolecule_id]",
+                             uselist=True, innerjoin=True, lazy='dynamic',
+                             backref=backref('Atoms', uselist=True, innerjoin=True))
+
     def __repr__(self):
         """
         """
@@ -84,15 +90,6 @@ class Atom(Base, PathMixin):
             code. Only used for the Chain.Residues|Peptides mappers.
             """
             return self.atom_name, self.alt_loc
-
-    @property
-    def Contacts(self):
-        """
-        Returns a Query construct.
-        """
-        return ContactAdaptor().fetch_all_by_atom_id(self.atom_id,
-                                                     self.biomolecule_id,
-                                                     dynamic=True)
 
     @property
     def Vector(self):

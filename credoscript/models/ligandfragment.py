@@ -22,6 +22,13 @@ class LigandFragment(Base):
                          foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
 
+    Contacts = relationship("Contact",
+                            secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
+                            primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
+                            secondaryjoin="and_(or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id, LigandFragmentAtom.atom_id==Contact.atom_end_id), Contact.biomolecule_id==LigandFragment.biomolecule_id)",
+                            foreign_keys="[LigandFragmentAtom.ligand_fragment_id, Contact.atom_bgn_id, Contact.atom_end_id, Contact.biomolecule_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic')
+
     def __repr__(self):
         """
         """
@@ -99,7 +106,7 @@ class LigandFragment(Base):
         """
         Queried Entities
         ----------------
-        Contact, Atom, binding_sites
+        Contact, Atom
         """
         return SIFtAdaptor().fetch_by_ligand_fragment_id(self.ligand_id,
                                                          self.biomolecule_id,

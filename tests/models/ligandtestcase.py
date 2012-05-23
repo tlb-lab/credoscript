@@ -3,7 +3,7 @@ from tests import CredoEntityTestCase
 
 class LigandTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.ligand = models.Ligand.query.get(12345)
+        self.ligand = models.Ligand.query.filter_by(path='2P33/0/A/J07`507').first()
 
     # test overloaded methods
     def test_len(self):
@@ -58,6 +58,9 @@ class LigandTestCase(CredoEntityTestCase):
 
     def test_has_ring_interactions(self):
         self.assertDynamicRelationship(self.ligand, 'RingInteractions', models.RingInteraction)
+
+    def test_has_binding_site_residues(self):
+        self.assertDynamicRelationship(self.ligand, 'BindingSiteResidues', models.BindingSiteResidue)
 
 if __name__ == '__main__':
     import unittest

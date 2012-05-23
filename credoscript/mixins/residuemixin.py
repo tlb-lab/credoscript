@@ -33,7 +33,6 @@ class ResidueMixin(object):
             """
             return self.res_num, str(self.ins_code)
 
-
     @declared_attr
     def Atoms(self):
         """

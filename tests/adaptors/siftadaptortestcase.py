@@ -11,11 +11,11 @@ class SIFtAdaptorTestCase(CredoAdaptorTestCase):
             self.assertIsInstance(residue, models.Residue)
             self.assertEqual(len(sift), 13)
 
-    def test_fetch_by_residue_id(self):
+    def test_fetch_by_own_residue_id(self):
         """Fetch the SIFt of a single residue"""
         residue = models.Residue.query.filter_by(path='2P33/0/A/SER`72').first()
-        result = self.adaptor.fetch_by_residue_id(residue.residue_id,
-                                                  residue.biomolecule_id)
+        result = self.adaptor.fetch_by_own_residue_id(residue.residue_id,
+                                                      residue.biomolecule_id)
 
         # SIFt of a residue is only a single row
         self.assertEqual(len(result), 13)
@@ -45,7 +45,7 @@ class SIFtAdaptorTestCase(CredoAdaptorTestCase):
                                                                 [['C7', 'C6', 'C5', 'C9', 'N3', 'C8', 'C2', 'C3', 'C4', 'N2', 'C1', 'N1']])
 
         self._check_sift(result)
-    
+
     def test_fetch_by_own_chain_id(self):
         """Fetch the SIFt of a chain"""
         chain = models.Chain.query.filter_by(path='2P33/0/A').first()

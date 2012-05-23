@@ -57,7 +57,7 @@ class StructureAdaptor(object):
         return self.query.filter(Structure.pdb==pdb.upper()).first()
 
     @paginate
-    def fetch_all_by_het_id(self, het_id, *expressions, **kwargs):
+    def fetch_all_by_het_id(self, het_id, *expr, **kwargs):
         """
         Returns all the Structures that contain this chemical component as a Ligand.
 
@@ -66,7 +66,7 @@ class StructureAdaptor(object):
         het_id : str
             Three-letter code of the chemical component that will be used to query
             for structures.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -83,13 +83,12 @@ class StructureAdaptor(object):
 
         """
         query = self.query.join('Biomolecules','Ligands')
-        query = query.filter(and_(Ligand.ligand_name==het_id.upper(),
-                                  *expressions))
+        query = query.filter(and_(Ligand.ligand_name==het_id.upper(), *expr))
 
         return query.distinct()
 
     @paginate
-    def fetch_all_by_uniprot(self, uniprot, *expressions, **kwargs):
+    def fetch_all_by_uniprot(self, uniprot, *expr, **kwargs):
         """
         Returns all structures that contain polypeptides having the specified
         UniProt accession.
@@ -98,7 +97,7 @@ class StructureAdaptor(object):
         ----------
         uniprot : str
             UniProt accession.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -120,12 +119,12 @@ class StructureAdaptor(object):
 
         query = query.filter(and_(XRef.source=='UniProt',
                                   XRef.xref==uniprot,
-                                  *expressions))
+                                  *expr))
 
         return query.distinct()
 
     @paginate
-    def fetch_all_by_tsquery(self, tsquery, *expressions, **kwargs):
+    def fetch_all_by_tsquery(self, tsquery, *expr, **kwargs):
         """
         Returns all structures whose abstract matches the keywords given in the
         keyword string.
@@ -197,7 +196,7 @@ class StructureAdaptor(object):
         # GIST index that is used for searching
         index = func.to_tsvector('english', citations.c.abstract).op('@@')(tsquery)
 
-        query = self.query.filter(and_(*expressions))
+        query = self.query.filter(and_(*expr))
         query = query.add_columns(snippet, rank)
 
         query = query.join(XRef, and_(XRef.entity_type=='Structure',

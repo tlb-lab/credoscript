@@ -46,7 +46,8 @@ class ChainAdaptor(PathAdaptorMixin):
         """
         """
         query = self.query.join('XRefs')
-        query = query.filter(and_(XRef.source=='UniProt', XRef.xref==uniprot, *expr))
+        query = query.filter(and_(XRef.source=='UniProt',
+                                  XRef.xref==uniprot, *expr))
 
         return query
 
@@ -55,7 +56,8 @@ class ChainAdaptor(PathAdaptorMixin):
         """
         """
         query = self.query.join('XRefs')
-        query = query.filter(and_(XRef.entity_type=='Chain', XRef.entity_id==Chain.chain_id,
+        query = query.filter(and_(XRef.entity_type=='Chain',
+                                  XRef.entity_id==Chain.chain_id,
                                   XRef.source=='CATH', XRef.xref==dmn, *expr))
 
         return query

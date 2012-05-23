@@ -3,7 +3,7 @@ from tests import CredoEntityTestCase
 
 class ResidueTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.entity = models.Residue.query.get(12345)
+        self.entity = models.Residue.query.limit(1).first()
 
     def test_getitem(self):
         """
@@ -22,7 +22,7 @@ class ResidueTestCase(CredoEntityTestCase):
     def test_has_atoms(self):
         self.assertDynamicRelationship(self.entity, 'Atoms', models.Atom)
 
-    def test_has_chain_map(self):
+    def test_has_atom_map(self):
         self.assertMappedCollection(self.entity, 'AtomMap')
 
     def test_has_aromatic_rings(self):

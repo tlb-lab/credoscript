@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_, func
+from sqlalchemy.sql.expression import and_, func, or_
 
-from credoscript import Session, binding_sites, interface_residues
+from credoscript import Session, interface_residues
 from credoscript.mixins.base import paginate
 
 class AtomAdaptor(object):
@@ -104,15 +104,15 @@ class AtomAdaptor(object):
 
         Joins
         -----
-        Atom, credo.tables['credo.binding_sites']
+        Atom, BindingSiteResidue
 
         Returns
         -------
         atoms : list
             List of `Atom` objects.
         """
-        query = self.query.join(binding_sites, binding_sites.c.residue_id==Atom.residue_id)
-        query = query.filter(and_(binding_sites.c.ligand_id==ligand_id,
+        query = self.query.join(BindingSiteResidue, BindingSiteResidue.residue_id==Atom.residue_id)
+        query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id,
                                   Atom.biomolecule_id==biomolecule_id,
                                   *expr))
 
@@ -147,17 +147,12 @@ class AtomAdaptor(object):
                      LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
                      *expr)
 
-        bgn = self.query.join('ContactsBgn')
-        bgn = bgn.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_end_id)
-        bgn = bgn.filter(where)
+        query = self.query.join('Contacts').filter(where)
+        query = query.join(LigandFragmentAtom,
+                           or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id,
+                               LigandFragmentAtom.atom_id==Contact.atom_end_id))
 
-        end = self.query.join('ContactsEnd')
-        end = end.join(LigandFragmentAtom, LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
-        end = end.filter(where)
-
-        query = bgn.union(end)
-
-        return query
+        return query.distinct()
 
     @paginate
     def fetch_all_water_in_contact_with_atom_id(self, atom_id, biomolecule_id,
@@ -301,3 +296,4 @@ from ..models.residue import Residue
 from ..models.interface import Interface
 from ..models.chain import Chain
 from ..models.ligandfragmentatom import LigandFragmentAtom
+from ..models.bindingsiteresidue import BindingSiteResidue
