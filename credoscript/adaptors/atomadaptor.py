@@ -1,11 +1,12 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func, or_
 
-from credoscript import Session, interface_residues
+from credoscript import interface_residues
 from credoscript.mixins.base import paginate
 
 class AtomAdaptor(object):
     """
+    Class to fetch atoms from CREDO.
     """
     def __init__(self, paginate=False, per_page=100):
         self.query = Atom.query
@@ -37,12 +38,15 @@ class AtomAdaptor(object):
     @paginate
     def fetch_all_by_ligand_id(self, ligand_id, biomolecule_id, *expr, **kwargs):
         """
-        Returns a list of `Atoms` that are part of the ligand with the given identifier.
+        Returns a list of `Atoms` that are part of the ligand with the given
+        identifier.
 
         Parameters
         ----------
         ligand_id : int
             `Ligand` identifier.
+        biomolecule_id : int
+            `Biomolecule` identifier.
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
@@ -89,173 +93,6 @@ class AtomAdaptor(object):
         return query
 
     @paginate
-    def fetch_all_in_contact_with_ligand_id(self, ligand_id, biomolecule_id,
-                                            *expr, **kwargs):
-        """
-        Returns all atoms that are in contact with the ligand having the specified
-        ligand identifier.
-
-        Parameters
-        ----------
-        ligand_id : int
-            `Ligand` identifier.
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Joins
-        -----
-        Atom, BindingSiteResidue
-
-        Returns
-        -------
-        atoms : list
-            List of `Atom` objects.
-        """
-        query = self.query.join(BindingSiteResidue, BindingSiteResidue.residue_id==Atom.residue_id)
-        query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id,
-                                  Atom.biomolecule_id==biomolecule_id,
-                                  *expr))
-
-        return query
-
-    @paginate
-    def fetch_all_in_contact_with_ligand_fragment_id(self, ligand_fragment_id,
-                                                     biomolecule_id, *expr, **kwargs):
-        """
-        Returns all atoms that are in contact with the ligand fragment having the specified
-        identifier.
-
-        Parameters
-        ----------
-        ligand_fragment_id : int
-            `LigandFragment` identifier.
-        biomolecule_id : int
-
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Joins
-        -----
-        Atom, Contact, ligand_fragment_atoms
-
-        Returns
-        -------
-        atoms : list
-            List of `Atom` objects.
-        """
-        where = and_(Atom.biomolecule_id==biomolecule_id,
-                     LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
-                     *expr)
-
-        query = self.query.join('Contacts').filter(where)
-        query = query.join(LigandFragmentAtom,
-                           or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id,
-                               LigandFragmentAtom.atom_id==Contact.atom_end_id))
-
-        return query.distinct()
-
-    @paginate
-    def fetch_all_water_in_contact_with_atom_id(self, atom_id, biomolecule_id,
-                                                *expr, **kwargs):
-        """
-        """
-        bgn = self.query.join('ContactsBgn')
-        bgn = bgn.filter(Contact.structural_interaction_type_bm.op('&')(1) == 1)
-        bgn = bgn.filter(and_(Contact.biomolecule_id==biomolecule_id, *expr))
-
-        end = self.query.join('ContactsEnd')
-        end = end.filter(Contact.structural_interaction_type_bm.op('&')(64) == 64)
-        end = end.filter(and_(Contact.biomolecule_id==biomolecule_id, *expr))
-
-        query = bgn.union(end)
-
-        return query
-
-    @paginate
-    def fetch_all_water_in_contact_with_residue_id(self, residue_id, biomolecule_id,
-                                                   *expr, **kwargs):
-        """
-        """
-        where = and_(Atom.residue_id==residue_id,
-                     Atom.biomolecule_id==Contact.biomolecule_id,
-                     Contact.biomolecule_id==biomolecule_id)
-
-        bgn = Contact.query.join('AtomBgn').filter(where)
-        bgn = bgn.with_entities(Contact.biomolecule_id.label('biomolecule_id'),
-                                Contact.atom_end_id.label('atom_other_id'))
-        bgn = bgn.filter(Contact.structural_interaction_type_bm.op('&')(1) == 1)
-
-        end = Contact.query.join('AtomEnd').filter(where)
-        end = end.with_entities(Contact.biomolecule_id.label('biomolecule_id'),
-                                Contact.atom_bgn_id.label('atom_other_id'))
-        end = end.filter(Contact.structural_interaction_type_bm.op('&')(64) == 64)
-
-        sq = bgn.union(end).subquery()
-
-        query = self.query.join(sq, and_(sq.c.atom_other_id==Atom.atom_id,
-                                         sq.c.biomolecule_id==Atom.biomolecule_id))
-        query = query.filter(and_(*expr))
-
-        return query
-
-    @paginate
-    def fetch_all_water_in_contact_with_ligand_id(self, ligand_id, biomolecule_id,
-                                                  *expr, **kwargs):
-        """
-        """
-        session = Session()
-
-        whereclause = and_(Hetatm.ligand_id==ligand_id, Contact.is_hbond==True,
-                           Contact.is_any_wat,
-                           Contact.biomolecule_id==biomolecule_id,
-                           *expr)
-
-        bgn = session.query(Contact.atom_bgn_id.label('atom_id'))
-        bgn = bgn.join(Hetatm, Hetatm.atom_id==Contact.atom_end_id)
-        bgn = bgn.filter(whereclause)
-
-        end = session.query(Contact.atom_end_id.label('atom_id'))
-        end = end.join(Hetatm, Hetatm.atom_id==Contact.atom_bgn_id)
-        end = end.filter(whereclause)
-
-        subquery = bgn.union(end).subquery()
-
-        query = self.query.join(subquery, subquery.c.atom_id==Atom.atom_id)
-
-        return query
-
-    @paginate
-    def fetch_all_water_in_contact_with_interface_id(self, interface_id, biomolecule_id,
-                                                     *expr, **kwargs):
-        """
-        Returns the water atoms that form interactions with both chains in the
-        `Interface`.
-        """
-        IAtom = aliased(Atom)
-
-        bgn = self.query.join('ContactsBgn')
-        bgn = bgn.join(IAtom, and_(IAtom.atom_id==Contact.atom_end_id,
-                                   IAtom.biomolecule_id==Contact.biomolecule_id))
-        bgn = bgn.join(interface_residues,
-                       interface_residues.c.residue_end_id==IAtom.residue_id)
-        bgn = bgn.filter(and_(Atom.biomolecule_id==biomolecule_id,
-                              interface_residues.c.interface_id==interface_id,
-                              Contact.structural_interaction_type_bm.op('&')(64) == 64,
-                              *expr))
-
-        end = self.query.join('ContactsEnd')
-        end = end.join(IAtom, and_(IAtom.atom_id==Contact.atom_bgn_id,
-                                   IAtom.biomolecule_id==Contact.biomolecule_id))
-        end = end.join(interface_residues,
-                       interface_residues.c.residue_bgn_id==IAtom.residue_id)
-        end = end.filter(and_(Atom.biomolecule_id==biomolecule_id,
-                              interface_residues.c.interface_id==interface_id,
-                              Contact.structural_interaction_type_bm.op('&')(1) == 1,
-                              *expr))
-
-        return bgn.union(end)
-
-    @paginate
     def fetch_all_by_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
                                               atom_names, *expr, **kwargs):
         """
@@ -287,6 +124,196 @@ class AtomAdaptor(object):
                                   *expr))
 
         return query
+
+    @paginate
+    def fetch_all_in_contact_with_residue_id(self, residue_id, biomolecule_id,
+                                             *expr, **kwargs):
+        """
+        Returns all atoms that are in contact with the residue having the specified
+        residue identifier.
+
+        Parameters
+        ----------
+        residue : int
+            `residue` identifier.
+        biomolecule_id : int
+            `Biomolecule` identifier.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Joins
+        -----
+        Atom, Contact, ResAtom (Atom)
+
+        Returns
+        -------
+        atoms : list
+            List of `Atom` objects.
+        """
+        ResAtom = aliased(Atom)
+
+        where = and_(ResAtom.residue_id==residue_id,
+                     ResAtom.biomolecule_id==biomolecule_id,
+                     Contact.biomolecule_id==biomolecule_id, *expr)
+
+        bgn = self.query.join('ContactsBgn')
+        bgn = bgn.join(ResAtom, ResAtom.atom_id==Contact.atom_end_id)
+        bgn = bgn.filter(where)
+
+        end = self.query.join('ContactsEnd')
+        end = end.join(ResAtom, ResAtom.atom_id==Contact.atom_bgn_id)
+        end = end.filter(where)
+
+        query = bgn.union(end)
+
+        return query
+
+    @paginate
+    def fetch_all_in_contact_with_ligand_id(self, ligand_id, biomolecule_id,
+                                            *expr, **kwargs):
+        """
+        Returns all atoms that are in contact with the ligand having the specified
+        ligand identifier.
+
+        Parameters
+        ----------
+        ligand_id : int
+            `Ligand` identifier.
+        biomolecule_id : int
+            `Biomolecule` identifier.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Joins
+        -----
+        Atom, Contact, Hetatm
+
+        Returns
+        -------
+        atoms : list
+            List of `Atom` objects.
+        """
+        where = and_(Hetatm.ligand_id==ligand_id,
+                     Contact.biomolecule_id==biomolecule_id, *expr)
+
+        bgn = self.query.join('ContactsBgn')
+        bgn = bgn.join(Hetatm, Hetatm.atom_id==Contact.atom_end_id)
+        bgn = bgn.filter(where)
+
+        end = self.query.join('ContactsEnd')
+        end = end.join(Hetatm, Hetatm.atom_id==Contact.atom_bgn_id)
+        end = end.filter(where)
+
+        query = bgn.union(end)
+
+        return query
+
+    @paginate
+    def fetch_all_in_contact_with_ligand_fragment_id(self, ligand_fragment_id,
+                                                     biomolecule_id, *expr, **kwargs):
+        """
+        Returns all atoms that are in contact with the ligand fragment having the specified
+        identifier.
+
+        Parameters
+        ----------
+        ligand_fragment_id : int
+            `LigandFragment` identifier.
+        biomolecule_id : int
+
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Joins
+        -----
+        Atom, Contact, LigandFragmentAtom
+
+        Returns
+        -------
+        atoms : list
+            List of `Atom` objects.
+        """
+        where = and_(Atom.biomolecule_id==biomolecule_id,
+                     LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
+                     *expr)
+
+        bgn = self.query.join('ContactsBgn')
+        bgn = bgn.join(LigandFragmentAtom,
+                       LigandFragmentAtom.atom_id==Contact.atom_end_id)
+        bgn = bgn.filter(where)
+
+        end = self.query.join('ContactsEnd')
+        end = end.join(LigandFragmentAtom,
+                       LigandFragmentAtom.atom_id==Contact.atom_bgn_id)
+        end = end.filter(where)
+
+        query = bgn.union(end)
+
+        return query
+
+    @paginate
+    def fetch_all_water_in_contact_with_atom_id(self, atom_id, biomolecule_id,
+                                                *expr, **kwargs):
+        """
+        """
+        bgn = self.query.join('ContactsBgn')
+        bgn = bgn.filter(Contact.structural_interaction_type_bm.op('&')(1) == 1)
+        bgn = bgn.filter(and_(Contact.biomolecule_id==biomolecule_id, *expr))
+
+        end = self.query.join('ContactsEnd')
+        end = end.filter(Contact.structural_interaction_type_bm.op('&')(64) == 64)
+        end = end.filter(and_(Contact.biomolecule_id==biomolecule_id, *expr))
+
+        query = bgn.union(end)
+
+        return query
+
+    def fetch_all_water_in_contact_with_residue_id(self, residue_id, biomolecule_id,
+                                                   *expr, **kwargs):
+        """
+        """
+        return self.fetch_all_in_contact_with_residue_id(residue_id, biomolecule_id,
+                                                         Contact.is_any_wat,
+                                                         *expr, **kwargs)
+
+    def fetch_all_water_in_contact_with_ligand_id(self, ligand_id, biomolecule_id,
+                                                  *expr, **kwargs):
+        """
+        """
+        return self.fetch_all_in_contact_with_ligand_id(ligand_id, biomolecule_id,
+                                                        Contact.is_any_wat,
+                                                        *expr, **kwargs)
+
+    @paginate
+    def fetch_all_water_in_contact_with_interface_id(self, interface_id, biomolecule_id,
+                                                     *expr, **kwargs):
+        """
+        Returns the water atoms that form interactions with both chains in the
+        `Interface`.
+        """
+        IAtom = aliased(Atom)
+
+        bgn = self.query.join('ContactsBgn')
+        bgn = bgn.join(IAtom, and_(IAtom.atom_id==Contact.atom_end_id,
+                                   IAtom.biomolecule_id==Contact.biomolecule_id))
+        bgn = bgn.join(interface_residues,
+                       interface_residues.c.residue_end_id==IAtom.residue_id)
+        bgn = bgn.filter(and_(Atom.biomolecule_id==biomolecule_id,
+                              interface_residues.c.interface_id==interface_id,
+                              Contact.structural_interaction_type_bm.op('&')(64) == 64,
+                              *expr))
+
+        end = self.query.join('ContactsEnd')
+        end = end.join(IAtom, and_(IAtom.atom_id==Contact.atom_bgn_id,
+                                   IAtom.biomolecule_id==Contact.biomolecule_id))
+        end = end.join(interface_residues,
+                       interface_residues.c.residue_bgn_id==IAtom.residue_id)
+        end = end.filter(and_(Atom.biomolecule_id==biomolecule_id,
+                              interface_residues.c.interface_id==interface_id,
+                              Contact.structural_interaction_type_bm.op('&')(1) == 1,
+                              *expr))
+
+        return bgn.union(end)
 
 from ..models.contact import Contact
 from ..models.aromaticringatom import AromaticRingAtom
