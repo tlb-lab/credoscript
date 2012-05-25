@@ -26,7 +26,7 @@
         {
             "reflect": ["aromatic_ring_atoms","aromatic_rings","atom_ring_interactions",
                         "atoms","binding_site_atom_surface_areas","binding_site_fuzcav",
-                        "binding_sites","biomolecules","chains","contacts","groove_residues",
+                        "binding_site_residues","biomolecules","chains","contacts","groove_residues",
                         "grooves","hetatms","interface_residues","interfaces",
                         "ligand_components","ligand_fcd","ligand_fragments",
                         "ligand_fragment_atoms","ligand_molstrings","ligand_usr",
