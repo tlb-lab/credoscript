@@ -444,8 +444,6 @@ class ChemCompAdaptor(object):
         Depending on the weights, the USR similarity might be above 1.0 or return
         lower values.
         """
-        session = Session()
-
         usr_space = kwargs.get('usr_space',[])
         usr_moments = kwargs.get('usr_moments',[])
         threshold = kwargs.get('threshold', 0.6)
@@ -477,15 +475,14 @@ class ChemCompAdaptor(object):
         similarity = func.max(func.arrayxd_usrcatsim(ChemCompConformer.usr_moments,
                                                      usr_moments, ow, hw, rw, aw, dw)).label('similarity')
 
-        # cube distance GIST index and similarity threshold
-        index = ChemCompConformer.contained_in(probe)
-
         # USRCAT search against conformers in subquery
-        subquery = session.query(ChemCompConformer.het_id, similarity)
-        subquery = subquery.filter(index)
-        subquery = subquery.group_by(ChemCompConformer.het_id)
-        subquery = subquery.having(similarity >= threshold)
-        subquery = subquery.subquery()
+        query = ChemCompConformer.query.with_entities(ChemCompConformer.het_id, similarity)
+
+        # cube distance GIST index and similarity threshold
+        query = query.filter(ChemCompConformer.contained_in(probe))
+        query = query.group_by(ChemCompConformer.het_id)
+        query = query.having(similarity >= threshold)
+        subquery = query.subquery()
 
         # get the chemcomp entities
         query = self.query.add_column(subquery.c.similarity)
