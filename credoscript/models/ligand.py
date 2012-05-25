@@ -3,7 +3,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, cast, func
 from sqlalchemy.dialects.postgresql import INTEGER
 
-from credoscript import Base, Session, binding_site_atom_surface_areas
+from credoscript import Base, binding_site_atom_surface_areas
 from credoscript.mixins import PathMixin
 
 class Ligand(Base, PathMixin):
@@ -140,6 +140,7 @@ class Ligand(Base, PathMixin):
                               uselist=False, innerjoin=True,
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    # these are the peptides that are in contact with the ligand
     BindingSiteResidues = relationship("BindingSiteResidue",
                           primaryjoin="BindingSiteResidue.ligand_id==Ligand.ligand_id",
                           foreign_keys="[BindingSiteResidue.ligand_id]",
@@ -290,7 +291,8 @@ class Ligand(Base, PathMixin):
     def sift(self, *expr, **kwargs):
         """
         """
-        return SIFtAdaptor().fetch_by_ligand_id(self.ligand_id, self.biomolecule_id, *expr)
+        return SIFtAdaptor().fetch_by_ligand_id(self.ligand_id, self.biomolecule_id,
+                                                *expr)
 
     def buried_surface_area(self, *expr, **kwargs):
         """
