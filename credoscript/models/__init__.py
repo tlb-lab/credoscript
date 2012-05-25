@@ -35,3 +35,4 @@ from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
 from .variation import Variation, Annotation, Phenotype
+from .bindingsitefuzcav import BindingSiteFuzcav
