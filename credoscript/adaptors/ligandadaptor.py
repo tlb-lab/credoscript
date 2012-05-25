@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Session, binding_site_fuzcav, phenotype_to_ligand
+from credoscript import phenotype_to_ligand
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -290,11 +290,12 @@ class LigandAdaptor(PathAdaptorMixin):
 
         return query
 
-    @paginate
     def fetch_all_by_fuzcav(self, *expr, **kwargs):
         """
         Returns the hits of a FuzCav search executed with this ligand against all
         ligands in CREDO.
+
+        No pagination here, only top hits are interesting.
 
         References
         ----------
@@ -304,19 +305,17 @@ class LigandAdaptor(PathAdaptorMixin):
         --------
 
         """
-        session = Session()
-
         # get the used parameters for FuzCav
         ligand_id = kwargs.get("ligand_id")
         fp = kwargs.get("fp", [])
         threshold = kwargs.get("threshold", 0.16)
         fptype = kwargs.get("fptype", "calpha")
         metric = kwargs.get("metric", "fuzcavglobal")
-        limit = kwargs.get('limit',25)
+        limit = kwargs.get('limit', 50)
 
         # get the FuzCav fingerprint column corresponding to the query parameter
-        if fptype == "calpha": targetfp = binding_site_fuzcav.c.calphafp
-        elif fptype == "rep": targetfp = binding_site_fuzcav.c.repfp
+        if fptype == "calpha": targetfp = BindingSiteFuzcav.calphafp
+        elif fptype == "rep": targetfp = BindingSiteFuzcav.repfp
         else: raise ValueError("{} is not a valid fingerprint type.".format(fptype))
 
         # get the (dis)similarity metric function corresponding to the query parameter
@@ -325,29 +324,20 @@ class LigandAdaptor(PathAdaptorMixin):
         else: raise ValueError("unknown metric: {}".format(metric))
 
         if ligand_id:
-
-            # get the query FuzCav fingerprint (this ligand)
-            query = session.query(binding_site_fuzcav.c.ligand_id, targetfp)
-            query = query.filter(binding_site_fuzcav.c.ligand_id==ligand_id)
-            query = query.subquery("query")
-
-            # get the FuzCav query fingerprint corresponding to the query parameter
-            queryfp = query.c.calphafp if fptype == "calpha" else query.c.repfp
+            query = BindingSiteFuzcav.query.filter(BindingSiteFuzcav.ligand_id==ligand_id)
+            query = query.with_entities(getattr(BindingSiteFuzcav, fptype))
+            queryfp = query.scalar()
 
         # use an existing FuzCav fingerprint as query
-        elif fp:
-
-            queryfp = fp
+        elif fp: queryfp = fp
 
         # compile the similarity function
-        similarity = simfunc(targetfp, queryfp)
-        similarity = similarity.label("similarity")
+        similarity = simfunc(targetfp, queryfp).label("similarity")
 
-        # get the FuzCav hits by cross joining the query fingerprint
-        hits = session.query(binding_site_fuzcav.c.ligand_id, similarity)
-        hits = hits.filter(similarity > threshold)
-        hits = hits.order_by("2 DESC")
-        hits = hits.subquery("hits")
+        # retrieve the top :limit hits
+        hits = BindingSiteFuzcav.query.filter(similarity > threshold)
+        hits = hits.with_entities(BindingSiteFuzcav.ligand_id, similarity)
+        hits = hits.order_by("2 DESC").limit(limit).subquery("hits")
 
         # join the ligands back in
         query = self.query.add_column(hits.c.similarity)
@@ -365,3 +355,4 @@ from ..models.biomolecule import Biomolecule
 from ..models.ligandcomponent import LigandComponent
 from ..models.ligandusr import LigandUSR
 from ..models.bindingsiteresidue import BindingSiteResidue
+from ..models.bindingsitefuzcav import BindingSiteFuzcav

@@ -11,6 +11,11 @@ from sqlalchemy.ext.declarative import declarative_base
 # register new data types
 import credoscript.util.psycopg2
 
+# credoscript version number scheme: year, month, release
+# based on the database release
+__version_info__ = (2012,6,1)
+__version__ = '.'.join(map(str,__version_info__))
+
 # the following modules will be imported with from credoscript import *
 __all__ = ['adaptors','contrib','ext','models']
 
@@ -51,7 +56,6 @@ from credoscript.mixins import Base
 Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
 
 # do not map against class
-binding_site_fuzcav = metadata.tables['credo.binding_site_fuzcav']
 interface_residues = metadata.tables['credo.interface_residues']
 prot_fragment_residues = metadata.tables['credo.prot_fragment_residues']
 binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
