@@ -2,10 +2,10 @@ import os
 import json
 import warnings
 
-import psycopg2
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.exc import SAWarning
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 
 # register new data types
@@ -13,28 +13,24 @@ import credoscript.util.psycopg2
 
 # credoscript version number scheme: year, month, release
 # based on the database release
-__version_info__ = (2012,6,1)
-__version__ = '.'.join(map(str,__version_info__))
+__version_info__ = (2012, 6, 1)
+__version__ = '.'.join(map(str, __version_info__))
 
 # the following modules will be imported with from credoscript import *
-__all__ = ['adaptors','contrib','ext','models']
+__all__ = ['adaptors', 'contrib', 'ext', 'models']
 
 # configuration
 CONFIG_PATH = os.path.join(__path__[0], 'config.json')
 
 # exit if the configuration file does not exist
 if not os.path.exists(CONFIG_PATH):
-    raise IOError("""cannot find the configuration file config.json in credoscript
-                  directory. Did you rename config-default.json to config.json?""")
+    raise IOError("cannot find the configuration file config.json in credoscript "
+                  "directory. Did you rename config-default.json to config.json?")
 
-config = json.loads(open(CONFIG_PATH).read())
+config   = json.loads(open(CONFIG_PATH).read())
 
-# database connection
-execution_options = dict(stream_results=config['connection']['stream_results'])
-
-url      = '{driver}://{user}:{passwd}@{host}:{port}/{db}'.format(**config['connection'])
-engine   = create_engine(url, echo=config['debug']['SQL'], execution_options=execution_options)
-
+url      = URL(**config['connection'])
+engine   = create_engine(url, echo=config['debug']['SQL'])
 metadata = MetaData(bind=engine)
 
 # suppress warnings concerning postgresql-specific types and indexes
@@ -57,6 +53,7 @@ Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
 
 # do not map against class
 interface_residues = metadata.tables['credo.interface_residues']
+groove_residues = metadata.tables['credo.groove_residues']
 prot_fragment_residues = metadata.tables['credo.prot_fragment_residues']
 binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
 chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
