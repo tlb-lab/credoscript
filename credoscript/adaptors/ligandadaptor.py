@@ -6,13 +6,20 @@ from credoscript.mixins.base import paginate
 
 class LigandAdaptor(PathAdaptorMixin):
     """
+    Adaptor to fetch ligands from CREDO with different criteria.
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, paginate=False, per_page=100, options=()):
+        """
+        An example for joinedload could be (Ligand.MolString, Ligand.LigandUSR).
+        """
         self.query = Ligand.query
         self.paginate = paginate
         self.per_page = per_page
 
-    def fetch_by_ligand_id(self, ligand_id):
+        # add options to this query: can be joinedload, undefer etc.
+        for option in options: self.query = self.query.options(option)
+
+    def fetch_by_ligand_id(self, ligand_id, **kwargs):
         """
         """
         return self.query.get(ligand_id)
@@ -41,8 +48,10 @@ class LigandAdaptor(PathAdaptorMixin):
         Returns all ligands that can be found in contact with binding-site residues
         belonging to the chain with the given chain_id.
         """
-        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
+        query = self.query.join(BindingSiteResidue,
+                                BindingSiteResidue.ligand_id==Ligand.ligand_id)
+        query = query.join(Peptide,
+                           Peptide.residue_id==BindingSiteResidue.residue_id)
         query = query.filter(and_(Peptide.chain_id==chain_id, *expr))
 
         return query.distinct()
@@ -345,14 +354,10 @@ class LigandAdaptor(PathAdaptorMixin):
 
         return query
 
-from ..models.variation import Annotation, Variation2UniProt, Variation2PDB
 from ..models.xref import XRef
-from ..models.resmap import ResMap
 from ..models.peptide import Peptide
-from ..models.residue import Residue
 from ..models.ligand import Ligand
 from ..models.biomolecule import Biomolecule
-from ..models.ligandcomponent import LigandComponent
 from ..models.ligandusr import LigandUSR
 from ..models.bindingsiteresidue import BindingSiteResidue
 from ..models.bindingsitefuzcav import BindingSiteFuzcav

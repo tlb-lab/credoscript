@@ -1,4 +1,3 @@
-from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import and_
 
 from credoscript.mixins.base import paginate

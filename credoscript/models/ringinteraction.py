@@ -1,4 +1,4 @@
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
 from credoscript import Base
 

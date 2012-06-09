@@ -1,4 +1,4 @@
-from sqlalchemy.sql.expression import and_, text
+from sqlalchemy.sql.expression import and_
 
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
@@ -95,5 +95,4 @@ class AromaticRingAdaptor(PathAdaptorMixin):
         return query
 
 from ..models.aromaticring import AromaticRing
-from ..models.residue import Residue
 from ..models.ligandcomponent import LigandComponent

@@ -1,6 +1,4 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.sql.expression import func, and_, cast
-from sqlalchemy.dialects.postgresql import INTEGER
 
 from credoscript import Base, Session, ligand_fcd
 
@@ -112,10 +110,6 @@ class LigandFragment(Base):
                                                          self.biomolecule_id,
                                                          *expr)
 
-from .ligandfragmentatom import LigandFragmentAtom
-from .atom import Atom
-from .contact import Contact
-from .residue import Residue
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.siftadaptor import SIFtAdaptor

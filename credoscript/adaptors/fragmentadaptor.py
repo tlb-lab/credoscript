@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_, text, func
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript import Session
 from credoscript.mixins.base import paginate

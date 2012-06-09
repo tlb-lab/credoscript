@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import func, text, and_
 
 from credoscript import Session
-from credoscript.support import requires
+from credoscript.util import requires
 from credoscript.mixins.base import paginate
 
 class ChemCompAdaptor(object):
@@ -335,6 +335,8 @@ class ChemCompAdaptor(object):
         query = query.join('RDFP').filter(and_(index, *expr))
         query = query.order_by('tanimoto DESC')
 
+        session.close()
+
         return query
 
     @paginate
@@ -386,6 +388,8 @@ class ChemCompAdaptor(object):
 
         # KNN-GIST
         query = query.order_by(ChemComp.ism.op('<->')(smiles))
+
+        session.close()
 
         return query
 
@@ -446,7 +450,7 @@ class ChemCompAdaptor(object):
         """
         usr_space = kwargs.get('usr_space',[])
         usr_moments = kwargs.get('usr_moments',[])
-        threshold = kwargs.get('threshold', 0.6)
+        threshold = kwargs.get('threshold', 0.5)
 
         usr_space, usr_moments = list(usr_space), list(usr_moments)
 

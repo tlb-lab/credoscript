@@ -4,7 +4,7 @@ from credoscript import Base
 from credoscript.mixins import PathMixin
 
 class Interface(Base, PathMixin):
-    '''
+    """
     Represents the binary interaction between two polypeptide chains.
 
     Attributes
@@ -36,32 +36,32 @@ class Interface(Base, PathMixin):
     See Also
     --------
     InterfaceAdaptor : Fetch Interfaces from the database.
-    '''
-    __tablename__ = 'credo.interfaces'    
-    
+    """
+    __tablename__ = 'credo.interfaces'
+
     ChainBgn = relationship("Chain",
                             primaryjoin="Chain.chain_id==Interface.chain_bgn_id",
                             foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
-    
+
     ChainEnd = relationship("Chain",
                             primaryjoin="Chain.chain_id==Interface.chain_end_id",
-                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)    
-    
+                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
+
     def __repr__(self):
-        '''
-        '''
-        return '<Interface({self.chain_bgn_id} {self.chain_end_id})>'.format(self=self)
+        """
+        """
+        return '<Interface({self.path})>'.format(self=self)
 
     @property
     def Residues(self):
-        '''
-        '''
+        """
+        """
         return ResidueAdaptor().fetch_all_by_interface_id(self.interface_id,
                                                           dynamic=True)
 
     @property
     def Contacts(self):
-        '''
+        """
         Returns all the Contacts that are formed between the two Chains of this
         Interface.
 
@@ -84,14 +84,14 @@ class Interface(Base, PathMixin):
         --------
         >>> ContactAdaptor().fetch_all_by_interface_id(1)
         <Contact()>
-        '''
+        """
         return ContactAdaptor().fetch_all_by_interface_id(self.interface_id,
                                                           self.biomolecule_id,
                                                           dynamic=True)
 
     @property
     def ProximalWater(self):
-        '''
+        """
         Returns all water atoms that are between the interface.
 
         Parameters
@@ -111,12 +111,11 @@ class Interface(Base, PathMixin):
         Examples
         --------
         >>>
-        '''
+        """
         return AtomAdaptor().fetch_all_water_in_contact_with_interface_id(self.interface_id,
                                                                           self.biomolecule_id,
                                                                           dynamic=True)
 
-from .contact import Contact
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

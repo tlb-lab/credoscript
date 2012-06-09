@@ -1,7 +1,4 @@
-from sqlalchemy.dialects.postgresql import INTEGER
-from sqlalchemy.sql.expression import and_, cast, func
-
-from credoscript import Base, Session
+from credoscript import Base
 from credoscript.mixins import PathMixin, ResidueMixin
 
 class Residue(Base, PathMixin, ResidueMixin):
@@ -100,9 +97,7 @@ class Residue(Base, PathMixin, ResidueMixin):
         """
         return SIFtAdaptor().fetch_by_residue_id(self.ligand_id, self.biomolecule_id, *expr)
 
-from .contact import Contact
-from .atom import Atom
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
-from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
+from ..adaptors.ligandadaptor import LigandAdaptor
 from ..adaptors.siftadaptor import SIFtAdaptor

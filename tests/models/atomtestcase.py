@@ -61,8 +61,14 @@ class AtomTestCase(CredoEntityTestCase):
 
     def test_is_mc(self):
         """test Atom.is_polar attribute"""
-        if self.entity.atom_name in ['C','CA','N','O']:
-            self.assertTrue(self.entity.is_mc)
+        peptide = models.Peptide.query.limit(1).first()
 
-        else:
-            self.assertIn(self.entity.is_mc, [True, False])
+        print peptide
+
+        for atom in peptide.Atoms.all():
+
+            if atom.atom_name in ['C','CA','N','O']:
+                self.assertTrue(atom.is_mc)
+
+            else:
+                self.assertIn(atom.is_mc, [True, False])

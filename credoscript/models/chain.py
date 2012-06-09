@@ -1,8 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.sql.expression import and_, cast, func, text
-from sqlalchemy.dialects.postgresql import INTEGER
+from sqlalchemy.sql.expression import and_
 
 from credoscript import Base, Session, disordered_regions
 from credoscript.mixins import PathMixin
@@ -92,7 +91,7 @@ class Chain(Base, PathMixin):
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          lazy='dynamic', uselist=True, innerjoin=True)
 
-    # DEFERRED COLUMNS
+    # deferred columns
     title = deferred(__table__.c.title)
     seq = deferred(__table__.c.chain_seq)
     seq_md5 = deferred(__table__.c.chain_seq_md5)
@@ -100,7 +99,7 @@ class Chain(Base, PathMixin):
     def __repr__(self):
         """
         """
-        return '<Chain({self.pdb_chain_id})>'.format(self=self)
+        return '<Chain({self.path})>'.format(self=self)
 
     def __getitem__(self, res_name, ins_code=' '):
         """
@@ -112,7 +111,7 @@ class Chain(Base, PathMixin):
         Returns a slice containing the residues within the residue number range.
         """
         # CHANGE
-        return [self.ResidueMap.get(i) for i in range(m,n+1) if i]
+        return [self.ResidueMap.get(i) for i in range(m, n+1) if i]
 
     def __iter__(self):
         """
@@ -184,10 +183,6 @@ class Chain(Base, PathMixin):
         return SIFtAdaptor().fetch_by_own_chain_id(self.chain_id, self.biomolecule_id,
                                                    *expr)
 
-from .contact import Contact
-from .atom import Atom
-from .residue import Residue
-from ..adaptors.peptideadaptor import PeptideAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.variationadaptor import VariationAdaptor
 from ..adaptors.ligandadaptor import LigandAdaptor

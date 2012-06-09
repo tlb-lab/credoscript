@@ -22,12 +22,8 @@ class LigandComponentAdaptor(object):
     def fetch_all_by_het_id(self, het_id, **kwargs):
         """
         """
-        query = self.query.join((ChemComp, ChemComp.het_id==LigandComponent.het_id))
-
-        query = query.filter(ChemComp.het_id==het_id)
+        query = self.query.filter_by(het_id=het_id)
 
         return query
 
 from ..models.ligandcomponent import LigandComponent
-from ..models.residue import Residue
-from ..models.chemcomp import ChemComp

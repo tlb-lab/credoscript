@@ -13,7 +13,7 @@ class ResidueMixin(object):
     def __repr__(self):
         """
         """
-        return "<{self.__class__.__name__}({self.res_name} {self.res_num}{self.ins_code})>".format(self=self)
+        return "<{self.__class__.__name__}({self.path})>".format(self=self)
 
     def __iter__(self):
         """
