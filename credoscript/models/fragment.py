@@ -1,5 +1,4 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.sql.expression import and_, func
 
 from credoscript import Base
 
@@ -67,5 +66,4 @@ class Fragment(Base):
         """
         return FragmentAdaptor().fetch_all_descendants(self.fragment_id, dynamic=True)
 
-from .fragmenthierarchy import FragmentHierarchy
 from ..adaptors.fragmentadaptor import FragmentAdaptor

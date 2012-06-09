@@ -1,5 +1,4 @@
-from sqlalchemy.orm import backref, relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.orm import relationship
 
 from credoscript import Base
 from credoscript.mixins import PathMixin, ResidueMixin
@@ -28,7 +27,7 @@ class Peptide(Base, PathMixin, ResidueMixin):
         Entity type bitmask (the bits are solvent, ligand, saccharide, rna, dna,
         protein).
     is_clashing : bool
-    
+
     is_disordered : bool
         True if the residue has disordered atoms.
     is_incomplete : bool
@@ -48,10 +47,10 @@ class Peptide(Base, PathMixin, ResidueMixin):
         True if the residue is not one of the 20 standard amino acids.
     is_modified : bool
         True if this peptide is modified according to the SIFTS residue mapping.
-    is_mutated : bool 
+    is_mutated : bool
         True if this peptide is one of the 20 standard amino acids and the but
         differs from the canonical UniProt amino acid for this position.
- 
+
     Mapped attributes
     -----------------
     Rings : Query
@@ -67,19 +66,19 @@ class Peptide(Base, PathMixin, ResidueMixin):
     their names, e.g. Residue['CA']. Returns a list due to atoms with
     possible alternate locations.
     '''
-    __tablename__ = 'credo.peptides'    
-    
+    __tablename__ = 'credo.peptides'
+
     ResMap = relationship("ResMap",
                            primaryjoin="ResMap.res_map_id==Peptide.res_map_id",
                            foreign_keys = "[ResMap.res_map_id]",
                            uselist=False, innerjoin=True)
-    
+
     @property
     def Variations(self):
         """
         """
         return VariationAdaptor().fetch_all_by_res_map_id(self.res_map_id)
-    
+
     @property
     def Contacts(self):
         '''

@@ -1,5 +1,5 @@
 from sqlalchemy import Integer
-from sqlalchemy.sql.expression import and_, cast, func, text
+from sqlalchemy.sql.expression import and_, cast, func
 
 from credoscript import citations
 from credoscript.mixins.base import paginate
@@ -212,5 +212,4 @@ class StructureAdaptor(object):
 
 from ..models.xref import XRef
 from ..models.ligand import Ligand
-from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure

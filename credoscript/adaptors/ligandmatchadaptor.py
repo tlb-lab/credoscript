@@ -1,7 +1,5 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Session
-
 class LigandMatchAdaptor(object):
     """
     This class is used to fetch ligand pattern matches, i.e. a set of ligand atoms

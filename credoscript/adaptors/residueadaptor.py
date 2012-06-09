@@ -238,7 +238,6 @@ from ..models.contact import Contact
 from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue
-from ..models.chain import Chain
 from ..models.ligandcomponent import LigandComponent
 from ..models.ligandfragmentatom import LigandFragmentAtom
 from ..models.bindingsiteresidue import BindingSiteResidue

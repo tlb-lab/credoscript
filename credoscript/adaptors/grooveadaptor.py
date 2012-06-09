@@ -1,3 +1,6 @@
+from sqlalchemy.sql.expression import and_
+
+from credoscript import groove_residues
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -29,4 +32,5 @@ class GrooveAdaptor(PathAdaptorMixin):
         return query
 
 from ..models.groove import Groove
+from ..models.peptide import Peptide
 from ..models.xref import XRef

@@ -42,7 +42,6 @@ class RingInteractionAdaptor(object):
 
         return query
 
-from ..models.residue import Residue
 from ..models.aromaticring import AromaticRing
 from ..models.ligandcomponent import LigandComponent
 from ..models.ringinteraction import RingInteraction

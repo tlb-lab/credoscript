@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_, func, or_
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript import interface_residues
 from credoscript.mixins.base import paginate
@@ -320,7 +320,4 @@ from ..models.aromaticringatom import AromaticRingAtom
 from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue
-from ..models.interface import Interface
-from ..models.chain import Chain
 from ..models.ligandfragmentatom import LigandFragmentAtom
-from ..models.bindingsiteresidue import BindingSiteResidue

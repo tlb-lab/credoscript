@@ -63,8 +63,8 @@ class Structure(Base):
     xrefs : Query
         CREDO XRef objects that are associated with this Structure Entity.
     abstracts:
-    
-    
+
+
     See Also
     --------
     StructureAdaptor : Fetch Structures from the database.
@@ -81,23 +81,23 @@ class Structure(Base):
                                 foreign_keys="[Biomolecule.structure_id]",
                                 uselist=True, innerjoin=True, lazy='dynamic',
                                 backref=backref('Structure', uselist=False, innerjoin=True))
-    
+
     # map biomolecules as dictionary in the form {<assembly serial>: biomolecule}
     BiomoleculeMap = relationship("Biomolecule",
                                    collection_class=attribute_mapped_collection("assembly_serial"),
                                    primaryjoin="Biomolecule.structure_id==Structure.structure_id",
                                    foreign_keys="[Biomolecule.structure_id]",
-                                   uselist=True, innerjoin=True)    
-    
+                                   uselist=True, innerjoin=True)
+
     XRefs = relationship("XRef",
                          primaryjoin="and_(XRef.entity_type=='Structure', XRef.entity_id==Structure.structure_id)",
-                         foreign_keys="[XRef.entity_type, XRef.entity_id]", 
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
-    
-    # deferred columns 
+
+    # deferred columns
     title = deferred(__table__.c.title)
-    authors = deferred(__table__.c.authors)   
-    
+    authors = deferred(__table__.c.authors)
+
     def __repr__(self):
         """
         """
@@ -107,23 +107,23 @@ class Structure(Base):
         """
         Returns the Biomolecule with the specified biomolecule serial number or
         None.
-        
+
         Parameters
         ----------
         assembly_serial : int
             Serial number of the biological assembly derived from this Structure.
-            
+
         Returns
         -------
         biomolecule : Biomolecule
-        
+
         """
         return self.BiomoleculeMap.get(assembly_serial)
 
     def __iter__(self):
         """
         Returns the Biomolecules of this Structure.
-        
+
         Returns
         -------
         biomolecules : list
@@ -138,13 +138,12 @@ class Structure(Base):
         this PDB entry.
         """
         session = Session()
-        
+
         statement = select([citations],
             and_(citations.c.pubmed_id==cast(XRef.xref, Integer),
                  XRef.source=='PubMed', XRef.entity_type=='Structure',
                  XRef.entity_id==self.structure_id))
-        
+
         return session.execute(statement).fetchall()
 
-from ..adaptors.xrefadaptor import XRefAdaptor
 from ..models.xref import XRef
