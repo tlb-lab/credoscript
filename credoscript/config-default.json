@@ -24,7 +24,7 @@
         "credo":
         {
             "reflect": ["aromatic_ring_atoms","aromatic_rings","atom_ring_interactions",
-                        "atoms","binding_site_atom_surface_areas","binding_site_fuzcav",
+                        "atoms","binding_site_atom_surface_areas","binding_site_fuzcav","binding_sites",
                         "binding_site_residues","biomolecules","chains","contacts","groove_residues",
                         "grooves","hetatms","interface_residues","interfaces",
                         "ligand_components","ligand_fcd","ligand_fragments",
