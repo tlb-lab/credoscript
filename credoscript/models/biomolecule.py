@@ -45,7 +45,7 @@ class Biomolecule(Base, PathMixin):
         Ligands that have this Biomolecule as parent.
     Residues : Query
         Residues of this Biomolecule.
-    Peptides : Query    
+    Peptides : Query
         Peptides of this Biomolecule.
     AromaticRings : Query
         AromaticRings identified in this Biomolecule.
@@ -64,73 +64,72 @@ class Biomolecule(Base, PathMixin):
       residues and their atoms that interact are stored.
     """
     __tablename__ = 'credo.biomolecules'
-    
+
     Chains = relationship("Chain",
                           primaryjoin="Chain.biomolecule_id==Biomolecule.biomolecule_id",
                           foreign_keys="[Chain.biomolecule_id]",
                           uselist=True, innerjoin=True, lazy='dynamic',
                           backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
+
     # map chain entities as dictionary in the form {<pdb chain id>: chain}
     ChainMap = relationship("Chain",
                             collection_class=attribute_mapped_collection("pdb_chain_id"),
                             primaryjoin="Chain.biomolecule_id==Biomolecule.biomolecule_id",
                             foreign_keys="[Chain.biomolecule_id]",
-                            uselist=True, innerjoin=True)    
-    
+                            uselist=True, innerjoin=True)
+
     Interfaces = relationship("Interface",
                               primaryjoin="Interface.biomolecule_id==Biomolecule.biomolecule_id",
                               foreign_keys="[Interface.biomolecule_id]",
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
+
     Grooves = relationship("Groove",
                            primaryjoin="Groove.biomolecule_id==Biomolecule.biomolecule_id",
                            foreign_keys="[Groove.biomolecule_id]",
                            uselist=True, innerjoin=True, lazy='dynamic',
                            backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
+
     Ligands = relationship("Ligand",
                            primaryjoin="Ligand.biomolecule_id==Biomolecule.biomolecule_id",
                            foreign_keys="[Ligand.biomolecule_id]",
                            uselist=True, innerjoin=True, lazy='dynamic',
                            backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
+
     Residues = relationship("Residue",
                             primaryjoin="Residue.biomolecule_id==Biomolecule.biomolecule_id",
                             foreign_keys="[Residue.biomolecule_id]",
                             uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
+
     Peptides = relationship("Peptide",
                             primaryjoin="Peptide.biomolecule_id==Biomolecule.biomolecule_id",
                             foreign_keys="[Peptide.biomolecule_id]",
                             uselist=True, innerjoin=True, lazy='dynamic',
-                            backref=backref('Biomolecule', uselist=False, innerjoin=True))  
-    
+                            backref=backref('Biomolecule', uselist=False, innerjoin=True))
+
     AromaticRings = relationship("AromaticRing",
                                  primaryjoin="AromaticRing.biomolecule_id==Biomolecule.biomolecule_id",
                                  foreign_keys="[AromaticRing.biomolecule_id]",
                                  uselist=True, innerjoin=True, lazy='dynamic',
-                                 backref=backref('Biomolecule', uselist=False, innerjoin=True))  
-    
+                                 backref=backref('Biomolecule', uselist=False, innerjoin=True))
+
     RingInteractions = relationship("RingInteraction",
                                      primaryjoin="RingInteraction.biomolecule_id==Biomolecule.biomolecule_id",
                                      foreign_keys="[RingInteraction.biomolecule_id]",
                                      uselist=True, innerjoin=True, lazy='dynamic',
-                                     backref=backref('Biomolecule', uselist=False, innerjoin=True)) 
-    
+                                     backref=backref('Biomolecule', uselist=False, innerjoin=True))
+
     Atoms = relationship("Atom",
                          primaryjoin="Atom.biomolecule_id==Biomolecule.biomolecule_id",
                          foreign_keys="[Atom.biomolecule_id]",
                          uselist=True, innerjoin=True, lazy='dynamic',
                          backref=backref('Biomolecule', uselist=False, innerjoin=True))
-    
-    
+
     def __repr__(self):
         """
         """
-        return '<Biomolecule({self.assembly_serial})>'.format(self=self)
+        return '<Biomolecule({self.path})>'.format(self=self)
 
     def __getitem__(self, pdb_chain_id):
         """
@@ -142,7 +141,7 @@ class Biomolecule(Base, PathMixin):
         """
         """
         return iter(self.Chains)
-        
+
     @property
     def AtomRingInteractions(self):
         """
@@ -173,7 +172,4 @@ class Biomolecule(Base, PathMixin):
         return AtomRingInteractionAdaptor().fetch_all_by_biomolecule_id(self.biomolecule_id,
                                                                         dynamic=True)
 
-from .residue import Residue
-from ..adaptors.residueadaptor import ResidueAdaptor
-from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor
 from ..adaptors.atomringinteractionadaptor import AtomRingInteractionAdaptor

@@ -41,7 +41,7 @@ class AromaticRing(Base, PathMixin):
     def __repr__(self):
         """
         """
-        return "<AromaticRing({self.aromatic_ring_id} {self.size})>".format(self=self)
+        return "<AromaticRing({self.path})>".format(self=self)
 
     @property
     def Centroid(self):

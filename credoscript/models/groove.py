@@ -13,7 +13,7 @@ class Groove(Base, PathMixin):
 
     Mapped Attributes
     -----------------
-    
+
     """
     __tablename__ = 'credo.grooves'
 
@@ -26,7 +26,7 @@ class Groove(Base, PathMixin):
                             foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
 
     def __repr__(self):
-        return '<Groove({self.chain_prot_id} {self.chain_nuc_id})>'.format(self=self)
+        return '<Groove({self.path})>'.format(self=self)
 
     @property
     def Contacts(self):
@@ -57,5 +57,4 @@ class Groove(Base, PathMixin):
                                                        self.biomolecule_id,
                                                        dynamic=True)
 
-from .contact import Contact
 from ..adaptors.contactadaptor import ContactAdaptor

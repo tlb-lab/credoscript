@@ -19,7 +19,7 @@ class ProtFragment(Base, PathMixin):
     def __repr__(self):
         '''
         '''
-        return '<ProtFragment({self.sstruct} {self.fragment_size})>'.format(self=self)
+        return '<ProtFragment({self.path})>'.format(self=self)
 
     @property
     def ProtFragmentN(self):
