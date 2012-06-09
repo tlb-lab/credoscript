@@ -81,7 +81,7 @@ class Atom(Base, PathMixin):
     def __repr__(self):
         """
         """
-        return "<Atom({self.atom_name} {self.alt_loc})>".format(self=self)
+        return "<Atom({self.path})>".format(self=self)
 
     @property
     def _atom_name_alt_loc_tuple(self):
@@ -152,8 +152,8 @@ class Atom(Base, PathMixin):
         Meta atom type indicating if the atom belongs to a protein backbone or
         not.
         """
-        return any((Atom.atom_name=='C', Atom.atom_name=='N',
-                    Atom.atom_name=='CA', Atom.atom_name=='O'))
+        return any((self.atom_name=='C', self.atom_name=='N',
+                    self.atom_name=='CA', self.atom_name=='O'))
 
     @is_mc.expression
     @property
@@ -163,6 +163,4 @@ class Atom(Base, PathMixin):
         return or_(Atom.atom_name=='C', Atom.atom_name=='N',
                    Atom.atom_name=='CA', Atom.atom_name=='O')
 
-from .contact import Contact
 from ..adaptors.atomadaptor import AtomAdaptor
-from ..adaptors.contactadaptor import ContactAdaptor
