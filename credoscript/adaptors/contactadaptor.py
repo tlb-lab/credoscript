@@ -1,4 +1,4 @@
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func, or_
 
 from credoscript.mixins.base import paginate
@@ -7,13 +7,19 @@ class ContactAdaptor(object):
     """
     Class to fetch interatomic contacts from CREDO. The contacts table is partitioned
     by biomolecule_id hence this column should be used to use constraint-exclusion.
+
+    All queries here must reference the biomolecule_id of the contacts table to
+    pick out the proper partition.
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, paginate=False, per_page=100, options=()):
         """
         """
         self.query = Contact.query
         self.paginate = paginate
         self.per_page = per_page
+
+        # add options to this query: can be joinedload, undefer etc.
+        for option in options: self.query = self.query.options(option)
 
     def fetch_by_contact_id(self, contact_id, biomolecule_id):
         """
@@ -37,7 +43,8 @@ class ContactAdaptor(object):
         >>> ContactAdaptor().fetch_by_contact_id(1)
         <Contact(1)>
         """
-        query = self.query.filter_by(contact_id=contact_id, biomolecule_id=biomolecule_id)
+        query = self.query.filter_by(contact_id=contact_id,
+                                     biomolecule_id=biomolecule_id)
 
         return query.first()
 
@@ -148,11 +155,6 @@ class ContactAdaptor(object):
 
         query = query.filter(where)
 
-        # eager-load the interacting atoms
-        if kwargs.get('load_atoms'):
-            query = query.options(joinedload(Contact.AtomBgn, innerjoin=True),
-                                  joinedload(Contact.AtomEnd, innerjoin=True))
-
         return query
 
     @paginate
@@ -163,11 +165,6 @@ class ContactAdaptor(object):
                      Contact.biomolecule_id==biomolecule_id, *expr)
 
         query = self.query.join('Atoms','Residue').filter(where).distinct()
-
-        # eager-load the interacting atoms
-        if kwargs.get('load_atoms'):
-            query = query.options(joinedload(Contact.AtomBgn, innerjoin=True),
-                                  joinedload(Contact.AtomEnd, innerjoin=True))
 
         return query
 
@@ -289,11 +286,6 @@ class ContactAdaptor(object):
 
         query = query.filter(where)
 
-        # eager-load the interacting atoms
-        if kwargs.get('load_atoms'):
-            query = query.options(joinedload(Contact.AtomBgn, innerjoin=True),
-                                  joinedload(Contact.AtomEnd, innerjoin=True))
-
         return query
 
     @paginate
@@ -337,8 +329,6 @@ class ContactAdaptor(object):
         return bgn.union_all(end)
 
 from ..models.hetatm import Hetatm
-from ..models.ligandcomponent import LigandComponent
-from ..models.ligand import Ligand
 from ..models.ligandfragmentatom import LigandFragmentAtom
 from ..models.contact import Contact
 from ..models.atom import Atom
