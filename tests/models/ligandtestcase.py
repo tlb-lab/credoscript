@@ -10,6 +10,9 @@ class LigandTestCase(CredoEntityTestCase):
         self.assertEqual(len(self.ligand), self.ligand.num_hvy_atoms,
                          "method __len__ of Ligand differs from num_hvy_atoms.")
 
+    def test_name(self):
+        self.assertEqual(self.ligand.ligand_name, self.ligand.name)
+
     def test_or(self):
         "test the overloaded USR similarity operator"
         self.assertAlmostEqual(self.ligand | self.ligand, 1.0)
@@ -26,6 +29,14 @@ class LigandTestCase(CredoEntityTestCase):
     def test_has_molstring(self):
         self.assertOneToOne(self.ligand, 'MolString', models.LigandMolString)
 
+    def test_has_ligand_usr(self):
+        "Test if ligand has mapped USR entity."
+        self.assertOneToOne(self.ligand, 'LigandUSR', models.LigandUSR)
+
+    def test_has_binding_site(self):
+        "Test if ligand has mapped binding site."
+        self.assertOneToOne(self.ligand, 'BindingSite', models.BindingSite)
+
     # direct one-to-many mappings
 
     def test_has_atoms(self):
@@ -36,6 +47,9 @@ class LigandTestCase(CredoEntityTestCase):
 
     def test_has_components(self):
         self.assertDynamicRelationship(self.ligand, 'Components', models.LigandComponent)
+
+    def test_has_chemcomps(self):
+        self.assertDynamicRelationship(self.ligand, 'ChemComps', models.ChemComp)
 
     def test_has_residues(self):
         self.assertDynamicRelationship(self.ligand, 'Residues', models.Residue)
