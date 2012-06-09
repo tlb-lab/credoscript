@@ -10,6 +10,14 @@ class LigandTestCase(CredoEntityTestCase):
         self.assertEqual(len(self.ligand), self.ligand.num_hvy_atoms,
                          "method __len__ of Ligand differs from num_hvy_atoms.")
 
+    def test_or(self):
+        "test the overloaded USR similarity operator"
+        self.assertAlmostEqual(self.ligand | self.ligand, 1.0)
+
+    def test_mod(self):
+        "test the overloaded 2D similarity operator"
+        self.assertAlmostEqual(self.ligand % self.ligand, 1.0)
+
     # direct one-to-one relationship
 
     def test_has_biomolecule(self):

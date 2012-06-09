@@ -15,7 +15,7 @@ class ProtFragmentAdaptorTestCase(CredoAdaptorTestCase):
         self.assertPaginatedResult('fetch_all_by_biomolecule_id', 1)
 
     def test_fetch_all_by_fragment_seq(self):
-        """Fetch protein fragments by biomolecule_id"""
+        """Fetch protein fragments by fragment sequence"""
         fragment = models.ProtFragment.query.get(3)
         self.assertPaginatedResult('fetch_all_by_fragment_seq', fragment.fragment_seq)
 
@@ -30,7 +30,7 @@ class ProtFragmentAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_path_match(self):
         """retrieve protein fragments through ptree path match"""
-        self.assertPaginatedResult('fetch_all_by_path_match', '2P33/0/*')
+        self.assertPaginatedResult('fetch_all_by_path_match', '2P33/0/A/*')
 
     def test_fetch_all_path_descendants(self):
         """retrieve protein fragments through ptree path descendants"""

@@ -19,9 +19,9 @@ class LigandAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_in_contact_with_residue_id(self):
         """Fetch ligands in contact with a binding site residue identifier"""
-        residue = models.Residue.query.filter_by(path='2P33/0/A/SER`72').first()
+        peptide = models.Peptide.query.filter_by(path='2P33/0/A/SER`72').first()
         self.assertPaginatedResult('fetch_all_in_contact_with_residue_id',
-                                   residue.residue_id)
+                                   peptide.residue_id)
 
     def test_fetch_all_in_contact_with_chain_id(self):
         """Fetch ligands in contact with binding site residues by chain_id"""
@@ -45,6 +45,7 @@ class LigandAdaptorTestCase(CredoAdaptorTestCase):
         self.assertPaginatedResult('fetch_all_by_cath_dmn', '1bcuH01')
 
     def test_fetch_all_by_usr_moments(self):
+        """Fetch all ligands by USR moments"""
         ligand = self.adaptor.fetch_all_by_het_id('STI', dynamic=True).first()
 
         # test with ligand_id / use binary expression to fake query argument
@@ -53,7 +54,7 @@ class LigandAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_path_match(self):
         """retrieve ligands through ptree path match"""
-        self.assertPaginatedResult('fetch_all_by_path_match', '2P33/0/*')
+        self.assertPaginatedResult('fetch_all_by_path_match', '2P33/0/A/*')
 
     def test_fetch_all_path_descendants(self):
         """retrieve ligands through ptree path descendants"""
