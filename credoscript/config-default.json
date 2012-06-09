@@ -1,13 +1,12 @@
 {
     "connection":
     {
-        "driver": "postgresql+psycopg2",
-        "user": "",
-        "passwd": "",
+        "drivername": "postgresql+psycopg2",
+        "username": "",
+        "password": "",
         "host": "",
         "port": 5432,
-        "db": "",
-        "stream_results": false
+        "database": ""
     },
 
     "debug":
