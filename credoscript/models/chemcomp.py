@@ -1,15 +1,12 @@
-from warnings import warn
-
 from sqlalchemy.orm import aliased, backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.sql.expression import and_, func, text
-from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Base, Session
-from credoscript.support import requires
+from credoscript import Base
+from credoscript.util import rdkit, requires
 
 class ChemComp(Base):
-    '''
+    """
     Represents a chemical component entity from the PDB with additional calculated
     chemical properties.
 
@@ -31,9 +28,9 @@ class ChemComp(Base):
     iupac_name : str
         IUPAC systematic name.
     initial_date :
-    
+
     modified_date :
-    
+
     ism : str
         Isomeric SMILES string of the chemical component.
     mw : float
@@ -81,18 +78,18 @@ class ChemComp(Base):
     is_nucleotide : boolean
         True if the chemical component is a nucleotide or derived from one.
     is_saccharide : boolean
-        True if the chemical component 
+        True if the chemical component
     is_nat_product : boolean
-        True if the chemical component 
+        True if the chemical component
     is_metabolite : boolean
-        True if the chemical component 
+        True if the chemical component
     is_drug_like : boolean
         True if the chemical component is drug-like.
     is_drug : boolean
         True if the chemical component is a drug (not necessarily approved).
     is_approved_drug : boolean
         True if the chemical component is an approved drug.
-        
+
     Mapped Attributes
     -----------------
     Conformers : Query
@@ -104,7 +101,7 @@ class ChemComp(Base):
         All unique Fragments of this Chemical Component created through RECAP
         fragmentation.
     Ligands : Query
-    
+
     XRefs : Query
         CREDO XRef objects that are associated with this Chemical Component.
 
@@ -116,68 +113,68 @@ class ChemComp(Base):
     -----
     - The __mod__ (%) method is overloaded for this class and will return the
       tanimoto similarity between this and another chemical component from CREDO.
-    '''
+    """
     __tablename__ = 'pdbchem.chem_comps'
-    
+
     ChemCompFragments = relationship("ChemCompFragment",
                                      primaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                                      foreign_keys = "[ChemCompFragment.het_id]",
                                      uselist=True, innerjoin=True, lazy='dynamic',
                                      backref=backref('ChemComp', uselist=False, innerjoin=True))
-    
+
     Conformers = relationship("ChemCompConformer",
                               primaryjoin="ChemCompConformer.het_id==ChemComp.het_id",
                               foreign_keys = "[ChemCompConformer.het_id]",
                               uselist=True, innerjoin=True, lazy='dynamic',
-                              backref=backref('ChemComp', uselist=False, innerjoin=True))     
-    
+                              backref=backref('ChemComp', uselist=False, innerjoin=True))
+
     Fragments = relationship("Fragment",
                              secondary=Base.metadata.tables['pdbchem.chem_comp_fragments'],
                              primaryjoin="ChemComp.het_id==ChemCompFragment.het_id",
                              secondaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                              foreign_keys="[ChemCompFragment.het_id, Fragment.fragment_id]",
-                             lazy='dynamic', uselist=True, innerjoin=True)   
-    
+                             lazy='dynamic', uselist=True, innerjoin=True)
+
     Ligands = relationship("Ligand",
                            primaryjoin="Ligand.ligand_name==ChemComp.het_id",
                            foreign_keys = "[Ligand.ligand_name]",
-                           lazy='dynamic', uselist=True, innerjoin=True)    
-    
+                           lazy='dynamic', uselist=True, innerjoin=True)
+
     XRefs = relationship("XRef",
                          primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          lazy='dynamic', uselist=True, innerjoin=True)
-    
+
     XRefMap = relationship("XRef",
                             collection_class=attribute_mapped_collection("source"),
                             primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                             foreign_keys="[XRef.entity_type, XRef.entity_id]",
-                            uselist=True, innerjoin=True)   
-    
+                            uselist=True, innerjoin=True)
+
     MolString = relationship("ChemCompMolString",
                              primaryjoin="ChemCompMolString.het_id==ChemComp.het_id",
                              foreign_keys = "[ChemCompMolString.het_id]",
-                             uselist=False, innerjoin=True)    
-    
+                             uselist=False, innerjoin=True)
+
     RDMol = relationship("ChemCompRDMol",
                          primaryjoin="ChemCompRDMol.het_id==ChemComp.het_id",
                          foreign_keys="[ChemCompRDMol.het_id]",
                          uselist=False, innerjoin=True,
                          backref=backref('ChemComp', uselist=False, innerjoin=True))
-    
+
     RDFP = relationship("ChemCompRDFP",
                         primaryjoin="ChemCompRDFP.het_id==ChemComp.het_id",
                         foreign_keys="[ChemCompRDFP.het_id]",
                         uselist=False, innerjoin=True,
                         backref=backref('ChemComp', uselist=False, innerjoin=True))
- 
+
     def __repr__(self):
-        '''
-        '''
+        """
+        """
         return '<ChemComp({self.het_id})>'.format(self=self)
 
     def __len__(self):
-        '''
+        """
         Returns the number of heavy atoms of this chemical component.
 
         Returns
@@ -188,41 +185,96 @@ class ChemComp(Base):
         Notes
         -----
         - Overloads len() function.
-        '''
+        """
         return self.num_hvy_atoms
 
-    @requires.rdkit_catridge
+    def __or__(self, other):
+        """
+        Returns the maximum USRCAT similarity between the LEC (Lowest Energy
+        Conformer) of this chemical component and all of the other.
+
+        Overloads '|' operator.
+
+        Returns
+        -------
+        usr : float
+            The maximum USR similarity between the two chemical components.
+        """
+        if isinstance(other, ChemComp):
+            M2 = aliased(ChemCompConformer)
+
+            sim = func.arrayxd_usrcatsim(ChemCompConformer.usr_moments,
+                                         M2.usr_moments,
+                                         1.0, 0.25, 0.25, 0.25, 0.25)
+
+            query = ChemCompConformer.query
+            query = query.with_entities(func.max(sim))
+            query = query.filter(and_(ChemCompConformer.het_id==self.het_id,
+                                      ChemCompConformer.conformer==1,
+                                      M2.het_id==other.het_id))
+
+            return query.scalar()
+
+    @requires.rdkit
     def __mod__(self, other):
-        '''
+        """
         Returns the tanimoto similarity between two chemical components.
         Overloads '%' operator.
 
         Returns
         -------
         tanimoto : float
-            The 2D Tanimoto similarity between two RDKit torsion fingerprints of
+            The 2D Tanimoto similarity between two RDKit circular fingerprints of
             the chemical components.
 
         Requires
         --------
         .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
-        '''
+        """
         if isinstance(other, ChemComp):
-            session = Session()
-            
-            fp1,fp2 = aliased(ChemCompRDFP), aliased(ChemCompRDFP)
-
-            query = session.query(func.rdkit.tanimoto_sml(fp1.torsion_fp, fp2.torsion_fp))
-            query = query.filter(and_(fp1.het_id==self.het_id, fp2.het_id==other.het_id))
-
-            return query.scalar()
+            return rdkit.tanimoto_sml(self.ism, other.ism)
 
     @classmethod
     def like(self, smiles):
-        '''
+        """
         Returns an SQL function expression that uses the PostgreSQL trigram index
         to compare the SMILES strings.
-        '''
+        """
         return self.ism.op('%%')(smiles)
 
-from .chemcomprdfp import ChemCompRDFP
+    def usrcat(self, *expr, **kwargs):
+        """
+        Performs an Ultrast Shape Recognition (USR) search of this Ligand against
+        either other Ligand or unbound conformers of chemical components.
+
+        Parameters
+        ----------
+        limit : int, optional, default=25
+            The number of hits that should be returned.
+        target : {'ligands','chemcomps'}
+
+        Returns
+        -------
+        hits : list
+
+        See also
+        --------
+
+        References
+        ----------
+        Ballester, P. J. & Richards, G. W. Ultrafast shape recognition to search
+        compound databases for similar molecular shapes. Journal of Computational
+        Chemistry  28, 1711-1723 (2007).
+
+        Examples
+        --------
+
+        """
+        conformer = self.Conformers.first()
+
+        return ChemCompAdaptor().fetch_all_by_usr_moments(*expr, usr_space=conformer.usr_space,
+                                                          usr_moments=conformer.usr_moments,
+                                                          **kwargs)
+
+from .chemcompconformer import ChemCompConformer
+from ..adaptors.chemcompadaptor import ChemCompAdaptor

@@ -1,10 +1,9 @@
-from sqlalchemy.orm import backref, deferred, relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.sql.expression import and_, cast, func
-from sqlalchemy.dialects.postgresql import INTEGER
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript import Base, binding_site_atom_surface_areas
 from credoscript.mixins import PathMixin
+from credoscript.util import rdkit, requires
 
 class Ligand(Base, PathMixin):
     """
@@ -88,77 +87,93 @@ class Ligand(Base, PathMixin):
     __tablename__ = 'credo.ligands'
 
     Components = relationship("LigandComponent",
-                              primaryjoin = "LigandComponent.ligand_id==Ligand.ligand_id",
-                              foreign_keys = "[LigandComponent.ligand_id]",
+                              primaryjoin="LigandComponent.ligand_id==Ligand.ligand_id",
+                              foreign_keys="[LigandComponent.ligand_id]",
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    ChemComps = relationship("ChemComp",
+                            secondary=Base.metadata.tables['credo.ligand_components'],
+                            primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
+                            secondaryjoin="LigandComponent.het_id==ChemComp.het_id",
+                            foreign_keys="[LigandComponent.ligand_id, ChemComp.het_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic')
+
     # the residues this ligand consists of
     Residues = relationship("Residue",
-                            secondary = Base.metadata.tables['credo.ligand_components'],
-                            primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
-                            secondaryjoin = "LigandComponent.residue_id==Residue.residue_id",
-                            foreign_keys = "[LigandComponent.ligand_id, Residue.residue_id]",
+                            secondary=Base.metadata.tables['credo.ligand_components'],
+                            primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
+                            secondaryjoin="LigandComponent.residue_id==Residue.residue_id",
+                            foreign_keys="[LigandComponent.ligand_id, Residue.residue_id]",
                             uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     AromaticRings = relationship("AromaticRing",
-                                  secondary = Base.metadata.tables['credo.ligand_components'],
-                                  primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
-                                  secondaryjoin = "LigandComponent.residue_id==AromaticRing.residue_id",
-                                  foreign_keys = "[LigandComponent.ligand_id, AromaticRing.residue_id]",
+                                  secondary=Base.metadata.tables['credo.ligand_components'],
+                                  primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
+                                  secondaryjoin="LigandComponent.residue_id==AromaticRing.residue_id",
+                                  foreign_keys="[LigandComponent.ligand_id, AromaticRing.residue_id]",
                                   uselist=True, innerjoin=True, lazy='dynamic',
                                   backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     Atoms = relationship("Atom",
-                         secondary = Base.metadata.tables['credo.ligand_components'],
-                         primaryjoin = "Ligand.ligand_id==LigandComponent.ligand_id",
-                         secondaryjoin = "and_(LigandComponent.residue_id==Atom.residue_id, Ligand.biomolecule_id==Atom.biomolecule_id)",
-                         foreign_keys = "[LigandComponent.ligand_id, Atom.residue_id, Atom.biomolecule_id]",
+                         secondary=Base.metadata.tables['credo.ligand_components'],
+                         primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
+                         secondaryjoin="and_(LigandComponent.residue_id==Atom.residue_id, Ligand.biomolecule_id==Atom.biomolecule_id)",
+                         foreign_keys="[LigandComponent.ligand_id, Atom.residue_id, Atom.biomolecule_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
 
     LigandFragments = relationship("LigandFragment",
-                                   primaryjoin = "LigandFragment.ligand_id==Ligand.ligand_id",
-                                   foreign_keys = "[LigandFragment.ligand_id]",
+                                   primaryjoin="LigandFragment.ligand_id==Ligand.ligand_id",
+                                   foreign_keys="[LigandFragment.ligand_id]",
                                    uselist=True, innerjoin=True, lazy='dynamic',
                                    backref=backref('Ligand', uselist=False, innerjoin=True))
 
     XRefs = relationship("XRef",
-                         primaryjoin = "and_(XRef.entity_type=='Ligand', XRef.entity_id==Ligand.ligand_id)",
-                         foreign_keys = "[XRef.entity_type, XRef.entity_id]",
+                         primaryjoin="and_(XRef.entity_type=='Ligand', XRef.entity_id==Ligand.ligand_id)",
+                         foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
 
     MolString = relationship("LigandMolString",
-                             primaryjoin = "LigandMolString.ligand_id==Ligand.ligand_id",
-                             foreign_keys = "[LigandMolString.ligand_id]",
-                             uselist=False, innerjoin=True,
+                             primaryjoin="LigandMolString.ligand_id==Ligand.ligand_id",
+                             foreign_keys="[LigandMolString.ligand_id]",
+                             uselist=False,
                              backref=backref('Ligand', uselist=False, innerjoin=True))
 
     LigandUSR = relationship("LigandUSR",
-                              primaryjoin = "LigandUSR.ligand_id==Ligand.ligand_id",
-                              foreign_keys = "[LigandUSR.ligand_id]",
-                              uselist=False, innerjoin=True,
+                              primaryjoin="LigandUSR.ligand_id==Ligand.ligand_id",
+                              foreign_keys="[LigandUSR.ligand_id]",
+                              uselist=False,
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
-    # these are the peptides that are in contact with the ligand
+    BindingSite = relationship("BindingSite",
+                               primaryjoin="BindingSite.ligand_id==Ligand.ligand_id",
+                               foreign_keys="[BindingSite.ligand_id]",
+                               uselist=False,
+                               backref=backref('Ligand', uselist=False, innerjoin=True))
+
+    # these are the residues that are in contact with the ligand
     BindingSiteResidues = relationship("BindingSiteResidue",
-                          primaryjoin="BindingSiteResidue.ligand_id==Ligand.ligand_id",
-                          foreign_keys="[BindingSiteResidue.ligand_id]",
-                          uselist=False, innerjoin=True, lazy='dynamic',
-                          backref=backref('Ligand', uselist=False, innerjoin=True))
+                                       primaryjoin="BindingSiteResidue.ligand_id==Ligand.ligand_id",
+                                       foreign_keys="[BindingSiteResidue.ligand_id]",
+                                       uselist=True, innerjoin=True, lazy='dynamic',
+                                       backref=backref('Ligand', uselist=False, innerjoin=True))
 
     def __repr__(self):
         """
         """
-        return '<Ligand({self.pdb_chain_id} {self.res_num} {self.ligand_name})>'.format(self=self)
+        return '<Ligand({self.path})>'.format(self=self)
 
     def __len__(self):
         """
+        Returns the number of heavy atoms of this ligand.
         """
         return self.num_hvy_atoms
 
     def __iter__(self):
         """
+        Returns an iterator over the chemical components that this ligand consists
+        of.
         """
         return iter(self.Components)
 
@@ -172,10 +187,46 @@ class Ligand(Base, PathMixin):
         usr : float
             The USR similarity between two ligands.
         """
+        if isinstance(other, Ligand) and self.usr_moments and other.usr_moments:
+            ow, hw, rw, aw, dw = 1.0, 0.25, 0.25, 0.25, 0.25
+
+            scale = 12 * (ow+hw+rw+aw+dw)
+            weights = [abs(a - b) for a, b in zip(self.usr_moments, other.usr_moments)]
+
+            # apply the USRCAT weights
+            weights[:12] = [x*ow for x in weights[:12]]
+            weights[12:24] = [x*hw for x in weights[12:24]]
+            weights[24:36] = [x*rw for x in weights[24:36]]
+            weights[36:48] = [x*aw for x in weights[36:48]]
+            weights[48:] = [x*dw for x in weights[48:]]
+
+            return  1.0 / (1.0 + sum(weights) / scale)
+
+    @requires.rdkit
+    def __mod__(self, other):
+        '''
+        Returns the tanimoto similarity between two chemical components.
+        Overloads '%' operator.
+
+        Returns
+        -------
+        tanimoto : float
+            The 2D Tanimoto similarity between two RDKit torsion fingerprints of
+            the chemical components.
+
+        Requires
+        --------
+        .. important:: `RDKit  <http://www.rdkit.org>`_ Python wrappers.
+        '''
         if isinstance(other, Ligand):
-            if self.usr_space and other.usr_space:
-                distance = sum([abs(a - b) for a, b in zip(self.usr_space, other.usr_space)])
-                return 1.0 / (1.0 + distance / 12.0)
+            return rdkit.tanimoto_sml(self.MolString.ism, other.MolString.ism)
+
+    @property
+    def name(self):
+        """
+        Alias for ligand_name.
+        """
+        return self.ligand_name
 
     @property
     def Contacts(self):
@@ -280,13 +331,15 @@ class Ligand(Base, PathMixin):
     def usr_space(self):
         """
         """
-        return self.LigandUSR.usr_space
+        if self.LigandUSR:
+            return self.LigandUSR.usr_space
 
     @property
     def usr_moments(self):
         """
         """
-        return self.LigandUSR.usr_moments
+        if self.LigandUSR:
+            return self.LigandUSR.usr_moments
 
     def sift(self, *expr, **kwargs):
         """
@@ -405,23 +458,24 @@ class Ligand(Base, PathMixin):
 
         # DO A USR SEARCH AGAINST THE MODELLED CONFORMERS AND RETURN THE TOP RANKED CHEMCOMPS
         if kwargs.get('target', 'ligands') == 'chemcomps':
-            return ChemCompAdaptor().fetch_all_by_usr_moments(*expr, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
+            return ChemCompAdaptor().fetch_all_by_usr_moments(*expr,
+                                                              usr_space=self.usr_space,
+                                                              usr_moments=self.usr_moments,
+                                                              **kwargs)
 
         # DO A USR SEARCH AGAINST ALL BOUND LIGANDS
         else:
-            return LigandAdaptor().fetch_all_by_usr_moments(*expr, usr_space=self.usr_space, usr_moments=self.usr_moments, **kwargs)
+            return LigandAdaptor().fetch_all_by_usr_moments(*expr,
+                                                            usr_space=self.usr_space,
+                                                            usr_moments=self.usr_moments,
+                                                            **kwargs)
 
-from .ligandusr import LigandUSR
-from .chemcomp import ChemComp
 from .atom import Atom
-from .contact import Contact
 from .residue import Residue
 from ..adaptors.chemcompadaptor import ChemCompAdaptor
-from ..adaptors.xrefadaptor import XRefAdaptor
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor
-from ..adaptors.aromaticringadaptor import AromaticRingAdaptor
 from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor
 from ..adaptors.atomringinteractionadaptor import AtomRingInteractionAdaptor
 from ..adaptors.ligandadaptor import LigandAdaptor

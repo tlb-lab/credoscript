@@ -2,11 +2,11 @@ from warnings import warn
 from credoscript import config
 
 def rdkit(function):
-    '''
-    '''
+    """
+    """
     def wrapper(self, *args, **kwargs):
-        '''
-        '''
+        """
+        """
         if config['extras']['rdkit']:
             return function(self, *args, **kwargs)
         else:
@@ -15,11 +15,11 @@ def rdkit(function):
     return wrapper
 
 def rdkit_catridge(function):
-    '''
-    '''
+    """
+    """
     def wrapper(self, *args, **kwargs):
-        '''
-        '''
+        """
+        """
         if config['extras']['rdkit-cartridge']:
             return function(self, *args, **kwargs)
         else:
