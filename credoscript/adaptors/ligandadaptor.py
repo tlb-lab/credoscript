@@ -249,7 +249,7 @@ class LigandAdaptor(PathAdaptorMixin):
         usr_space = kwargs.get('usr_space', [])
         usr_moments = kwargs.get('usr_moments', [])
         threshold = kwargs.get('threshold', 0.5)
-        limit = kwargs.get('limit', 50)
+        limit = kwargs.get('limit', 100)
 
         usr_space, usr_moments = list(usr_space), list(usr_moments)
 
@@ -320,7 +320,7 @@ class LigandAdaptor(PathAdaptorMixin):
         threshold = kwargs.get("threshold", 0.16)
         fptype = kwargs.get("fptype", "calpha")
         metric = kwargs.get("metric", "fuzcavglobal")
-        limit = kwargs.get('limit', 50)
+        limit = kwargs.get('limit', 100)
 
         # get the FuzCav fingerprint column corresponding to the query parameter
         if fptype == "calpha": targetfp = BindingSiteFuzcav.calphafp
@@ -329,12 +329,15 @@ class LigandAdaptor(PathAdaptorMixin):
 
         # get the (dis)similarity metric function corresponding to the query parameter
         if metric == "fuzcavglobal": simfunc = func.arrayxi_fuzcavsim_global
-        elif metric == "fuzcav": simfunc = func.arrayxi_fuzcavsim
+        elif metric == "simpson": simfunc = func.arrayxi_simpson
+        elif metric == "russell-rao": simfunc = func.arrayxi_russell_rao
+        elif metric == "ochiai": simfunc = func.arrayxi_ochiai
+        elif metric == "kulcz": simfunc = func.arrayxi_kulcz
         else: raise ValueError("unknown metric: {}".format(metric))
 
         if ligand_id:
             query = BindingSiteFuzcav.query.filter(BindingSiteFuzcav.ligand_id==ligand_id)
-            query = query.with_entities(getattr(BindingSiteFuzcav, fptype))
+            query = query.with_entities(targetfp)
             queryfp = query.scalar()
 
         # use an existing FuzCav fingerprint as query
