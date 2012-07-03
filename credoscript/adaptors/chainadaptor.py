@@ -49,7 +49,7 @@ class ChainAdaptor(PathAdaptorMixin):
         query = query.filter(and_(XRef.source=='UniProt',
                                   XRef.xref==uniprot, *expr))
 
-        return query
+        return query.distinct()
 
     @paginate
     def fetch_all_by_cath_dmn(self, dmn, *expr, **kwargs):
