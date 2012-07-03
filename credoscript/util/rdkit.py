@@ -4,9 +4,15 @@ cheminformatics task related to credoscript.
 """
 from __future__ import absolute_import
 
-from rdkit.Chem import MolFromSmiles, RDKFingerprint
-from rdkit.DataStructs import TanimotoSimilarity
+try:
+    from rdkit.Chem import MolFromSmiles, RDKFingerprint
+    from rdkit.DataStructs import TanimotoSimilarity
+except ImportError:
+    pass
 
+from credoscript.util import requires
+
+@requires.rdkit
 def tanimoto_sml(queryism, targetism):
     """
     Returns the Tanimoto similarity between the two molecules in SMILES format.

@@ -63,3 +63,10 @@ disordered_regions = metadata.tables['pdb.disordered_regions']
 residue_interaction_pairs = metadata.tables['credo.residue_interaction_pairs']
 phenotype_to_ligand = metadata.tables['variations.phenotype_to_ligand']
 phenotype_to_interface = metadata.tables['variations.phenotype_to_interface']
+variation_to_binding_site = metadata.tables['variations.variation_to_binding_site']
+
+try:
+    from rdkit import Chem
+    config['extras']['rdkit'] = True
+except ImportError:
+    pass

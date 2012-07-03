@@ -24,15 +24,17 @@
         "credo":
         {
             "reflect": ["aromatic_ring_atoms","aromatic_rings","atom_ring_interactions",
-                        "atoms","binding_site_atom_surface_areas","binding_site_fuzcav","binding_sites",
-                        "binding_site_residues","biomolecules","chains","contacts","groove_residues",
+                        "atoms","binding_site_atom_surface_areas","binding_site_fuzcav",
+                        "binding_sites","binding_site_residues","biomolecules","chains","contacts","groove_residues",
                         "grooves","hetatms","interface_residues","interfaces",
-                        "ligand_components","ligand_fcd","ligand_fragments",
+                        "ligand_components","ligand_fcd","ligand_fragments", "ligand_eff",
                         "ligand_fragment_atoms","ligand_molstrings","ligand_usr",
                         "ligands","nucleotides","oligonucleotides","peptides",
                         "polypeptides","polysaccharides","prot_fragment_residues",
                         "prot_fragments","residue_interaction_pairs","residues",
-                        "ring_interactions","saccharides","structures","xrefs"]
+                        "ring_interactions","saccharides","structures","xrefs",
+                        "ligand_uniprot_sifts","ligand_uniprot_sift_nodes",
+                        "ligand_uniprot_sift_node_properties","ligand_uniprot_sift_node_to_ligand"]
         },
 
         "pdb":
@@ -52,7 +54,7 @@
         {
             "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
                         "phenotypes","annotations","phenotype_to_ligand",
-                        "phenotype_to_interface"]
+                        "phenotype_to_interface","variation_to_binding_site"]
         }
     },
 
