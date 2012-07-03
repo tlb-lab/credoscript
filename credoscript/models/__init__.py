@@ -37,3 +37,4 @@ from .chemcomprdfp import ChemCompRDFP
 from .variation import Variation, Annotation, Phenotype
 from .bindingsitefuzcav import BindingSiteFuzcav
 from .bindingsite import BindingSite
+from .ligandeff import LigandEff
