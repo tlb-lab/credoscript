@@ -26,9 +26,7 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
 
         # add more variation data to the returned entities
         if kwargs.get('vardata'):
-            query = query.add_columns(Variation2UniProt.mut,
-                                      Variation2UniProt.polyphen_prediction,
-                                      Variation2UniProt.sift_prediction)
+            query = query.add_entity(Variation2UniProt)
 
         return query.distinct()
 
@@ -40,7 +38,58 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
         query = query.filter(and_(Annotation.phenotype_id==phenotype_id,
                                   *expr))
 
+        # add more variation data to the returned entities
+        if kwargs.get('vardata'):
+            query = query.add_entity(Variation2UniProt)
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_having_variations_by_chain_id(self, chain_id, *expr, **kwargs):
+        """
+        Returns all peptides in a chain that have mapped variations.
+        """
+        query = self.query.join('Variation2PDB','Variation2UniProt')
+        query = query.filter(and_(Peptide.chain_id==chain_id, *expr))
+
+        # add more variation data to the returned entities
+        if kwargs.get('vardata'):
+            query = query.add_entity(Variation2UniProt)
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_having_variations_by_biomolecule_id(self, biomolecule_id, *expr,
+                                                      **kwargs):
+        """
+        Returns all peptides in a biologcial assembly that have mapped variations.
+        """
+        query = self.query.join('Variation2PDB','Variation2UniProt')
+        query = query.filter(and_(Peptide.biomolecule_id==biomolecule_id, *expr))
+
+        # add more variation data to the returned entities
+        if kwargs.get('vardata'):
+            query = query.add_entity(Variation2UniProt)
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_having_variations_in_contact_with_ligand_id(self, ligand_id,
+                                                              *expr, **kwargs):
+        """
+        Returns all peptides that have mapped variations and are in contact with
+        the ligand having the input ligand identifier.
+        """
+        query = self.query.join('Variation2PDB','Variation2UniProt')
+        query = query.join(BindingSiteResidue, BindingSiteResidue.residue_id==Peptide.residue_id)
+        query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id, *expr))
+
+        # add more variation data to the returned entities
+        if kwargs.get('vardata'):
+            query = query.add_entity(Variation2UniProt)
+
         return query.distinct()
 
 from ..models.peptide import Peptide
+from ..models.bindingsiteresidue import BindingSiteResidue
 from ..models.variation import Variation2UniProt, Annotation
