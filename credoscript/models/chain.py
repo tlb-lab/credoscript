@@ -91,6 +91,12 @@ class Chain(Base, PathMixin):
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          lazy='dynamic', uselist=True, innerjoin=True)
 
+    XRefMap = relationship("XRef",
+                           collection_class=attribute_mapped_collection("source"),
+                           primaryjoin="and_(XRef.entity_type=='Chain', XRef.entity_id==Chain.chain_id)",
+                           foreign_keys="[XRef.entity_type, XRef.entity_id]",
+                           uselist=True, innerjoin=True)
+
     # deferred columns
     title = deferred(__table__.c.title)
     seq = deferred(__table__.c.chain_seq)
