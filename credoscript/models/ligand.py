@@ -159,6 +159,13 @@ class Ligand(Base, PathMixin):
                                        uselist=True, innerjoin=True, lazy='dynamic',
                                        backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    # ligand efficiencies
+    Effs = relationship("LigandEff",
+                        primaryjoin="LigandEff.ligand_id==Ligand.ligand_id",
+                        foreign_keys="[LigandEff.ligand_id]",
+                        uselist=True,
+                        backref=backref('Ligand', uselist=False, innerjoin=True))
+
     def __repr__(self):
         """
         """
