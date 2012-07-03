@@ -1,10 +1,5 @@
-from math import ceil
 import functools
-
-# workaround for Python < 2.7
-# the __meta__ attribute of all mapped classes will have the wrong order though!
-try: from collections import OrderedDict
-except ImportError: OrderedDict = dict
+from math import ceil
 
 from sqlalchemy.orm import class_mapper, Query
 
@@ -124,23 +119,36 @@ class Base(object):
         Returns the metadata information of this class as ordered dictionary.
         """
         mapper = class_mapper(cls)
-        meta = OrderedDict()
+        meta = []
 
         # get the column data type for every column name
-        # this has to be done in a for loop to catch the rror that might occur if
+        # this has to be done in a for loop to catch the error that might occur if
         # the entity has data type stemming from an extension
         for key in mapper.c.keys():
-            try: meta[str(key)] = str(mapper.c[key].type)
-            except NotImplementedError: meta[str(key)] = "CUSTOM"
+            try: meta.append((str(key), str(mapper.c[key].type)))
+            except NotImplementedError: meta.append((str(key), "CUSTOM"))
 
         return meta
+
+    def _repr_list_(self):
+        """
+        Returns a list of values for this entity in proper order.
+        """
+        return [getattr(self,k) for k in self._sa_class_manager.mapper.c.keys()]
+
+    def _repr_dict_(self):
+        """
+        Returns a dictionary (column name, data) representation of this entity.
+        """
+        return dict((k, getattr(self,k))
+                    for k in self._sa_class_manager.mapper.c.keys())
 
     @property
     def __data__(self):
         """
         Returns a list of values for this entity in proper order.
         """
-        return [getattr(self,k) for k in self._sa_class_manager.mapper.c.keys()]
+        return self._repr_list_()
 
     @property
     def _pkey(self):
