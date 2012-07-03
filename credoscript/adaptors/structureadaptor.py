@@ -183,30 +183,32 @@ class StructureAdaptor(object):
         if kwargs.get('plain'): tsquery = func.plainto_tsquery('english', tsquery)
         else: tsquery = func.to_tsquery('english', tsquery)
 
-        headline_conf = 'StartSel=[, StopSel=], MaxWords={0}, MinWords={1}'.format(max_words, min_words)
-
-        # function to create a preview snippet of the matched area
-        snippet = func.ts_headline('english', citations.c.abstract,
-                                   tsquery, headline_conf).label('snippet')
-
-        # calculated rank of the hit
-        rank = func.ts_rank_cd(weights, func.to_tsvector('english', citations.c.abstract),
-                               tsquery, normalization).label('rank')
-
-        # GIST index that is used for searching
-        index = func.to_tsvector('english', citations.c.abstract).op('@@')(tsquery)
-
-        query = self.query.filter(and_(*expr))
-        query = query.add_columns(snippet, rank)
-
-        query = query.join(XRef, and_(XRef.entity_type=='Structure',
-                                      XRef.entity_id==Structure.structure_id))
-
+        # basic query construct
+        query = self.query.join('XRefs').filter(and_(*expr))
         query = query.join(citations,
                            and_(citations.c.pubmed_id==cast(XRef.xref, Integer),
                                 XRef.source=='PubMed'))
 
+        # GIST index that is used for searching
+        index = func.to_tsvector('english', citations.c.abstract).op('@@')(tsquery)
         query = query.filter(index).order_by("rank DESC")
+
+        # calculated rank of the hit
+        rank = func.ts_rank_cd(weights, func.to_tsvector('english', citations.c.abstract),
+                               tsquery, normalization).label('rank')
+        query = query.add_column(rank)
+
+        if kwargs.get('snippet'):
+
+            # configuration of the preview snippet
+            headline_conf = 'StartSel=[, StopSel=], MaxWords={0}, MinWords={1}'.format(max_words, min_words)
+
+            # function to create a preview snippet of the matched area
+            snippet = func.ts_headline('english', citations.c.abstract,
+                                   tsquery, headline_conf).label('snippet')
+
+            # add snippet column to query
+            query = query.add_column(snippet)
 
         return query
 
