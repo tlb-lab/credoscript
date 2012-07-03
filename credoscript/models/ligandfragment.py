@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base, Session, ligand_fcd
+from credoscript import Base
 
 class LigandFragment(Base):
     """
@@ -10,8 +10,8 @@ class LigandFragment(Base):
     Fragment = relationship("Fragment",
                             primaryjoin="Fragment.fragment_id==LigandFragment.fragment_id",
                             foreign_keys="[Fragment.fragment_id]",
-                            uselist=False, innerjoin=True,
-                            backref=backref('LigandFragments',uselist=True, innerjoin=True))
+                            uselist=False,
+                            backref=backref('LigandFragments', uselist=True))
 
     Atoms = relationship("Atom",
                          secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
@@ -36,22 +36,6 @@ class LigandFragment(Base):
         """
         """
         return self.Atoms.all()
-
-    @property
-    def fcd(self):
-        """
-        Returns the fragment contact density (FCD) for this ligand fragment.
-        """
-        session = Session()
-
-        query = session.query(ligand_fcd.c.fcd)
-        query = query.filter(ligand_fcd.c.ligand_fragment_id==self.ligand_fragment_id)
-
-        fcd = query.scalar()
-
-        session.close()
-
-        return fcd
 
     @property
     def ProximalAtoms(self):
