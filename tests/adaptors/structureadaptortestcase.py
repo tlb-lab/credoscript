@@ -31,7 +31,7 @@ class StructureAdaptorTestCase(CredoAdaptorTestCase):
         # this should return a list of tuples in the form (similarity, entity)
         result = getattr(self.adaptor, 'fetch_all_by_tsquery')('protein-protein interaction inhibitor', plain=True)
 
-        assert all(isinstance(ent, self.expected_entity) for ent, snippet, rank in result), "{} does not return the correct result tuple.".format('fetch_all_by_tsquery')
+        assert all(isinstance(ent, self.expected_entity) for ent, rank in result), "{} does not return the correct result tuple.".format('fetch_all_by_tsquery')
 
         result = getattr(self.adaptor, 'fetch_all_by_tsquery')('protein-protein interaction inhibitor', plain=True, dynamic=True)
         assert isinstance(result, Query), "{} does not support dynamic results.".format('fetch_all_by_tsquery')
