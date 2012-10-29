@@ -2,10 +2,25 @@ from sqlalchemy.orm import backref, relationship
 
 from credoscript import Base
 
+class Source(Base):
+    """
+    """
+    __tablename__ = 'variations.sources'
+
+class TranscriptVariation(Base):
+    """
+    """
+    __tablename__ = 'variations.transcript_variations'
+
 class Variation(Base):
     """
     """
     __tablename__ = 'variations.variations'
+
+    Source = relationship("Source",
+                          primaryjoin="Variation.source_id==Source.source_id",
+                          foreign_keys="[Source.source_id]",
+                          uselist=False, innerjoin=True)
 
     Annotations = relationship("Annotation",
                                primaryjoin="Variation.variation_id==Annotation.variation_id",
@@ -26,6 +41,12 @@ class Variation(Base):
                        foreign_keys = "[Variation2UniProt.variation_id, Variation2PDB.variation_to_uniprot_id]",
                        uselist=True, innerjoin=True,
                        backref=backref('Variation', uselist=False, innerjoin=True))
+
+    TranscriptVariations = relationship("TranscriptVariation",
+                                        primaryjoin="Variation.variation_id==TranscriptVariation.variation_id",
+                                        foreign_keys="[TranscriptVariation.variation_id]",
+                                        uselist=True, innerjoin=True,
+                                        backref=backref('Variation', uselist=False))
 
     def __repr__(self):
         """
