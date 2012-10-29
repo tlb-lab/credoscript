@@ -34,7 +34,8 @@
                         "prot_fragments","residue_interaction_pairs","residues",
                         "ring_interactions","saccharides","structures","xrefs",
                         "ligand_uniprot_sifts","ligand_uniprot_sift_nodes",
-                        "ligand_uniprot_sift_node_properties","ligand_uniprot_sift_node_to_ligand"]
+                        "ligand_uniprot_sift_node_properties","ligand_uniprot_sift_node_to_ligand",
+                        "fuzcav_rep_sc_atoms"]
         },
 
         "pdb":
@@ -54,7 +55,9 @@
         {
             "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
                         "phenotypes","annotations","phenotype_to_ligand",
-                        "phenotype_to_interface","variation_to_binding_site"]
+                        "phenotype_to_interface","variation_to_binding_site",
+                        "transcript_variations","variation_to_interface","sources",
+                        "phenotype_to_chain"]
         }
     },
 
