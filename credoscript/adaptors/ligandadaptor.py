@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import phenotype_to_ligand
+from credoscript import phenotype_to_ligand, variation_to_binding_site
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -8,11 +8,12 @@ class LigandAdaptor(PathAdaptorMixin):
     """
     Adaptor to fetch ligands from CREDO with different criteria.
     """
-    def __init__(self, paginate=False, per_page=100, options=()):
+    def __init__(self, dynamic=False, paginate=False, per_page=100, options=()):
         """
         An example for joinedload could be (Ligand.MolString, Ligand.LigandUSR).
         """
         self.query = Ligand.query
+        self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
 
@@ -63,6 +64,19 @@ class LigandAdaptor(PathAdaptorMixin):
         query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
         query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
         query = query.filter(and_(Peptide.residue_id==residue_id, *expr))
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_in_contact_with_variation_id(self, variation_id, *expr, **kwargs):
+        """
+        Returns all ligands whose binding sites are in in contact with residues
+        that can be linked to variations with the given variation_id.
+        """
+        query = self.query.join(variation_to_binding_site,
+                                variation_to_binding_site.c.ligand_id==Ligand.ligand_id)
+        query = query.filter(and_(variation_to_binding_site.c.variation_id==variation_id,
+                                  *expr))
 
         return query.distinct()
 
@@ -353,7 +367,7 @@ class LigandAdaptor(PathAdaptorMixin):
 
         # join the ligands back in
         query = self.query.add_column(hits.c.similarity)
-        query = query.join(hits, hits.c.ligand_id==Ligand.ligand_id)
+        query = query.join(hits, hits.c.ligand_id==Ligand.ligand_id).order_by("similarity DESC")
 
         return query
 

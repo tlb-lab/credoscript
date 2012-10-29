@@ -6,8 +6,9 @@ from credoscript.mixins.base import paginate
 class VariationAdaptor(object):
     """
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100):
         self.query = Variation.query
+        self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
 

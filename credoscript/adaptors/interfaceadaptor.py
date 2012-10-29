@@ -1,14 +1,15 @@
 from sqlalchemy.sql.expression import and_, or_
 
-from credoscript import interface_residues, phenotype_to_interface
+from credoscript import interface_residues, phenotype_to_interface, variation_to_interface
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
 class InterfaceAdaptor(PathAdaptorMixin):
     """
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100):
         self.query = Interface.query
+        self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
 
@@ -108,6 +109,19 @@ class InterfaceAdaptor(PathAdaptorMixin):
         query = query.filter(and_(phenotype_to_interface.c.phenotype_id==phenotype_id, *expr))
 
         return query
+
+    @paginate
+    def fetch_all_in_contact_with_variation_id(self, variation_id, *expr, **kwargs):
+        """
+        Returns all interfaces whose residues are in in contact with residues
+        that can be linked to variations with the given variation_id.
+        """
+        query = self.query.join(variation_to_interface,
+                                variation_to_interface.c.interface_id==Interface.interface_id)
+        query = query.filter(and_(variation_to_interface.c.variation_id==variation_id,
+                                  *expr))
+
+        return query.distinct()
 
 from ..models.interface import Interface
 from ..models.peptide import Peptide

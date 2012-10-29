@@ -1,13 +1,15 @@
 from sqlalchemy.sql.expression import and_
 
+from credoscript import phenotype_to_chain
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
 class ChainAdaptor(PathAdaptorMixin):
     """
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100):
         self.query = Chain.query
+        self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
 
@@ -63,6 +65,16 @@ class ChainAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_by_go(self, go, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('XRefs')
+        query = query.filter(and_(XRef.source=='GO',
+                                  XRef.xref==go, *expr))
+
+        return query.distinct()
+
+    @paginate
     def fetch_all_by_seq_md5(self, md5, *expr, **kwargs):
         """
         Returns all chains in CREDO whose protein sequences MD5 hash match the
@@ -89,6 +101,19 @@ class ChainAdaptor(PathAdaptorMixin):
         query = self.query.filter(and_(Chain.seq_md5==md5, *expr))
 
         return query
+
+    @paginate
+    def fetch_all_by_phenotype_id(self, phenotype_id, *expr, **kwargs):
+        """
+        Returns all chains that contain residues that are linked to variations
+        matching the given phenotype_id (from EnsEMBL).
+        """
+        query = self.query.join(phenotype_to_chain,
+                                phenotype_to_chain.c.chain_id==Chain.chain_id)
+        query = query.filter(and_(phenotype_to_chain.c.phenotype_id==phenotype_id,
+                                  *expr))
+
+        return query.distinct()
 
 from ..models.xref import XRef
 from ..models.chain import Chain

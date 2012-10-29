@@ -7,8 +7,9 @@ from credoscript.mixins.base import paginate
 class GrooveAdaptor(PathAdaptorMixin):
     """
     """
-    def __init__(self, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100):
         self.query = Groove.query
+        self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
 

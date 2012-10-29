@@ -143,6 +143,17 @@ class Base(object):
         return dict((k, getattr(self,k))
                     for k in self._sa_class_manager.mapper.c.keys())
 
+    def _repr_html_(self):
+        """
+        Returns a HTML representation (table) of the entity. Only used in IPython
+        notebooks.
+        """
+        data = self._repr_dict_().items()
+        rows = ''.join("<tr><th>{}</th><td>{}</td></tr>".format(k,v) for k,v in data)
+        table = "<table>{}</table>".format(rows)
+
+        return table
+
     @property
     def __data__(self):
         """
@@ -173,7 +184,7 @@ def paginate(func):
         query = func(self, *args, **kwargs)
 
         # return query to simulate a dynamic relationship
-        if kwargs.get('dynamic'):
+        if self.dynamic:
             return query
 
         # return a pagination object
