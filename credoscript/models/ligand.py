@@ -304,16 +304,16 @@ class Ligand(Base, PathMixin):
         --------
         >>>
         """
-        return AtomAdaptor().fetch_all_water_in_contact_with_ligand_id(self.ligand_id,
-                                                                       self.biomolecule_id,
-                                                                       dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_water_in_contact_with_ligand_id(self.ligand_id,
+                                                                 self.biomolecule_id)
 
     @property
     def ProximalProtFragments(self):
         """
         """
-        return ProtFragmentAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
-                                                                         dynamic=True)
+        adaptor = ProtFragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_id(self.ligand_id)
 
     @property
     def ProximalResidues(self):
@@ -321,8 +321,8 @@ class Ligand(Base, PathMixin):
         Returns all residues that are in contact with the ligand having the specified
         ligand identifier.
         """
-        return ResidueAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
-                                                                    dynamic=True)
+        adaptor = ResidueAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_id(self.ligand_id)
 
     @property
     def ProximalAtoms(self):
@@ -330,9 +330,9 @@ class Ligand(Base, PathMixin):
         Returns all atoms that are in contact with the ligand having the specified
         ligand identifier.
         """
-        return AtomAdaptor().fetch_all_in_contact_with_ligand_id(self.ligand_id,
-                                                                 self.biomolecule_id,
-                                                                 dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_id(self.ligand_id,
+                                                           self.biomolecule_id)
 
     @property
     def usr_space(self):
