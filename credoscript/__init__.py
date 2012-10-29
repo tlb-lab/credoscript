@@ -13,7 +13,7 @@ import credoscript.util.psycopg2
 
 # credoscript version number scheme: year, month, release
 # based on the database release
-__version_info__ = (2012, 6, 2)
+__version_info__ = (2012, 10, 1)
 __version__ = '.'.join(map(str, __version_info__))
 
 # the following modules will be imported with from credoscript import *
@@ -61,9 +61,11 @@ ligand_fcd = metadata.tables['credo.ligand_fcd']
 citations = metadata.tables['pdb.citations']
 disordered_regions = metadata.tables['pdb.disordered_regions']
 residue_interaction_pairs = metadata.tables['credo.residue_interaction_pairs']
+phenotype_to_chain = metadata.tables['variations.phenotype_to_chain']
 phenotype_to_ligand = metadata.tables['variations.phenotype_to_ligand']
 phenotype_to_interface = metadata.tables['variations.phenotype_to_interface']
 variation_to_binding_site = metadata.tables['variations.variation_to_binding_site']
+variation_to_interface = metadata.tables['variations.variation_to_interface']
 
 try:
     from rdkit import Chem
