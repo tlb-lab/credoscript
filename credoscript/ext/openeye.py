@@ -6,18 +6,19 @@ from sqlalchemy.sql.expression import and_, func, text
 
 from credoscript import Base, Session
 from credoscript.adaptors import ChemCompAdaptor
+from credoscript.mixins.base import paginate
 
 class ChemCompOEFP(Base):
     '''
     '''
     __tablename__ = 'pdbchem.chem_comp_oefps'
-    
+
     ChemComp = relationship("ChemComp",
                             primaryjoin="ChemCompOEFP.het_id==ChemComp.het_id",
                             foreign_keys="[ChemComp.het_id]",
                             uselist=False, innerjoin=True,
                             backref=backref('OEFP', uselist=False, innerjoin=True))
-    
+
     def __repr__(self):
         '''
         '''
@@ -26,7 +27,8 @@ class ChemCompOEFP(Base):
 class ChemCompAdaptor(ChemCompAdaptor):
     """
     """
-    def fetch_all_by_sim_oe(self, smiles, *expressions, **kwargs):
+    @paginate
+    def fetch_all_by_sim_oe(self, smiles, *expr, **kwargs):
         """
         Returns all Chemical Components that match the given SMILES string with at
         least the given similarity threshold using chemical fingerprints.
@@ -39,7 +41,7 @@ class ChemCompAdaptor(ChemCompAdaptor):
             The similarity threshold that will be used for searching.
         fp : {'circular','atompair','torsion'}
             RDKit fingerprint type to be used for similarity searching.
-        *expressions : BinaryExpressions, optional
+        *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
 
         Queried Entities
@@ -59,7 +61,7 @@ class ChemCompAdaptor(ChemCompAdaptor):
         .. important:: OpenEye cartridge.
         """
         session = Session()
-        
+
         threshold = kwargs.get('threshold')
         metric = kwargs.get('metric','tanimoto')
         fp = kwargs.get('fp', 'circular')
@@ -68,7 +70,7 @@ class ChemCompAdaptor(ChemCompAdaptor):
         # set the similarity threshold for the selected metric
         if threshold:
             statement = text("SELECT openeye.set_oefp_similarity_limit(:threshold, :metric)")
-            session.execute(statement.params(threshold=threshold,metric=metric))     
+            session.execute(statement.params(threshold=threshold,metric=metric))
 
         if fp == 'circular':
             query = func.openeye.make_circular_fp(smiles)
@@ -100,17 +102,17 @@ class ChemCompAdaptor(ChemCompAdaptor):
             similarity = func.openeye.dice(query, target)
             index = func.openeye.dice_is_above_limit(target, query)
             orderby = target.op('OPERATOR(openeye.<#>)')(query)
-        
+
         elif metric == 'manhattan':
             similarity = func.openeye.manhattan(query, target)
             index = func.openeye.manhattan_is_above_limit(target, query)
             orderby = target.op('OPERATOR(openeye.<~>)')(query)
-        
+
         elif metric == 'cosine':
             similarity = func.openeye.cosine(query, target)
             index = func.openeye.cosine_is_above_limit(target, query)
             orderby = target.op('OPERATOR(openeye.<@>)')(query)
-        
+
         elif metric == 'euclidean':
             similarity = func.openeye.euclidean(query, target)
             index = func.openeye.euclidean_is_above_limit(target, query)
@@ -120,13 +122,9 @@ class ChemCompAdaptor(ChemCompAdaptor):
             raise ValueError("{} is not a valid similarity metric.".format(metric))
 
         query = ChemComp.query.add_column(similarity)
-        query = query.join('OEFP').filter(and_(index, *expressions))
+        query = query.join('OEFP').filter(and_(index, *expr))
         query = query.order_by(orderby)
 
-        if self.paginate:
-            page = kwargs.get('page',1)
-            return query.paginate(page=page, per_page=self.per_page)
-
-        else: return query.limit(limit).all()
+        return query
 
 from credoscript.models.chemcomp import ChemComp
