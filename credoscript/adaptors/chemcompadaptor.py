@@ -42,6 +42,27 @@ class ChemCompAdaptor(object):
         """
         return self.query.filter(ChemComp.het_id==het_id.upper()).first()
 
+    @paginate
+    def fetch_all_by_inchikey(self, inchikey, *expr, **kwargs):
+        """
+        Returns a list of all the ChemComps that match the given InChI key.
+        Unfortunately, InChI keys are not unique in the PDB chemical component
+        dictionary due to tautomers.
+
+        Parameters
+        ----------
+        inchikey : str
+            InChI key that the chemical components have to match.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Returns
+        -------
+        chemcomps : list
+            All ChemComps that match the given InChI key.
+        """
+        return self.query.filter(and_(ChemComp.inchikey==inchikey, *expr))
+
     def fetch_by_residue_id(self, residue_id):
         """
         """
@@ -78,6 +99,7 @@ class ChemCompAdaptor(object):
                                   *expr))
 
         return query
+
 
     @paginate
     def fetch_all_by_xref(self, source, xref, **kwargs):
@@ -382,7 +404,7 @@ class ChemCompAdaptor(object):
         # SET THE SIMILARITY THRESHOLD FOR THE INDEX
         session.execute(text("SELECT set_limit(:threshold)").execution_options(autocommit=True).params(threshold=threshold))
 
-        similarity = func.similarity(ChemComp.ism,smiles).label('similarity')
+        similarity = func.similarity(ChemComp.ism, smiles).label('similarity')
 
         query = self.query.add_column(similarity)
         query = query.filter(and_(ChemComp.like(smiles), *expr))
