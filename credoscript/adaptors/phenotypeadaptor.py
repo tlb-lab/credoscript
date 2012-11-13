@@ -50,4 +50,4 @@ class PhenotypeAdaptor(object):
             and_(func.lower(Phenotype.description).contains(description),
                  *expr))
 
-from credoscript.models.variation import Phenotype
+from credoscript.models.variation import Annotation, Phenotype
