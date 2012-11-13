@@ -54,6 +54,14 @@ class PathAdaptorMixin(object):
     """
     Adds method for fetching CREDO entities via the (ptree) path attribute.
     """
+    def fetch_by_path(self, path):
+        """
+        Returns the entity that has the identical path.
+        """
+        query = self.query.filter_by(path=path)
+
+        return query.first()
+
     @paginate
     def fetch_all_by_path_match(self, pquery, *expressions, **kwargs):
         """
