@@ -56,8 +56,7 @@
             "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
                         "phenotypes","annotations","phenotype_to_ligand",
                         "phenotype_to_interface","variation_to_binding_site",
-                        "transcript_variations","variation_to_interface","sources",
-                        "phenotype_to_chain"]
+                        "variation_to_interface","sources", "phenotype_to_chain"]
         }
     },
 

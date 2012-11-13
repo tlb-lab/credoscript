@@ -7,11 +7,6 @@ class Source(Base):
     """
     __tablename__ = 'variations.sources'
 
-class TranscriptVariation(Base):
-    """
-    """
-    __tablename__ = 'variations.transcript_variations'
-
 class Variation(Base):
     """
     """
@@ -41,12 +36,6 @@ class Variation(Base):
                        foreign_keys = "[Variation2UniProt.variation_id, Variation2PDB.variation_to_uniprot_id]",
                        uselist=True, innerjoin=True,
                        backref=backref('Variation', uselist=False, innerjoin=True))
-
-    TranscriptVariations = relationship("TranscriptVariation",
-                                        primaryjoin="Variation.variation_id==TranscriptVariation.variation_id",
-                                        foreign_keys="[TranscriptVariation.variation_id]",
-                                        uselist=True, innerjoin=True,
-                                        backref=backref('Variation', uselist=False))
 
     def __repr__(self):
         """
