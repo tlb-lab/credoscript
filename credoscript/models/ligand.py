@@ -460,17 +460,18 @@ class Ligand(Base, PathMixin):
         --------
 
         """
-        # DO NOTHING IF THIS LIGAND DOES NOT HAVE ANY USR MOMENTS
+        # do nothing if this ligand does not have any usr moments
         if not self.usr_space or not self.usr_moments: return None
 
-        # DO A USR SEARCH AGAINST THE MODELLED CONFORMERS AND RETURN THE TOP RANKED CHEMCOMPS
+        # do a USR search against the modelled conformers and return the top
+        # ranked chemcomps
         if kwargs.get('target', 'ligands') == 'chemcomps':
             return ChemCompAdaptor().fetch_all_by_usr_moments(*expr,
                                                               usr_space=self.usr_space,
                                                               usr_moments=self.usr_moments,
                                                               **kwargs)
 
-        # DO A USR SEARCH AGAINST ALL BOUND LIGANDS
+        # do a USR search against all bound ligands
         else:
             return LigandAdaptor().fetch_all_by_usr_moments(*expr,
                                                             usr_space=self.usr_space,
