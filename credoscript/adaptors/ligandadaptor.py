@@ -81,16 +81,6 @@ class LigandAdaptor(PathAdaptorMixin):
         return query.distinct()
 
     @paginate
-    def fetch_all_in_contact_with_kinases(self, *expr, **kwargs):
-        """
-        Returns all ligands whose binding sites are in
-        """
-        query = self.query.join('BindingSite')
-        query = query.filter(and_(BindingSite.is_kinase==True, *expr))
-
-        return query
-
-    @paginate
     def fetch_all_by_phenotype_id(self, phenotype_id, *expr, **kwargs):
         """
         Returns all ligands whose binding sites contain residues that are linked
@@ -210,6 +200,27 @@ class LigandAdaptor(PathAdaptorMixin):
         query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
 
         query = query.filter(and_(Peptide.cath==dmn, *expr)).distinct()
+
+        return query
+
+    @paginate
+    def fetch_all_in_contact_with_kinases(self, *expr, **kwargs):
+        """
+        Returns all ligands whose binding sites are in
+        """
+        query = self.query.join('BindingSite')
+        query = query.filter(and_(BindingSite.is_kinase==True, *expr))
+
+        return query
+
+    @paginate
+    def fetch_all_most_recent(self, *expr, **kwargs):
+        """
+        Returns all ligands whose binding sites are in
+        """
+        query = self.query.join('Biomolecule','Structure')
+        query = query.filter(and_(*expr))
+        query = query.order_by(Structure.deposition_date.desc().nullslast())
 
         return query
 
@@ -386,6 +397,7 @@ from ..models.peptide import Peptide
 from ..models.ligand import Ligand
 from ..models.bindingsite import BindingSite
 from ..models.biomolecule import Biomolecule
+from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
 from ..models.bindingsiteresidue import BindingSiteResidue
 from ..models.bindingsitefuzcav import BindingSiteFuzcav
