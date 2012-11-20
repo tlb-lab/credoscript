@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='credoscript',
-      version='2012.6.2',
+      version='2012.10.1',
       description='API for the CREDO database',
       author='Adrian Schreyer',
       author_email='ams214@cam.ac.uk',
