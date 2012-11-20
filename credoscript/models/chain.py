@@ -80,6 +80,18 @@ class Chain(Base, PathMixin):
                                uselist=True, innerjoin=True,  lazy='dynamic',
                                backref=backref('Chain', uselist=False, innerjoin=True))
 
+    Polypeptide = relationship("Polypeptide",
+                               primaryjoin="Polypeptide.chain_id==Chain.chain_id",
+                               foreign_keys="[Polypeptide.chain_id]",
+                               uselist=False, innerjoin=True,
+                               backref=backref('Chain', uselist=False, innerjoin=True))
+
+    Oligonucleotide = relationship("Oligonucleotide",
+                                   primaryjoin="Oligonucleotide.chain_id==Chain.chain_id",
+                                   foreign_keys="[Oligonucleotide.chain_id]",
+                                   uselist=False, innerjoin=True,
+                                   backref=backref('Chain', uselist=False, innerjoin=True))
+
     ProtFragments = relationship("ProtFragment",
                                  primaryjoin="ProtFragment.chain_id==Chain.chain_id",
                                  foreign_keys="[ProtFragment.chain_id]",
@@ -188,6 +200,16 @@ class Chain(Base, PathMixin):
         """
         return SIFtAdaptor().fetch_by_own_chain_id(self.chain_id, self.biomolecule_id,
                                                    *expr)
+
+class Polypeptide(Base):
+    """
+    """
+    __table__ = Base.metadata.tables['credo.polypeptides']
+
+class Oligonucleotide(Base):
+    """
+    """
+    __table__ = Base.metadata.tables['credo.oligonucleotides']
 
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.variationadaptor import VariationAdaptor

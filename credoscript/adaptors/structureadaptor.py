@@ -125,6 +125,30 @@ class StructureAdaptor(object):
         return query.distinct()
 
     @paginate
+    def fetch_all_kinases(self, *expr, **kwargs):
+        """
+        Returns all structures that contain protein kinases.
+
+        Parameters
+        ----------
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Structure, Chain, XRef
+
+        Returns
+        -------
+        structures : list
+            All structures that contain protein kinases.
+        """
+        query = self.query.join('Biomolecules','Chains','Polypeptide')
+        query = query.filter(and_(Polypeptide.is_kinase==True, *expr))
+
+        return query.distinct()
+
+    @paginate
     def fetch_all_by_tsquery(self, tsquery, *expr, **kwargs):
         """
         Returns all structures whose abstract matches the keywords given in the
@@ -215,4 +239,5 @@ class StructureAdaptor(object):
 
 from ..models.xref import XRef
 from ..models.ligand import Ligand
+from ..models.chain import Polypeptide
 from ..models.structure import Structure

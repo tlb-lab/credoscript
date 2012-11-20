@@ -44,6 +44,33 @@ class ChainAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_polypeptides(self, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('Polypeptide')
+        query = query.filter(and_(*expr))
+
+        return query
+
+    @paginate
+    def fetch_all_kinases(self, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('Polypeptide')
+        query = query.filter(and_(Polypetide.is_kinase==True, *expr))
+
+        return query
+
+    @paginate
+    def fetch_all_oligonucleotides(self, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('Oligonucleotide')
+        query = query.filter(and_(*expr))
+
+        return query
+
+    @paginate
     def fetch_all_by_uniprot(self, uniprot, *expr, **kwargs):
         """
         """
@@ -116,5 +143,5 @@ class ChainAdaptor(PathAdaptorMixin):
         return query.distinct()
 
 from ..models.xref import XRef
-from ..models.chain import Chain
+from ..models.chain import Chain, Polypeptide
 from ..models.biomolecule import Biomolecule

@@ -1,7 +1,7 @@
 from .structure import Structure
 from .biomolecule import Biomolecule
 from .interface import Interface
-from .chain import Chain
+from .chain import Chain, Polypeptide, Oligonucleotide
 from .residue import Residue
 from .aromaticring import AromaticRing
 from .atom import Atom
