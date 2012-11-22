@@ -27,8 +27,7 @@ class LigLigInteractionAdaptor(PathAdaptorMixin):
     def fetch_all_by_biomolecule_id(self, biomolecule_id, *expr, **kwargs):
         """
         """
-        query = self.query.join('Ligands')
-        query = query.filter(and_(LigLigInteraction.biomolecule_id==biomolecule_id,
+        query = self.query.filter(and_(LigLigInteraction.biomolecule_id==biomolecule_id,
                                   *expr))
 
         return query.distinct()
