@@ -1,4 +1,7 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.expression import or_
+from sqlalchemy.ext.hybrid import hybrid_method
+
 from credoscript import Base
 
 class LigLigInteraction(Base):
@@ -23,3 +26,22 @@ class LigLigInteraction(Base):
         """
         """
         return '<LigLigInteraction({self.path})>'.format(self=self)
+
+    @hybrid_method
+    @property
+    def has_enzyme_cmpd(self):
+        """
+        Meta Boolean flag indicating whether one of the ligand in this interaction
+        is the enzyme's substrate or product or not.
+        """
+        return any((self.has_product==True, self.has_substrate==True))
+
+    @has_enzyme_cmpd.expression
+    @property
+    def has_enzyme_cmpd(self):
+        """
+        Returns an SQLAlchemy boolean clause list that enables usage of this
+        meta LigLigInteraction flag to filter query constructs.
+        """
+        return or_(LigLigInteraction.has_product==True,
+                   LigLigInteraction.has_substrate==True)
