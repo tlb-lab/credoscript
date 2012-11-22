@@ -8,6 +8,11 @@ the help of SQLAlchemy, a Python SQL Toolkit and Object Relational Mapper.
 
 # Installation
 
+## Important
+
+The **credoscript** API can only be used internally by users with direct access
+to the database server.
+
 ## Software requirements
 
 **credoscript** is written in the [Python](http://www.python.org) programming language
