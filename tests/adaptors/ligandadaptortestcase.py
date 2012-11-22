@@ -46,7 +46,9 @@ class LigandAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_usr_moments(self):
         """Fetch all ligands by USR moments"""
-        ligand = self.adaptor.fetch_all_by_het_id('STI', dynamic=True).first()
+        self.adaptor.dynamic = True
+        ligand = self.adaptor.fetch_all_by_het_id('STI').first()
+        self.adaptor.dynamic = True
 
         # test with ligand_id / use binary expression to fake query argument
         self.assertPaginatedSimilarityHits('fetch_all_by_usr_moments',

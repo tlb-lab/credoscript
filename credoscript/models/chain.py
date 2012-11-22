@@ -140,22 +140,22 @@ class Chain(Base, PathMixin):
     def Variations(self):
         """
         """
-        return VariationAdaptor().fetch_all_by_chain_id(self.chain_id, dynamic=True)
+        adaptor = VariationAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_chain_id(self.chain_id)
 
     @property
     def Contacts(self):
         """
         """
-        return ContactAdaptor().fetch_all_by_chain_id(self.chain_id,
-                                                      self.biomolecule_id,
-                                                      dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_chain_id(self.chain_id, self.biomolecule_id)
 
     @property
     def ProximalLigands(self):
         """
         """
-        return LigandAdaptor().fetch_all_in_contact_with_chain_id(self.chain_id,
-                                                                  dynamic=True)
+        adaptor = LigandAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_chain_id(self.chain_id)
 
     def disordered_regions(self, *expr):
         """

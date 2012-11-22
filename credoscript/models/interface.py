@@ -41,11 +41,13 @@ class Interface(Base, PathMixin):
 
     ChainBgn = relationship("Chain",
                             primaryjoin="Chain.chain_id==Interface.chain_bgn_id",
-                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
+                            foreign_keys="[Chain.chain_id]", uselist=False,
+                            innerjoin=True)
 
     ChainEnd = relationship("Chain",
                             primaryjoin="Chain.chain_id==Interface.chain_end_id",
-                            foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
+                            foreign_keys="[Chain.chain_id]", uselist=False,
+                            innerjoin=True)
 
     def __repr__(self):
         """
@@ -56,8 +58,8 @@ class Interface(Base, PathMixin):
     def Residues(self):
         """
         """
-        return ResidueAdaptor().fetch_all_by_interface_id(self.interface_id,
-                                                          dynamic=True)
+        adaptor = ResidueAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_interface_id(self.interface_id)
 
     @property
     def Contacts(self):
@@ -85,9 +87,9 @@ class Interface(Base, PathMixin):
         >>> ContactAdaptor().fetch_all_by_interface_id(1)
         <Contact()>
         """
-        return ContactAdaptor().fetch_all_by_interface_id(self.interface_id,
-                                                          self.biomolecule_id,
-                                                          dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_interface_id(self.interface_id,
+                                                 self.biomolecule_id)
 
     @property
     def ProximalWater(self):
@@ -112,9 +114,9 @@ class Interface(Base, PathMixin):
         --------
         >>>
         """
-        return AtomAdaptor().fetch_all_water_in_contact_with_interface_id(self.interface_id,
-                                                                          self.biomolecule_id,
-                                                                          dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_water_in_contact_with_interface_id(self.interface_id,
+                                                                    self.biomolecule_id)
 
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor

@@ -12,7 +12,7 @@ class RingInteractionAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_aromatic_ring_id(self):
         """Fetch ring interactions by aromatic_ring_id"""
-        ri = models.RingInteraction.query.get(1)
+        ri = models.RingInteraction.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_by_aromatic_ring_id',
                                    ri.AromaticRingBgn.aromatic_ring_id)
 

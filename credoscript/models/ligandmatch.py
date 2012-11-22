@@ -26,30 +26,30 @@ class LigandMatch(object):
         """
         Returns the atoms of the ligand that match the pattern.
         """
-        return AtomAdaptor().fetch_all_by_ligand_id_and_atom_names(self.ligand_id,
-                                                                   self.biomolecule_id,
-                                                                   self.atom_names,
-                                                                   dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_ligand_id_and_atom_names(self.ligand_id,
+                                                             self.biomolecule_id,
+                                                             self.atom_names)
 
     @property
     def Contacts(self):
         """
         Returns the contacts of the ligand atoms that match the initial pattern.
         """
-        return ContactAdaptor().fetch_all_by_ligand_id_and_atom_names(self.ligand_id,
-                                                                      self.biomolecule_id,
-                                                                      self.atom_names,
-                                                                      dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_ligand_id_and_atom_names(self.ligand_id,
+                                                             self.biomolecule_id,
+                                                             self.atom_names)
 
     @property
     def ProximalResidues(self):
         """
         Returns the residues that are in contact with this ligand match.
         """
-        return ResidueAdaptor().fetch_all_in_contact_with_ligand_id_and_atom_names(self.ligand_id,
-                                                                                   self.biomolecule_id,
-                                                                                   self.atom_names,
-                                                                                   dynamic=True)
+        adaptor = ResidueAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_id_and_atom_names(self.ligand_id,
+                                                                          self.biomolecule_id,
+                                                                          self.atom_names)
 
     def sift(self, *expr):
         """

@@ -43,9 +43,9 @@ class Residue(Base, PathMixin, ResidueMixin):
     def Contacts(self):
         """
         """
-        return ContactAdaptor().fetch_all_by_residue_id(self.residue_id,
-                                                        self.biomolecule_id,
-                                                        dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_residue_id(self.residue_id,
+                                               self.biomolecule_id)
 
     @property
     def ProximalWater(self):
@@ -70,16 +70,17 @@ class Residue(Base, PathMixin, ResidueMixin):
         --------
         >>>
         """
-        return AtomAdaptor().fetch_all_water_in_contact_with_residue_id(self.residue_id,
-                                                                        self.biomolecule_id,
-                                                                        dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_water_in_contact_with_residue_id(self.residue_id,
+                                                                  self.biomolecule_id)
 
     @property
     def ProximalLigands(self):
         """
         """
-        return LigandAdaptor().fetch_all_in_contact_with_residue_id(self.residue_id,
-                                                                    dynamic=True)
+        adaptor = LigandAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_residue_id(self.residue_id,
+                                                            dynamic=True)
 
     def sift(self, *expr):
         """
@@ -95,7 +96,9 @@ class Residue(Base, PathMixin, ResidueMixin):
         sift : tuple
             sum of all the contact types of all contacts this residue has.
         """
-        return SIFtAdaptor().fetch_by_residue_id(self.ligand_id, self.biomolecule_id, *expr)
+        return SIFtAdaptor().fetch_by_residue_id(self.ligand_id,
+                                                 self.biomolecule_id,
+                                                 *expr)
 
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.contactadaptor import ContactAdaptor

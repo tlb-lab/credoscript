@@ -37,8 +37,10 @@ class CredoAdaptorTestCase(unittest.TestCase):
         count = len(result)
 
         # this should return a query instance
-        result = getattr(self.adaptor, method)(*args, dynamic=True, **kwargs)
+        self.adaptor.dynamic = True
+        result = getattr(self.adaptor, method)(*args, **kwargs)
         self.assertIsInstance(result, Query, "{} does not support dynamic results.".format(method))
+        self.adaptor.dynamic = False
 
         # this should return a Pagination object
         self.adaptor.paginate = True
@@ -61,8 +63,11 @@ class CredoAdaptorTestCase(unittest.TestCase):
         assert all(isinstance(ent, self.expected_entity) and isinstance(sim, float)
                    for ent, sim in result), "{} does not return the correct result tuple.".format(method)
 
-        result = getattr(self.adaptor, method)(*expr, dynamic=True, **kwargs)
+        # this should return a query instance
+        self.adaptor.dynamic = True
+        result = getattr(self.adaptor, method)(*expr, **kwargs)
         self.assertIsInstance(result, Query, "{} does not support dynamic results.".format(method))
+        self.adaptor.dynamic = False
 
         # this should return a Pagination object
         self.adaptor.paginate = True

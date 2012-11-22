@@ -12,13 +12,13 @@ class InterfaceAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_chain_id(self):
         """Fetch all interfaces by chain_id"""
-        interface = models.Interface.query.get(1)
+        interface = models.Interface.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_by_chain_id',
                                    interface.chain_bgn_id)
 
     def test_fetch_all_by_biomolecule_id(self):
         """Fetch all interfaces by biomolecule_id"""
-        interface = models.Interface.query.get(1)
+        interface = models.Interface.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_by_biomolecule_id',
                                    interface.biomolecule_id)
 

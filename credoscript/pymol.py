@@ -5,10 +5,10 @@ from itertools import combinations
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import and_
 
-from . import config
-from .models import *
-from .adaptors import *
-from .support.pymolviewer import PyMOLViewer
+from credoscript import config
+from credoscript.models import *
+from credoscript.adaptors import *
+from credoscript.support.pymolviewer import PyMOLViewer
 
 PDB_DIR = config['directory']['pdb']
 
@@ -18,12 +18,12 @@ TYPES   = ('hbond','weakhbond','xbond','ionic','metalcomplex',
 pymol = PyMOLViewer()
 
 def defer_update(function):
-    '''
+    """
     Decorator to defer PyMOL updates of a function. Should be the last decorator.
-    '''
+    """
     def wrapper(self, *args, **kwargs):
-        '''
-        '''
+        """
+        """
         # DO NOT UPDATE PYMOL IMMEDIATELY
         pymol.set('defer_update', 1)
 
@@ -36,10 +36,10 @@ def defer_update(function):
     return wrapper
 
 def show_nucleotides(*args, **kwargs):
-    '''
+    """
     Creates a cartoon representation for RNA/DNA and puts the selection in a
     separate group.
-    '''
+    """
     group = kwargs.get('group')
 
     pymol.select('NUCLEOTIDES', 'resn {0}'.format('+'.join(config['residues']['nucleotides'])))
@@ -56,8 +56,8 @@ def show_nucleotides(*args, **kwargs):
         if group: pymol.group(group, 'NUCLEOTIDES')
 
 def show_non_std_res(*args, **kwargs):
-    '''
-    '''
+    """
+    """
     group = kwargs.get('group')
 
     # SELECT ALL POLYMER RESIDUES THAT ARE NOT DNA AND NOT STANDARD AMINO ACIDS
@@ -75,13 +75,13 @@ def show_non_std_res(*args, **kwargs):
 
 @defer_update
 def show_disordered_regions(self, *args, **kwargs):
-    '''
+    """
     Visualises disordered regions inside protein chains by connecting the residues
     flanking those regions with PyMOL distance objects.
-    '''
+    """
     for chain in self.Chains.values():
         for region in chain.get_disordered_regions():
-            
+
             # GET THE RESIDUES FLANKING THE DISORDERED REGION
             rbgn, rend = chain[region.region_start-1], chain[region.region_end+1]
 
@@ -89,36 +89,36 @@ def show_disordered_regions(self, *args, **kwargs):
             if not rbgn or not rend:
                 msg = "Could not obtain the residues flanking region {0}-{1}".format(region.region_start, region.region_end)
                 warn(msg, UserWarning)
-                
+
                 continue
-        
+
             try:
                 # CREATE A DASHED LINE TO VISUALISE THE DISORDERD REGION
                 pymol.distance('disordered_regions', rbgn['CA'].pymolstring, rend['CA'].pymolstring)
                 pymol.color(config['pymol']['dashcolor']['disordered_region'], 'disordered_regions')
-                
+
                 # ALSO COLOR THE CA ATOMS OF THE FLANKING RESIDUES
                 pymol.color(config['pymol']['dashcolor']['disordered_region'], rbgn['CA'].pymolstring)
                 pymol.color(config['pymol']['dashcolor']['disordered_region'], rend['CA'].pymolstring)
-                
+
                 # REMOVE THE DISTANCE LABELS
                 pymol.hide('labels', 'disordered_regions')
-                
+
             except KeyError:
                 raise KeyError('one of the residues is missing the CA atom.')
 
 @defer_update
 def load_biomolecule(self, *args, **kwargs):
-    '''
+    """
     Load a PDB structure into PyMOL
-    '''
+    """
     pdb = self.Structure.pdb
     assembly_serial = self.assembly_serial
 
-    # STRING USED TO REPRESENT BIOMOLECULE IN PYMOL
+    # string used to represent biomolecule in PyMOL
     string_id = '{0}-{1}'.format(pdb, assembly_serial)
 
-    # LOOK FOR STRUCTURE ON LOCAL MIRROR
+    # look for structure on local mirror
     path = os.path.join(PDB_DIR, '{0}.pdb'.format(string_id))
 
     if os.path.exists(path): pymol.load(path, string_id)
@@ -155,8 +155,8 @@ def load_biomolecule(self, *args, **kwargs):
     pymol.orient(string_id)
 
 def show_ligand(self, **kwargs):
-    '''
-    '''
+    """
+    """
     show = kwargs.get('show', 'sticks')
     color = kwargs.get('color', 'grey70')
     group = kwargs.get('group')
@@ -179,9 +179,9 @@ def show_ligand(self, **kwargs):
     pymol.disable(self.ligand_id)
 
 def show_aromatic_ring(self, **kwargs):
-    '''
+    """
     Uses a pseudoatom to represent the centroid of the aromatic ring.
-    '''
+    """
     color = kwargs.get('color', 'grey70')
     group = kwargs.get('group')
     obj = kwargs.get('obj', '') # SHOULD BE PDB CODE
@@ -232,7 +232,7 @@ def show_aromatic_ring(self, **kwargs):
 
 @defer_update
 def show_contacts(self, *expressions, **kwargs):
-    '''
+    """
     Visualises all interatomic contacts of this entity with other entities through
     colour-coded PyMOL distance objects.
 
@@ -248,7 +248,7 @@ def show_contacts(self, *expressions, **kwargs):
     --------
     >>>
 
-    '''
+    """
     # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
     credo_class = self.__class__.__name__
 
@@ -256,13 +256,13 @@ def show_contacts(self, *expressions, **kwargs):
     credo_id = self._entity_id
 
     labels = kwargs.get('labels', False)
-  
+
     contacts = self.Contacts.filter(and_(*expressions)).all()
 
     # ALSO INCLUDE BRIDGED HBONDS
     if kwargs.get('water_bridges', False):
         for water in self.get_proximal_water():
-    
+
             # KEEP ONLY THOSE BRIDGES THAT ARE WITHIN THE MAXIMUM DISTANCE OF 6.05 ANGSTROM
             for wc1, wc2 in combinations(water.Contacts,2):
                 if wc1.distance + wc2.distance <= 6.1:
@@ -325,7 +325,7 @@ def show_contacts(self, *expressions, **kwargs):
 
 @defer_update
 def highlight_secondary_contacts(self, *args, **kwargs):
-    '''
+    """
     Visualises all interatomic contacts of this entity with other entities through
     colour-coded PyMOL distance objects.
 
@@ -344,7 +344,7 @@ def highlight_secondary_contacts(self, *args, **kwargs):
     --------
     >>>
 
-    '''
+    """
     # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
     credo_class = self.__class__.__name__
 
@@ -401,8 +401,8 @@ def highlight_secondary_contacts(self, *args, **kwargs):
 
 @defer_update
 def show_ring_interactions(self, *args, **kwargs):
-    '''
-    '''
+    """
+    """
     # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
     credo_class = self.__class__.__name__
 
@@ -436,8 +436,8 @@ def show_ring_interactions(self, *args, **kwargs):
 
 @defer_update
 def show_atom_ring_interactions(self, *args, **kwargs):
-    '''
-    '''
+    """
+    """
     # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
     credo_class = self.__class__.__name__
 

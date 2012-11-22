@@ -122,9 +122,9 @@ class Atom(Base, PathMixin):
         --------
         >>>
         """
-        return AtomAdaptor().fetch_all_water_in_contact_with_atom_id(self.atom_id,
-                                                                     self.biomolecule_id,
-                                                                     dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_water_in_contact_with_atom_id(self.atom_id,
+                                                               self.biomolecule_id)
 
     @hybrid_method
     @property

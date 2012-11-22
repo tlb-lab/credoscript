@@ -38,4 +38,5 @@ from .variation import Variation, Annotation, Phenotype
 from .bindingsitefuzcav import BindingSiteFuzcav
 from .bindingsite import BindingSite
 from .ligandeff import LigandEff
+from .ligliginteraction import LigLigInteraction
 from .meta import Update

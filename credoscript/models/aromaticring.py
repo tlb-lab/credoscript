@@ -61,16 +61,16 @@ class AromaticRing(Base, PathMixin):
     def Atoms(self):
         """
         """
-        return AtomAdaptor().fetch_all_by_aromatic_ring_id(self.aromatic_ring_id,
-                                                           self.biomolecule_id,
-                                                           dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_aromatic_ring_id(self.aromatic_ring_id,
+                                                     self.biomolecule_id)
 
     @property
     def RingInteractions(self):
         """
         """
-        return RingInteractionAdaptor().fetch_all_by_aromatic_ring_id(self.aromatic_ring_id,
-                                                                      dynamic=True)
+        adaptor = RingInteractionAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_aromatic_ring_id(self.aromatic_ring_id)
 
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor

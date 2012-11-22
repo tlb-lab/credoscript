@@ -1,7 +1,7 @@
 import functools
 from math import ceil
 
-from sqlalchemy.orm import class_mapper, Query
+from sqlalchemy.orm import Query
 
 from credoscript import Session
 
@@ -118,12 +118,12 @@ class Base(object):
         """
         Returns the metadata information of this class as ordered dictionary.
         """
-        mapper = class_mapper(cls)
+        mapper = cls.__mapper__
         meta = []
 
         # get the column data type for every column name
-        # this has to be done in a for loop to catch the error that might occur if
-        # the entity has data type stemming from an extension
+        # this has to be done in a for loop to catch the error that might occur
+        # if the entity has data type stemming from an extension
         for key in mapper.c.keys():
             try: meta.append((str(key), str(mapper.c[key].type)))
             except NotImplementedError: meta.append((str(key), "CUSTOM"))
@@ -166,7 +166,7 @@ class Base(object):
         """
         Returns the value of the primary key. Also works for composite keys.
         """
-        return tuple(getattr(self,c.name) for c in self._sa_class_manager.mapper.primary_key)
+        return tuple(getattr(self, c.name) for c in self.__mapper__.primary_key)
 
     @property
     def _entity_id(self):

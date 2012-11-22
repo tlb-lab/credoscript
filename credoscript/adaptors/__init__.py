@@ -21,3 +21,4 @@ from .phenotypeadaptor import PhenotypeAdaptor
 
 from .siftadaptor import SIFtAdaptor
 from .ligandmatchadaptor import LigandMatchAdaptor
+from .ligliginteractionadaptor import LigLigInteractionAdaptor

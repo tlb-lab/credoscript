@@ -1,5 +1,6 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.sql.expression import and_, func
+from sqlalchemy.sql.expression import and_, func, or_
+from sqlalchemy.ext.hybrid import hybrid_method
 
 from credoscript import Base, binding_site_atom_surface_areas
 from credoscript.mixins import PathMixin
@@ -235,21 +236,38 @@ class Ligand(Base, PathMixin):
         """
         return self.ligand_name
 
+    @hybrid_method
+    @property
+    def is_enzyme_cmpd(self):
+        """
+        Meta Boolean flag indicating whether the ligand is the enzyme's substrate
+        or product or not.
+        """
+        return any((self.is_product==True, self.is_substrate==True))
+
+    @is_enzyme_cmpd.expression
+    @property
+    def is_enzyme_cmpd(self):
+        """
+        Returns an SQLAlchemy boolean clause list that enables usage of this
+        meta ligand flag to filter query constructs.
+        """
+        return or_(Ligand.is_product==True, Ligand.is_substrate==True)
+
     @property
     def Contacts(self):
         """
         Returns Query.
         """
-        return ContactAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                       self.biomolecule_id,
-                                                       dynamic=True)
-
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_ligand_id(self.ligand_id,
+                                              self.biomolecule_id)
     @property
     def RingInteractions(self):
         """
         """
-        return RingInteractionAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                               dynamic=True)
+        adaptor = RingInteractionAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_ligand_id(self.ligand_id)
 
     @property
     def AtomRingInteractions(self):
@@ -278,8 +296,8 @@ class Ligand(Base, PathMixin):
          <AtomRingInteraction(22275)>, <AtomRingInteraction(22276)>,
          <AtomRingInteraction(22277)>]
         """
-        return AtomRingInteractionAdaptor().fetch_all_by_ligand_id(self.ligand_id,
-                                                                   dynamic=True)
+        adaptor = AtomRingInteractionAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_ligand_id(self.ligand_id)
 
     @property
     def ProximalWater(self):

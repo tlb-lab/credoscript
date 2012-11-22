@@ -33,8 +33,10 @@ class StructureAdaptorTestCase(CredoAdaptorTestCase):
 
         assert all(isinstance(ent, self.expected_entity) for ent, rank in result), "{} does not return the correct result tuple.".format('fetch_all_by_tsquery')
 
-        result = getattr(self.adaptor, 'fetch_all_by_tsquery')('protein-protein interaction inhibitor', plain=True, dynamic=True)
+        self.adaptor.dynamic = True
+        result = getattr(self.adaptor, 'fetch_all_by_tsquery')('protein-protein interaction inhibitor', plain=True)
         assert isinstance(result, Query), "{} does not support dynamic results.".format('fetch_all_by_tsquery')
+        self.adaptor.dynamic = False
 
         # this should return a Pagination object
         self.adaptor.paginate = True

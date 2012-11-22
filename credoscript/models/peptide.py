@@ -83,9 +83,9 @@ class Peptide(Base, PathMixin, ResidueMixin):
     def Contacts(self):
         '''
         '''
-        return ContactAdaptor().fetch_all_by_residue_id(self.residue_id,
-                                                        Atom.biomolecule_id==self.biomolecule_id,
-                                                        dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_residue_id(self.residue_id,
+                                               Atom.biomolecule_id==self.biomolecule_id)
 
 from .atom import Atom
 from ..adaptors.contactadaptor import ContactAdaptor

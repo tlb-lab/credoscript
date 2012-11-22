@@ -126,6 +126,13 @@ class Biomolecule(Base, PathMixin):
                          uselist=True, innerjoin=True, lazy='dynamic',
                          backref=backref('Biomolecule', uselist=False, innerjoin=True))
 
+    LigLigInteractions = relationship("LigLigInteraction",
+                                      primaryjoin="LigLigInteraction.biomolecule_id==Biomolecule.biomolecule_id",
+                                      foreign_keys="[LigLigInteraction.biomolecule_id]",
+                                      uselist=True, innerjoin=True, lazy='dynamic',
+                                      backref=backref('Biomolecule', uselist=False,
+                                                      innerjoin=True))
+
     def __repr__(self):
         """
         """
@@ -169,7 +176,7 @@ class Biomolecule(Base, PathMixin):
          <AtomRingInteraction(22275)>, <AtomRingInteraction(22276)>,
          <AtomRingInteraction(22277)>]
         """
-        return AtomRingInteractionAdaptor().fetch_all_by_biomolecule_id(self.biomolecule_id,
-                                                                        dynamic=True)
+        adaptor = AtomRingInteractionAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_biomolecule_id(self.biomolecule_id)
 
 from ..adaptors.atomringinteractionadaptor import AtomRingInteractionAdaptor

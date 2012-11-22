@@ -9,6 +9,7 @@ from .protfragmentadaptortestcase import ProtFragmentAdaptorTestCase
 from .aromaticringadaptortestcase import AromaticRingAdaptorTestCase
 from .ringinteractionadaptortestcase import RingInteractionAdaptorTestCase
 from .ligandadaptortestcase import LigandAdaptorTestCase
+from .ligliginteractionadaptortestcase import LigLigInteractionAdaptorTestCase
 from .chemcompadaptortestcase import ChemCompAdaptorTestCase
 from .fragmentadaptortestcase import FragmentAdaptorTestCase
 

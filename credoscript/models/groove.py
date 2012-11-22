@@ -53,8 +53,7 @@ class Groove(Base, PathMixin):
         --------
 
         """
-        return ContactAdaptor().fetch_all_by_groove_id(self.groove_id,
-                                                       self.biomolecule_id,
-                                                       dynamic=True)
+        adaptor = ContactAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_groove_id(self.groove_id, self.biomolecule_id)
 
 from ..adaptors.contactadaptor import ContactAdaptor

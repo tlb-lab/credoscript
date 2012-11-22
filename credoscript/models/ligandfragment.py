@@ -56,9 +56,9 @@ class LigandFragment(Base):
         atoms : list
             List of `Atom` objects.
         """
-        return AtomAdaptor().fetch_all_in_contact_with_ligand_fragment_id(self.ligand_fragment_id,
-                                                                          self.biomolecule_id,
-                                                                          dynamic=True)
+        adaptor = AtomAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_fragment_id(self.ligand_fragment_id,
+                                                                    self.biomolecule_id)
 
     @property
     def ProximalResidues(self):
@@ -80,9 +80,9 @@ class LigandFragment(Base):
         residues : list
             List of `Residue` objects.
         """
-        return ResidueAdaptor().fetch_all_in_contact_with_ligand_fragment_id(self.ligand_fragment_id,
-                                                                             self.biomolecule_id,
-                                                                             dynamic=True)
+        adaptor = ResidueAdaptor(dynamic=True)
+        return adaptor.fetch_all_in_contact_with_ligand_fragment_id(self.ligand_fragment_id,
+                                                                    self.biomolecule_id)
 
     def sift(self, *expr, **kwargs):
         """

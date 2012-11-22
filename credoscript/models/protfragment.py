@@ -37,6 +37,7 @@ class ProtFragment(Base, PathMixin):
     def IdenticalFragments(self):
         '''
         '''
-        return ProtFragmentAdaptor().fetch_all_by_fragment_seq(self.fragment_seq, dynamic=True)
+        adaptor = ProtFragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_fragment_seq(self.fragment_seq)
 
 from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor

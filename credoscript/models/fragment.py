@@ -44,26 +44,30 @@ class Fragment(Base):
         Returns all fragments that are derived from this fragment (next level
         in fragmentation hierarchy).
         """
-        return FragmentAdaptor().fetch_all_children(self.fragment_id, dynamic=True)
+        adaptor = FragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_children(self.fragment_id)
 
     @property
     def Parents(self):
         """
         """
-        return FragmentAdaptor().fetch_all_parents(self.fragment_id, dynamic=True)
+        adaptor = FragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_parents(self.fragment_id)
 
     @property
     def Leaves(self):
         """
         Returns all terminal fragments (leaves) of this fragment.
         """
-        return FragmentAdaptor().fetch_all_leaves(self.fragment_id, dynamic=True)
+        adaptor = FragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_leaves(self.fragment_id)
 
     @property
     def Descendants(self):
         """
         Returns all children of this fragment in the complete hierarchy.
         """
-        return FragmentAdaptor().fetch_all_descendants(self.fragment_id, dynamic=True)
+        adaptor = FragmentAdaptor(dynamic=True)
+        return adaptor.fetch_all_descendants(self.fragment_id)
 
 from ..adaptors.fragmentadaptor import FragmentAdaptor

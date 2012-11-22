@@ -32,7 +32,7 @@ class ContactAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_interface_id(self):
         """Fetch all contacts a chain has by interface_id"""
-        interface = models.Interface.query.get(1)
+        interface = models.Interface.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_by_interface_id',
                                    interface.interface_id, interface.biomolecule_id)
 

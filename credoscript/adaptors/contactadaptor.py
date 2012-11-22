@@ -11,7 +11,7 @@ class ContactAdaptor(object):
     All queries here must reference the biomolecule_id of the contacts table to
     pick out the proper partition.
     """
-    def __init__(self, dynamic=True, paginate=False, per_page=100, options=()):
+    def __init__(self, dynamic=False, paginate=False, per_page=100, options=()):
         """
         """
         self.query = Contact.query
