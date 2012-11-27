@@ -10,8 +10,8 @@ from .aromaticringadaptortestcase import AromaticRingAdaptorTestCase
 from .ringinteractionadaptortestcase import RingInteractionAdaptorTestCase
 from .ligandadaptortestcase import LigandAdaptorTestCase
 from .ligliginteractionadaptortestcase import LigLigInteractionAdaptorTestCase
+from .lignucinteractionadaptortestcase import LigNucInteractionAdaptorTestCase
 from .chemcompadaptortestcase import ChemCompAdaptorTestCase
 from .fragmentadaptortestcase import FragmentAdaptorTestCase
-
 from .siftadaptortestcase import SIFtAdaptorTestCase
 from .ligandmatchadaptortestcase import LigandMatchAdaptorTestCase

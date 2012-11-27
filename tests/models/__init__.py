@@ -11,5 +11,5 @@ from .aromaticringtestcase import AromaticRingTestCase
 from .ringinteractiontestcase import RingInteractionTestCase
 from .chemcomptestcase import ChemCompTestCase
 from .fragmenttestcase import FragmentTestCase
-
+from .lignucinteractiontestcase import LigNucInteractionTestCase
 from .ligandmatchtestcase import LigandMatchTestCase
