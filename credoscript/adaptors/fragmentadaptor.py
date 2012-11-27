@@ -1,7 +1,6 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import Session
 from credoscript.mixins.base import paginate
 
 class FragmentAdaptor(object):
@@ -44,12 +43,10 @@ class FragmentAdaptor(object):
     def fetch_all_parents(self, fragment_id, *expr, **kwargs):
         """
         """
-        session = Session()
-
-        subquery = session.query(FragmentHierarchy.het_id,
-                                 func.max(FragmentHierarchy.order_child).label('child')
-                                 ).filter(FragmentHierarchy.child_id==fragment_id
-                                          ).group_by(FragmentHierarchy.het_id).subquery()
+        subquery = FragmentHierarchy.query.with_entities(FragmentHierarchy.het_id,
+                                                         func.max(FragmentHierarchy.order_child).label('child'))
+        subquery = subquery.filter(FragmentHierarchy.child_id==fragment_id)
+        subquery = subquery.group_by(FragmentHierarchy.het_id).subquery()
 
         query = self.query.join(FragmentHierarchy,
                                 FragmentHierarchy.parent_id==Fragment.fragment_id)
@@ -57,17 +54,13 @@ class FragmentAdaptor(object):
                                           subquery.c.child==FragmentHierarchy.order_child))
         query = query.filter(FragmentHierarchy.child_id==fragment_id)
 
-        session.close()
-
         return query.distinct()
 
     @paginate
     def fetch_all_descendants(self, fragment_id, *expr, **kwargs):
         """
         """
-        session = Session()
-
-        descendants = session.query(Fragment.fragment_id)
+        descendants = Fragment.query.with_entities(Fragment.fragment_id)
         descendants = descendants.join(FragmentHierarchy,
                                        FragmentHierarchy.child_id==Fragment.fragment_id)
         descendants = descendants.filter(FragmentHierarchy.parent_id==fragment_id)
@@ -75,7 +68,7 @@ class FragmentAdaptor(object):
 
         desc_alias = aliased(descendants, name="d")
 
-        end = session.query(Fragment.fragment_id)
+        end = Fragment.query.with_entities(Fragment.fragment_id)
         end = end.join(FragmentHierarchy, FragmentHierarchy.child_id==Fragment.fragment_id)
         end = end.join(desc_alias, desc_alias.c.fragment_id==FragmentHierarchy.parent_id)
         end = end.filter(FragmentHierarchy.child_id!=None)
@@ -91,8 +84,6 @@ class FragmentAdaptor(object):
         # only return the terminal leaves
         if kwargs.get('leaves', False):
             query = query.filter(Fragment.is_terminal==True)
-
-        session.close()
 
         return query
 

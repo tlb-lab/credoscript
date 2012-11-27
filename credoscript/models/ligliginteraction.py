@@ -3,8 +3,9 @@ from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
 from credoscript import Base
+from credoscript.mixins import PathMixin
 
-class LigLigInteraction(Base):
+class LigLigInteraction(Base, PathMixin):
     """
     Represents a ligand-ligand interaction from CREDO.
     """

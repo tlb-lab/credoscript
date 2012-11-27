@@ -39,4 +39,5 @@ from .bindingsitefuzcav import BindingSiteFuzcav
 from .bindingsite import BindingSite
 from .ligandeff import LigandEff
 from .ligliginteraction import LigLigInteraction
+from .lignucinteraction import LigNucInteraction
 from .meta import Update

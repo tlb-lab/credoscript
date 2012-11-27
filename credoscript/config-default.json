@@ -35,7 +35,8 @@
                         "ring_interactions","saccharides","structures","xrefs",
                         "ligand_uniprot_sifts","ligand_uniprot_sift_nodes",
                         "ligand_uniprot_sift_node_properties","ligand_uniprot_sift_node_to_ligand",
-                        "fuzcav_rep_sc_atoms","updates","lig_lig_interactions"]
+                        "fuzcav_rep_sc_atoms","updates","lig_lig_interactions",
+                        "lig_nuc_interactions"]
         },
 
         "pdb":

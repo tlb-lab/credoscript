@@ -1,13 +1,14 @@
 """
-This extension contains the entities for the UniProt SIFt clustering of all ligands
-in CREDO.
+This extension contains the entities for the UniProt SIFt clustering of all
+ligands in CREDO.
 """
 from xml.etree.ElementTree import Element, SubElement
 
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import aliased, backref, relationship
 from sqlalchemy.sql.expression import and_, or_
 
 from credoscript import Base
+from credoscript.mixins.base import paginate
 
 class LigandUniProtSIFtNode(Base):
     """
@@ -54,34 +55,51 @@ class LigandUniProtSIFtNode(Base):
 
     # the parent node
     Parent = relationship("LigandUniProtSIFtNode",
-                          primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode.node, LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode.node))",
-                            foreign_keys="[LigandUniProtSIFtNode.uniprot, LigandUniProtSIFtNode.links, LigandUniProtSIFtNode.links]",
-                            uselist=False, innerjoin=True)
+                          primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot,\
+                                       or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode.node, \
+                                           LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode.node))",
+                          foreign_keys="[LigandUniProtSIFtNode.uniprot, LigandUniProtSIFtNode.links, LigandUniProtSIFtNode.links]",
+                          uselist=False, innerjoin=True)
 
     LeftNode = relationship("LigandUniProtSIFtNode",
-                            primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.links)",
+                            primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, \
+                                              LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.links)",
                             foreign_keys="[LigandUniProtSIFtNode.uniprot,LigandUniProtSIFtNode.node]",
                             uselist=False, innerjoin=True)
 
     RightNode = relationship("LigandUniProtSIFtNode",
-                             primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.rechts)",
+                             primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, \
+                                               LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.rechts)",
                              foreign_keys="[LigandUniProtSIFtNode.uniprot,LigandUniProtSIFtNode.node]",
                              uselist=False, innerjoin=True)
 
     Property = relationship("LigandUniProtSIFtNodeProperty",
-                             primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNodeProperty.uniprot, LigandUniProtSIFtNode.node==LigandUniProtSIFtNodeProperty.node)",
+                             primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNodeProperty.uniprot, \
+                                               LigandUniProtSIFtNode.node==LigandUniProtSIFtNodeProperty.node)",
                              foreign_keys="[LigandUniProtSIFtNodeProperty.uniprot,LigandUniProtSIFtNodeProperty.node]",
-                             uselist=False, innerjoin=True)
+                             uselist=False, lazy='joined')
 
     _Children = relationship("LigandUniProtSIFtNode",
-                            primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, or_(LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.links, LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.rechts))",
+                            primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode.uniprot, \
+                                         or_(LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.links, \
+                                             LigandUniProtSIFtNode.node==LigandUniProtSIFtNode.rechts))",
                             foreign_keys="[LigandUniProtSIFtNode.uniprot,LigandUniProtSIFtNode.node]",
                             uselist=True, innerjoin=True)
+
+    # only used internally to fetch nodes via ligand_id
+    _Node2Ligand = relationship("LigandUniProtSIFtNode2Ligand",
+                                primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
+                                                  or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node, \
+                                                      LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node))",
+                                foreign_keys="[LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode2Ligand.node]",
+                                uselist=False, innerjoin=True)
 
     # returns the ligands of the node if it has leaves
     Ligands = relationship("Ligand",
                            secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
-                           primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node, LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node))",
+                           primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
+                                        or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node, \
+                                            LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node))",
                            secondaryjoin="LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id",
                            foreign_keys="[LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode2Ligand.node, Ligand.ligand_id]",
                            uselist=True, lazy='dynamic',
@@ -89,14 +107,16 @@ class LigandUniProtSIFtNode(Base):
 
     LeftLigand = relationship("Ligand",
                               secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
-                              primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node)",
+                              primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
+                                                LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node)",
                               secondaryjoin="LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id",
                               foreign_keys="[LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode2Ligand.node, Ligand.ligand_id]",
                               uselist=False)
 
     RightLigand = relationship("Ligand",
                                secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
-                               primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node)",
+                               primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
+                                                 LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node)",
                                secondaryjoin="LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id",
                                foreign_keys="[LigandUniProtSIFtNode2Ligand.uniprot, LigandUniProtSIFtNode2Ligand.node, Ligand.ligand_id]",
                                uselist=False)
@@ -163,15 +183,7 @@ class LigandUniProtSIFtNode(Base):
         """
         Returns all the leaves (ligands) of this node.
         """
-        leaves = []
-        def _iterate_node(node):
-            for child in node.Children:
-                if isinstance(child, Ligand): leaves.append(child)
-                else: _iterate_node(child)
-
-        _iterate_node(self)
-
-        return leaves
+        return LigandUniProtSIFtNodeAdaptor().fetch_all_leaves(self.ligand_uniprot_sift_node_id)
 
     def _clade(self, distance=0):
         """
@@ -207,6 +219,7 @@ class LigandUniProtSIFtNode(Base):
 
             # interaction types as internal arc chart
             if ligand.is_drug_target_int: interaction.text = 'drugtarget'
+            elif ligand.is_enzyme_cmpd: interaction.text = 'enzymecmpd'
 
             # background color to highlight the compound type
             chemcomps = ligand.ChemComps.all()
@@ -222,7 +235,7 @@ class LigandUniProtSIFtNode(Base):
                 elif chemcomp.is_solvent: name.attrib['bgStyle'] = 'solvent'
 
             else:
-               name.attrib['bgStyle'] = 'heteropeptide'
+                name.attrib['bgStyle'] = 'heteropeptide'
 
             # binding site property
             bindingsite = SubElement(chart, 'bindingsite')
@@ -296,6 +309,7 @@ class LigandUniProtSIFtNode(Base):
         # styling of elements: charts, arcs, backgrounds
         styles = SubElement(render, 'styles')
         drugtarget = SubElement(styles, 'drugtarget', {'fill': '#75BBE4', 'stroke':'#DDD'})
+        enzymecmpd = SubElement(styles, 'enzymecmpd', {'fill': '#DEF1CC', 'stroke':'#DDD'})
         bar_chart = SubElement(styles, 'barChart', {'fill':'#999', 'stroke-width':'0'})
 
         # chemical component types
@@ -320,21 +334,28 @@ class LigandUniProtSIFtNode(Base):
 class LigandUniProtSIFtNode2Ligand(Base):
     __tablename__ = 'credo.ligand_uniprot_sift_node_to_ligand'
 
+    Ligand = relationship("Ligand",
+                          primaryjoin="Ligand.ligand_id==LigandUniProtSIFtNode2Ligand.ligand_id",
+                          foreign_keys="[Ligand.ligand_id]",
+                          uselist=False, innerjoin=True)
+
 class LigandUniProtSIFtNodeProperty(Base):
     __tablename__ = 'credo.ligand_uniprot_sift_node_properties'
 
 class LigandUniProtSIFtNodeAdaptor(object):
     """
     """
-    def __init__(self, paginate=False, per_page=100, options=()):
+    def __init__(self, paginate=False, dynamic=False, per_page=100, options=()):
         """
         """
         self.query = LigandUniProtSIFtNode.query
         self.paginate = paginate
+        self.dynamic = dynamic
         self.per_page = per_page
 
         # add options to this query: can be joinedload, undefer etc.
-        for option in options: self.query = self.query.options(option)
+        for option in options:
+            self.query = self.query.options(option)
 
     def fetch_by_ligand_uniprot_sift_node_id(self, ligand_uniprot_sift_node_id):
         """
@@ -346,9 +367,87 @@ class LigandUniProtSIFtNodeAdaptor(object):
         """
         return self.query.filter_by(uniprot=uniprot, is_root=True).first()
 
-    def fetch_by_node(self, uniprot, node):
+    def fetch_by_uniprot_node(self, uniprot, node):
         """
         """
         return self.query.filter_by(uniprot=uniprot, node=node).first()
+
+    def fetch_by_ligand_id(self, ligand_id):
+        """
+        """
+        query = self.query.join('_Node2Ligand')
+        return query.filter(LigandUniProtSIFtNode2Ligand.ligand_id==ligand_id).first()
+
+    @paginate
+    def fetch_all_parents(self, ligand_uniprot_sift_node_id, *expr, **kwargs):
+        """
+        Returns all parent nodes of this node.
+        """
+        descendants = self.query.filter_by(ligand_uniprot_sift_node_id=ligand_uniprot_sift_node_id)
+        descendants = descendants.cte(name="descendants", recursive=True)
+        desc_alias = aliased(descendants, name="d")
+
+        end = self.query.join(desc_alias,
+                              and_(desc_alias.c.uniprot==LigandUniProtSIFtNode.uniprot,
+                                   or_(desc_alias.c.node==LigandUniProtSIFtNode.links,
+                                       desc_alias.c.node==LigandUniProtSIFtNode.rechts)))
+
+        descendants = descendants.union_all(end)
+
+        query = self.query.join(descendants,
+                                descendants.c.ligand_uniprot_sift_node_id==LigandUniProtSIFtNode.ligand_uniprot_sift_node_id)
+
+        query = query.filter(and_(*expr))
+
+        return query
+
+    @paginate
+    def fetch_all_children(self, ligand_uniprot_sift_node_id, *expr, **kwargs):
+        """
+        Returns all descending nodes of this node.
+        """
+        descendants = self.query.filter_by(ligand_uniprot_sift_node_id=ligand_uniprot_sift_node_id)
+        descendants = descendants.cte(name="descendants", recursive=True)
+        desc_alias = aliased(descendants, name="d")
+
+        end = self.query.join(desc_alias,
+                              and_(desc_alias.c.uniprot==LigandUniProtSIFtNode.uniprot,
+                                   or_(desc_alias.c.links==LigandUniProtSIFtNode.node,
+                                       desc_alias.c.rechts==LigandUniProtSIFtNode.node)))
+
+        descendants = descendants.union_all(end)
+
+        query = self.query.join(descendants,
+                                descendants.c.ligand_uniprot_sift_node_id==LigandUniProtSIFtNode.ligand_uniprot_sift_node_id)
+
+        query = query.filter(and_(*expr))
+
+        return query
+
+    @paginate
+    def fetch_all_leaves(self, ligand_uniprot_sift_node_id, *expr, **kwargs):
+        """
+        """
+        descendants = self.query.filter_by(ligand_uniprot_sift_node_id=ligand_uniprot_sift_node_id)
+        descendants = descendants.cte(name="descendants", recursive=True)
+        desc_alias = aliased(descendants, name="d")
+
+        end = self.query.join(desc_alias,
+                              and_(desc_alias.c.uniprot==LigandUniProtSIFtNode.uniprot,
+                                   or_(desc_alias.c.links==LigandUniProtSIFtNode.node,
+                                       desc_alias.c.rechts==LigandUniProtSIFtNode.node)))
+
+        descendants = descendants.union_all(end)
+
+        query = Ligand.query.join(LigandUniProtSIFtNode2Ligand,
+                                  LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id)
+        query = query.join(descendants,
+                           and_(descendants.c.uniprot==LigandUniProtSIFtNode2Ligand.uniprot,
+                                or_(descendants.c.links==LigandUniProtSIFtNode2Ligand.node,
+                                    descendants.c.rechts==LigandUniProtSIFtNode2Ligand.node)))
+
+        query = query.filter(and_(*expr))
+
+        return query
 
 from credoscript.models.ligand import Ligand
