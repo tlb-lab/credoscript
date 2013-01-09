@@ -55,7 +55,6 @@ Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
 interface_residues = metadata.tables['credo.interface_residues']
 groove_residues = metadata.tables['credo.groove_residues']
 prot_fragment_residues = metadata.tables['credo.prot_fragment_residues']
-binding_site_atom_surface_areas = metadata.tables['credo.binding_site_atom_surface_areas']
 chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
 ligand_fcd = metadata.tables['credo.ligand_fcd']
 citations = metadata.tables['pdb.citations']
