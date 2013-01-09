@@ -47,8 +47,9 @@ class PathMixin(object):
     @property
     def pymolstring(self):
         """
+        Returns a PyMOL selection string with the biomolecule identifier removed.
         """
-        return re.sub('/\d+/','//', self.path)
+        return '/' + re.sub('/\d+/','//', self.path)
 
 class PathAdaptorMixin(object):
     """
