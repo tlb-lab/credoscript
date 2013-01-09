@@ -2,7 +2,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import and_, func, or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base, binding_site_atom_surface_areas
+from credoscript import Base
 from credoscript.mixins import PathMixin
 from credoscript.util import rdkit, requires
 
@@ -372,83 +372,83 @@ class Ligand(Base, PathMixin):
         return SIFtAdaptor().fetch_by_ligand_id(self.ligand_id, self.biomolecule_id,
                                                 *expr)
 
-    def buried_surface_area(self, *expr, **kwargs):
-        """
-        Returns the buried solvent-accessible surface areas of the ligand.
-
-        Parameters
-        ----------
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-        state: str, {'apo','bound','delta'}, default='delta'
-            State of the surface.
-        atom_areas: bool, default=False
-            If True, the method returns the Atoms and their change in solvent-accessible
-            surface area for the given projection - otherwise the sum of the individual
-            contributions.
-        projection: str, {'complex','ligand','bindingsite'}
-            The entity for which the surface area should be returned:
-            - complex: all atoms
-            - ligand: only ligand atoms
-            - bindingsite: all the atoms the ligand is in contact with
-
-        Queried Entities
-        ----------------
-        binding_site_atom_surface_areas, Atom, Residue
-
-        Returns
-        -------
-
-        Examples
-        --------
-
-        """
-        state = kwargs.get('state','delta')
-        atom_areas = kwargs.get('atom_areas', False)
-        projection = kwargs.get('projection','complex')
-        polar = kwargs.get('polar', False)
-
-        # CHOOSE WHICH SURFACE STATE SHOULD BE USED
-        if state == 'delta': column = binding_site_atom_surface_areas.c.asa_delta
-        elif state == 'apo': column = binding_site_atom_surface_areas.c.asa_apo
-        elif state == 'bound': column = binding_site_atom_surface_areas.c.asa_bound
-
-        # RETURN THE ATOMS AND THE INDIVIDUAL CHANGE IN SOLVENT-ACCESSIBLE SURFACE AREA
-        if atom_areas:
-            query = session.query(Atom, binding_site_atom_surface_areas.c.asa_delta)
-
-        # RETURN THE SUM OF THE ATOM SURFACE AREA CONTRIBUTIONS
-        else:
-            buried_area = func.sum(column).label('buried_surface_area')
-            query = session.query(buried_area).select_from(Atom)
-
-            # USE THE PARTITION CONSTRAINT-EXCLUSION OF THE ATOMS TABLE!
-            query = query.filter(Atom.biomolecule_id==self.biomolecule_id)
-
-        query = query.join(binding_site_atom_surface_areas,
-                           binding_site_atom_surface_areas.c.atom_id==Atom.atom_id)
-
-        # ONLY INCLUDE LIGAND ATOMS
-        if projection == 'ligand':
-            query = query.join(Residue, Residue.residue_id==Atom.residue_id)
-            query = query.filter(Residue.entity_type_bm.op('&')(2) > 0)
-
-        # ONLY INCLUDE POLYMER ATOMS THAT FORM THE BINDING SITE
-        elif projection == 'bindingsite':
-            query = query.join(Residue, Residue.residue_id==Atom.residue_id)
-            query = query.filter(Residue.entity_type_bm.op('&')(3) == 0)
-
-        query = query.filter(and_(binding_site_atom_surface_areas.c.ligand_id==self.ligand_id,
-                                  *expr))
-
-        # CONSIDER ONLY POLAR ATOMS IN SURFACE AREAS
-        if polar: query = query.filter(Atom.is_polar==True)
-
-        # RETURN SIMPLE SCALAR OR LIST FOR THE ATOMS
-        if not atom_areas: result = query.scalar()
-        else: result = query.all()
-
-        return result
+    #def buried_surface_area(self, *expr, **kwargs):
+    #    """
+    #    Returns the buried solvent-accessible surface areas of the ligand.
+    #
+    #    Parameters
+    #    ----------
+    #    *expr : BinaryExpressions, optional
+    #        SQLAlchemy BinaryExpressions that will be used to filter the query.
+    #    state: str, {'apo','bound','delta'}, default='delta'
+    #        State of the surface.
+    #    atom_areas: bool, default=False
+    #        If True, the method returns the Atoms and their change in solvent-accessible
+    #        surface area for the given projection - otherwise the sum of the individual
+    #        contributions.
+    #    projection: str, {'complex','ligand','bindingsite'}
+    #        The entity for which the surface area should be returned:
+    #        - complex: all atoms
+    #        - ligand: only ligand atoms
+    #        - bindingsite: all the atoms the ligand is in contact with
+    #
+    #    Queried Entities
+    #    ----------------
+    #    binding_site_atom_surface_areas, Atom, Residue
+    #
+    #    Returns
+    #    -------
+    #
+    #    Examples
+    #    --------
+    #
+    #    """
+    #    state = kwargs.get('state','delta')
+    #    atom_areas = kwargs.get('atom_areas', False)
+    #    projection = kwargs.get('projection','complex')
+    #    polar = kwargs.get('polar', False)
+    #
+    #    # CHOOSE WHICH SURFACE STATE SHOULD BE USED
+    #    if state == 'delta': column = binding_site_atom_surface_areas.c.asa_delta
+    #    elif state == 'apo': column = binding_site_atom_surface_areas.c.asa_apo
+    #    elif state == 'bound': column = binding_site_atom_surface_areas.c.asa_bound
+    #
+    #    # RETURN THE ATOMS AND THE INDIVIDUAL CHANGE IN SOLVENT-ACCESSIBLE SURFACE AREA
+    #    if atom_areas:
+    #        query = session.query(Atom, binding_site_atom_surface_areas.c.asa_delta)
+    #
+    #    # RETURN THE SUM OF THE ATOM SURFACE AREA CONTRIBUTIONS
+    #    else:
+    #        buried_area = func.sum(column).label('buried_surface_area')
+    #        query = session.query(buried_area).select_from(Atom)
+    #
+    #        # USE THE PARTITION CONSTRAINT-EXCLUSION OF THE ATOMS TABLE!
+    #        query = query.filter(Atom.biomolecule_id==self.biomolecule_id)
+    #
+    #    query = query.join(binding_site_atom_surface_areas,
+    #                       binding_site_atom_surface_areas.c.atom_id==Atom.atom_id)
+    #
+    #    # ONLY INCLUDE LIGAND ATOMS
+    #    if projection == 'ligand':
+    #        query = query.join(Residue, Residue.residue_id==Atom.residue_id)
+    #        query = query.filter(Residue.entity_type_bm.op('&')(2) > 0)
+    #
+    #    # ONLY INCLUDE POLYMER ATOMS THAT FORM THE BINDING SITE
+    #    elif projection == 'bindingsite':
+    #        query = query.join(Residue, Residue.residue_id==Atom.residue_id)
+    #        query = query.filter(Residue.entity_type_bm.op('&')(3) == 0)
+    #
+    #    query = query.filter(and_(binding_site_atom_surface_areas.c.ligand_id==self.ligand_id,
+    #                              *expr))
+    #
+    #    # CONSIDER ONLY POLAR ATOMS IN SURFACE AREAS
+    #    if polar: query = query.filter(Atom.is_polar==True)
+    #
+    #    # RETURN SIMPLE SCALAR OR LIST FOR THE ATOMS
+    #    if not atom_areas: result = query.scalar()
+    #    else: result = query.all()
+    #
+    #    return result
 
     def usrcat(self, *expr, **kwargs):
         """
