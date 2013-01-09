@@ -46,8 +46,7 @@ class PhenotypeAdaptor(object):
         """
         Return all phenotypes whose description matches the given keyword(s).
         """
-        return self.query.filter(
-            and_(func.lower(Phenotype.description).contains(description),
-                 *expr))
+        return self.query.filter(and_(func.lower(Phenotype.description)\
+                                      .contains(description.lower()), *expr))
 
 from credoscript.models.variation import Annotation, Phenotype
