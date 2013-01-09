@@ -64,7 +64,7 @@ class Chain(Base, PathMixin):
                               collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
                               primaryjoin="Residue.chain_id==Chain.chain_id",
                               foreign_keys="[Residue.chain_id]",
-                              uselist=True, innerjoin=True, lazy=True)
+                              uselist=True, innerjoin=True)
 
     Peptides = relationship("Peptide",
                             collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
@@ -72,6 +72,12 @@ class Chain(Base, PathMixin):
                             foreign_keys="[Peptide.chain_id]",
                             uselist=True, innerjoin=True,  lazy='dynamic',
                             backref=backref('Chain', uselist=False, innerjoin=True))
+
+    PeptideMap = relationship("Peptide",
+                              collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
+                              primaryjoin="Peptide.chain_id==Chain.chain_id",
+                              foreign_keys="[Peptide.chain_id]",
+                              uselist=True, innerjoin=True)
 
     Nucleotides = relationship("Nucleotide",
                                collection_class=attribute_mapped_collection("_res_num_ins_code_tuple"),
@@ -119,10 +125,10 @@ class Chain(Base, PathMixin):
         """
         return '<Chain({self.path})>'.format(self=self)
 
-    def __getitem__(self, res_name, ins_code=' '):
+    def __getitem__(self, res_num, ins_code=' '):
         """
         """
-        return self.ResidueMap.get(res_name, ins_code)
+        return self.ResidueMap.get((res_num, ins_code))
 
     def __getslice__(self, m, n):
         """
@@ -169,8 +175,6 @@ class Chain(Base, PathMixin):
                  *expr))
 
         result = session.execute(statement).fetchall()
-
-        session.close()
 
         return result
 
