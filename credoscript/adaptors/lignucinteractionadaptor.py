@@ -68,6 +68,15 @@ class LigNucInteractionAdaptor(PathAdaptorMixin):
 
         return query
 
+    @paginate
+    def fetch_all_having_app_drugs(self, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('Ligand','ChemComps')
+        query = query.filter(and_(ChemComp.is_approved_drug==True, *expr))
+
+        return query
+
 from credoscript.models.lignucinteraction import LigNucInteraction
 from credoscript.models.ligand import Ligand
 from credoscript.models.chemcomp import ChemComp

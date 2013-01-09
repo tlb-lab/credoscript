@@ -35,3 +35,7 @@ class LigNucInteractionAdaptorTestCase(CredoAdaptorTestCase):
     def fetch_all_having_drug_like_ligands(self):
         """Fetch all ligand-nucleic acid interactions where the ligand is drug-like"""
         self.assertPaginatedResult('fetch_all_having_drug_like_ligands')
+
+    def fetch_all_having_app_drugs(self):
+        """Fetch all ligand-nucleic acid interactions where the ligand is an approved drug"""
+        self.assertPaginatedResult('fetch_all_having_app_drugs')
