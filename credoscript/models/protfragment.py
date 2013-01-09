@@ -1,7 +1,9 @@
+import re
 from sqlalchemy.orm import backref, relationship
 
 from credoscript import Base
 from credoscript.mixins import PathMixin
+
 
 class ProtFragment(Base, PathMixin):
     '''
@@ -39,5 +41,29 @@ class ProtFragment(Base, PathMixin):
         '''
         adaptor = ProtFragmentAdaptor(dynamic=True)
         return adaptor.fetch_all_by_fragment_seq(self.fragment_seq)
+
+    @property
+    def pymolstring(self):
+        """
+        Returns a PyMOL selection string for this protein secondary structure
+        fragment.
+        
+        Example
+        -------
+        /2P33//A/64+65+66+67+68+69+70+71+72
+        """
+        if self.completeness > 0:
+
+            # get the residue number of the peptide that form this fragment
+            resnums = sorted(peptide.res_num for peptide in self.Peptides.all())
+
+            # remove the internal terminal path label (PF:X)
+            path = self.path.rsplit('/', 1)[0]
+
+            # remove the biomolecule identifier subpath
+            path = '/' + re.sub('/\d+/','//', path)
+
+            # append the residue numbers
+            return path + '/' + '+'.join(map(str, resnums))
 
 from ..adaptors.protfragmentadaptor import ProtFragmentAdaptor
