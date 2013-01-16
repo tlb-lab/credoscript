@@ -45,7 +45,6 @@ class SIFtAdaptor(object):
         where = and_(Atom.residue_id==residue_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     Contact.is_secondary==False,
                      *expr)
 
         query = Contact.query.join('Atoms').filter(where)
@@ -60,7 +59,6 @@ class SIFtAdaptor(object):
         where = and_(Residue.chain_id==chain_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     Contact.is_secondary==False,
                      *expr)
 
         query = Residue.query.join('Atoms','Contacts').filter(where)
@@ -76,7 +74,6 @@ class SIFtAdaptor(object):
         where = and_(BindingSiteResidue.ligand_id==ligand_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     Contact.is_secondary==False,
                      *expr)
 
         query = Residue.query.join('Atoms','Contacts').filter(where)
@@ -102,7 +99,6 @@ class SIFtAdaptor(object):
         where = and_(MatchAtom.atom_name==func.any(atom_names),
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     Contact.is_secondary==False,
                      Hetatm.ligand_id==ligand_id, *expr)
 
         query = Contact.query.add_columns(Atom.residue_id.label('residue_id'))
@@ -130,7 +126,6 @@ class SIFtAdaptor(object):
         where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id,
                      Contact.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     Contact.is_secondary==False,
                      *expr)
 
         query = Contact.query.add_columns(Atom.residue_id.label('residue_id'))
