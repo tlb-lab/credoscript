@@ -204,14 +204,46 @@ class LigandAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_true_fragments(self, *expr, **kwargs):
+        """
+        Returns all ligands that are true fragments, i.e. not derived through
+        RECAP fragmentation.
+        """
+        query = self.query.join('ChemComp')
+        query = query.filter(and_(ChemComp.is_fragment==True, *expr))
+
+        return query
+
+    @paginate
     def fetch_all_in_contact_with_kinases(self, *expr, **kwargs):
         """
-        Returns all ligands whose binding sites are in
+        Returns all ligands whose binding sites are in contact with protein
+        kinase chains.
         """
         query = self.query.join('BindingSite')
         query = query.filter(and_(BindingSite.is_kinase==True, *expr))
 
         return query
+
+    @paginate
+    def fetch_all_having_xbonds(self, *expr, **kwargs):
+        """
+        Returns all ligands that form halogen bonds.
+        """
+        query = self.query.join('LigandFragments')
+        query = query.filter(and_(LigandFragment.num_xbond>0, *expr))
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_having_metal_complexes(self, *expr, **kwargs):
+        """
+        Returns all ligands that form metal complexes.
+        """
+        query = self.query.join('LigandFragments')
+        query = query.filter(and_(LigandFragment.num_metal_complex>0, *expr))
+
+        return query.distinct()
 
     @paginate
     def fetch_all_most_recent(self, *expr, **kwargs):
@@ -395,6 +427,8 @@ class LigandAdaptor(PathAdaptorMixin):
 from ..models.xref import XRef
 from ..models.peptide import Peptide
 from ..models.ligand import Ligand
+from ..models.ligandfragment import LigandFragment
+from ..models.chemcomp import ChemComp
 from ..models.bindingsite import BindingSite
 from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure
