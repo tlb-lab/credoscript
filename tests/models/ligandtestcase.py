@@ -37,6 +37,10 @@ class LigandTestCase(CredoEntityTestCase):
         "Test if ligand has mapped binding site."
         self.assertOneToOne(self.ligand, 'BindingSite', models.BindingSite)
 
+    def test_has_chem_comp(self):
+        "Test if ligand has a chemical component."
+        self.assertOneToOne(self.ligand, 'ChemComp', models.ChemComp)
+
     # direct one-to-many mappings
 
     def test_has_atoms(self):
