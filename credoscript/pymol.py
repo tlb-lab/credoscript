@@ -79,27 +79,32 @@ def show_disordered_regions(self, *args, **kwargs):
     Visualises disordered regions inside protein chains by connecting the residues
     flanking those regions with PyMOL distance objects.
     """
-    for chain in self.Chains.values():
-        for region in chain.get_disordered_regions():
+    for chain in self.Chains.all():
+        for region in chain.disordered_regions():
 
             # GET THE RESIDUES FLANKING THE DISORDERED REGION
             rbgn, rend = chain[region.region_start-1], chain[region.region_end+1]
 
             # FLANKING RESIDUES CANNOT BE OBTAINED / MOST LIKELY N- OR C-TERMINAL REGIONS
             if not rbgn or not rend:
-                msg = "Could not obtain the residues flanking region {0}-{1}".format(region.region_start, region.region_end)
-                warn(msg, UserWarning)
+                warn("Could not obtain the residues flanking region {0}-{1}."
+                     .format(region.region_start, region.region_end),
+                     UserWarning)
 
                 continue
 
             try:
                 # CREATE A DASHED LINE TO VISUALISE THE DISORDERD REGION
-                pymol.distance('disordered_regions', rbgn['CA'].pymolstring, rend['CA'].pymolstring)
-                pymol.color(config['pymol']['dashcolor']['disordered_region'], 'disordered_regions')
+                pymol.distance('disordered_regions', rbgn['CA'].pymolstring,
+                               rend['CA'].pymolstring)
+                pymol.color(config['pymol']['dashcolor']['disordered_region'],
+                            'disordered_regions')
 
                 # ALSO COLOR THE CA ATOMS OF THE FLANKING RESIDUES
-                pymol.color(config['pymol']['dashcolor']['disordered_region'], rbgn['CA'].pymolstring)
-                pymol.color(config['pymol']['dashcolor']['disordered_region'], rend['CA'].pymolstring)
+                pymol.color(config['pymol']['dashcolor']['disordered_region'],
+                            rbgn['CA'].pymolstring)
+                pymol.color(config['pymol']['dashcolor']['disordered_region'],
+                            rend['CA'].pymolstring)
 
                 # REMOVE THE DISTANCE LABELS
                 pymol.hide('labels', 'disordered_regions')
@@ -116,15 +121,16 @@ def load_biomolecule(self, *args, **kwargs):
     assembly_serial = self.assembly_serial
 
     # string used to represent biomolecule in PyMOL
-    string_id = '{0}-{1}'.format(pdb, assembly_serial)
+    string_id = '{0}-{1}'.format(pdb.lower(), assembly_serial)
 
     # look for structure on local mirror
-    path = os.path.join(PDB_DIR, '{0}.pdb'.format(string_id))
+    path = os.path.join(PDB_DIR, pdb.lower()[1:3], pdb.lower(),
+                        '{0}.pdb'.format(string_id))
 
-    if os.path.exists(path): pymol.load(path, string_id)
+    if os.path.isfile(path): pymol.load(path, string_id)
     else: raise IOError('the structure cannot be found: {0}'.format(path))
 
-    # SHOW PROTEIN AS CARTOON WITH SIDE CHAINS
+    # show protein as cartoon with side chains
     pymol.show('cartoon')
     pymol.set('cartoon_side_chain_helper', 1)
 
@@ -132,24 +138,27 @@ def load_biomolecule(self, *args, **kwargs):
 
     pymol.group(group, string_id)
 
-    # COLOR ALL CARBONS GREY
+    # color all carbons grey
     pymol.color(config['pymol']['colors']['carbon'],'(symbol c)')
 
-    # CREATE CENTROIDS OF AROMATIC RINGS
+    # create centroids of aromatic rings
     if kwargs.get('show_rings'):
-        for ring in self.AromaticRings:
+        for ring in self.AromaticRings.all():
             ring.show(obj=string_id, normal=True, group=group)
 
-    # SHOW LIGANDS AS STICKS INCLUDING CENTROIDS
-    for ligand in self.Ligands: ligand.show(group=group)
+    # show ligands as sticks including centroids
+    for ligand in self.Ligands.all():
+        ligand.show(group=group)
 
-    # REMOVE WATER MOLECULES FROM PYMOL (DEFAULT FALSE)
-    if kwargs.get('hide_water', False): pymol.hide('everything','resn HOH')
+    # remove water molecules from pymol (default false)
+    if kwargs.get('hide_water', False):
+        pymol.hide('everything','resn HOH')
 
-    # HIGHLIGHT MODIFIED RESIDUES
-    if kwargs.get('non_std_res', True): show_non_std_res(group=group)
+    # highlight modified residues
+    if kwargs.get('non_std_res', True):
+        show_non_std_res(group=group)
 
-    # SHOW DNA AS CARTOON
+    # show dna as cartoon
     show_nucleotides(group=group)
 
     pymol.orient(string_id)
@@ -170,10 +179,10 @@ def show_ligand(self, **kwargs):
         pymol.select(self.ligand_id, self.pymolstring)
         pymol.show('spheres', self.pymolstring)
 
-    # CREATE LIGAND GROUP
+    # create ligand group
     pymol.group('LIGAND-{0}'.format(self.ligand_id), self.ligand_id)
 
-    # ADD LIGAND GROUP TO STRUCTURE GROUP
+    # add ligand group to structure group
     pymol.group(group, 'LIGAND-{0}'.format(self.ligand_id))
 
     pymol.disable(self.ligand_id)
@@ -184,54 +193,59 @@ def show_aromatic_ring(self, **kwargs):
     """
     color = kwargs.get('color', 'grey70')
     group = kwargs.get('group')
-    obj = kwargs.get('obj', '') # SHOULD BE PDB CODE
+    obj = kwargs.get('obj', '') # should be pdb code
 
     coords = map(float, self.Centroid)
-    cname = 'CX{0}'.format(self.ring_number)
 
+    # name of the pseudoatom / also last part of aromatic ring path
+    cname = 'AR{0}'.format(self.ring_number)
+
+    # the residue details for the new pseudoatom
     chain = self.Residue.Chain.pdb_chain_id
     res_num = self.Residue.res_num
     res_name = self.Residue.res_name
     ins_code = self.Residue.ins_code.strip()
 
-    pymol.pseudoatom(obj, pos=coords, name=cname, chain=chain, res_num=str(res_num)+ins_code,
-                     res_name=res_name, color=color, vdw=0.5)
+    # create the centroid with the residue details
+    pymol.pseudoatom(obj, pos=coords, name=cname, chain=chain,
+                     res_num=str(res_num)+ins_code, res_name=res_name,
+                     color=color, vdw=0.5)
 
     pymol.hide('everything', self.pymolstring)
     pymol.show('sphere', self.pymolstring)
 
-    # SHOW THE RING NORMAL
+    # show the ring normal
     if kwargs.get('normal'):
         normal = map(float, self.Normal + self.Centroid)
         nname = 'NX{0}'.format(self.ring_number)
         nselect = '{0}/{1}'.format(self.Residue.pymolstring, nname)
         label = '{0}-NORMALS'.format(self.Biomolecule.biomolecule_id)
 
-        # CREATE A PSEUDONATOM TO REPRESENT THE TIP OF THE RING NORMAL
+        # create a pseudonatom to represent the tip of the ring normal
         pymol.pseudoatom(obj, pos=normal, name=nname, chain=chain,
                          res_num=str(res_num)+ins_code, res_name=res_name,
                          color=color, vdw=0.0)
 
-
+        # create a line between the centroid and the end of the normal
         pymol.distance(label, self.pymolstring, nselect)
 
-        # HIDE THE DISTANCE LABEL
+        # hide the distance label
         pymol.hide('labels', label)
 
-        # FORMAT NORMAL
+        # format normal
         pymol.color(config['pymol']['dashcolor']['normal'], label)
         pymol.set('dash_radius', config['pymol']['dashradius']['normal'], label)
         pymol.set('dash_gap', config['pymol']['dashgap']['normal'], label)
         pymol.set('dash_length', config['pymol']['dashlength']['normal'], label)
 
-        # HIDE THE PSEUDOATOMS LINES OF THE NORMAL POSITION
+        # hide the pseudoatoms lines of the normal position
         pymol.hide('everything', nselect)
 
-        # ADD NORMALS OF THIS BIOMOLECULE TO BIOMOL GROUP
+        # add normals of this biomolecule to biomol group
         if group: pymol.group(group, label)
 
 @defer_update
-def show_contacts(self, *expressions, **kwargs):
+def show_contacts(self, *expr, **kwargs):
     """
     Visualises all interatomic contacts of this entity with other entities through
     colour-coded PyMOL distance objects.
@@ -249,78 +263,83 @@ def show_contacts(self, *expressions, **kwargs):
     >>>
 
     """
-    # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
-    credo_class = self.__class__.__name__
-
-    # GET THE PRIMARY KEY OF THE ENTITY
-    credo_id = self._entity_id
-
     labels = kwargs.get('labels', False)
 
-    contacts = self.Contacts.filter(and_(*expressions)).all()
+    # get the class name of the object the function is attached to
+    credo_class = self.__class__.__name__
 
-    # ALSO INCLUDE BRIDGED HBONDS
+    # get the primary key of the entity
+    credo_id = self._entity_id
+
+    # fetch all the contacts for this entity
+    contacts = self.Contacts.filter(and_(*expr)).all()
+
+    # also include bridged hbonds
     if kwargs.get('water_bridges', False):
-        for water in self.get_proximal_water():
+        for water in self.ProximalWater.all():
 
-            # KEEP ONLY THOSE BRIDGES THAT ARE WITHIN THE MAXIMUM DISTANCE OF 6.05 ANGSTROM
-            for wc1, wc2 in combinations(water.Contacts,2):
+            # keep only those bridges that are within the maximum distance
+            # of 6.05 angstrom
+            for wc1, wc2 in combinations(water.Contacts, 2):
                 if wc1.distance + wc2.distance <= 6.1:
                     contacts.extend([wc1,wc2])
 
-    # TURN INTO SET TO AVOID DUPLICATES WITH WATER CONTACTS
+    # turn into set to avoid duplicates with water contacts
     contacts = set(contacts)
 
-    # KEEP TRACK OF INTERACTION TYPES THAT ARE PRESENT IN THIS PROTEIN-LIGAND COMPLEX
+    # keep track of interaction types that are present
     used_interaction_types = set()
 
     for contact in contacts:
         interactions = []
 
-        # DISTANCE FLAG
+        # distance flag
         if contact.is_covalent: DIST_FLAG = 'covalent'
         elif contact.is_vdw_clash: DIST_FLAG = 'vdwclash'
         elif contact.is_vdw: DIST_FLAG = 'vdw'
         elif contact.is_proximal: DIST_FLAG = 'proximal'
 
-        sift = contact.sift[4:]
+        # feature interactions
+        sift = contact.sift[5:]
 
         if not any(sift):
             interactions.append(('undefined', DIST_FLAG))
 
-        # ADD ALL INTERACTIONS FOR THIS PAIR
+        # add all interactions for this pair
         else:
-            interactions.extend(((contact_type, DIST_FLAG) for contact_type,s in zip(TYPES,sift) if s))
+            interactions.extend(((contact_type, DIST_FLAG)
+                                 for contact_type,s in zip(TYPES,sift) if s))
 
-        # DRAW THE DISTANCE IN PYMOL
+        # draw the distance in pymol
         for contact_type, flag in interactions:
 
-            # CREATE DISTANCE OBJECT IN PYMOL BETWEEN THE TWO ATOMS
+            # create distance object in pymol between the two atoms
             pymol.distance('{0}-{1}-{2}'.format(credo_id, contact_type, flag),
                            contact.AtomBgn.pymolstring, contact.AtomEnd.pymolstring)
 
-            # KEEP TRACK OF USED INTERACTION TYPES
+            # keep track of used interaction types
             used_interaction_types.add((contact_type, flag))
 
-    # UPDATE ONLY EXISTING TYPES TO PREVENT AN ERROR IN PYMOL
+    # update only existing types to prevent an error in pymol
     for contact_type, flag in used_interaction_types:
         label = '{0}-{1}-{2}'.format(credo_id, contact_type, flag)
 
-        # UPDATE THE VISUALISATION OF THE INTERACTION TYPES
+        # update the visualisation of the interaction types
         pymol.color(config['pymol']['dashcolor'][contact_type][flag], label)
         pymol.set('dash_radius', config['pymol']['dashradius'][contact_type][flag], label)
         pymol.set('dash_gap', config['pymol']['dashgap'][contact_type][flag], label)
         pymol.set('dash_length', config['pymol']['dashlength'][contact_type][flag], label)
 
-        interaction_group = '{0}-{1}'.format(credo_id, contact_type.upper())
+        # remove the distance labels
+        if not labels: pymol.hide('labels', label)
 
+    # group the contacts by type and add the groups to the ligand group
+    for contact_type in set(zip(*used_interaction_types)[0]):
+        interaction_group = '{0}-{1}'.format(credo_id, contact_type.upper())
         pymol.group(interaction_group, '{0}-{1}-*'.format(credo_id, contact_type))
         pymol.group('{0}-{1}'.format(credo_class.upper(), credo_id), interaction_group)
 
-        # REMOVE THE DISTANCE LABELS
-        if not labels: pymol.hide('labels', label)
-
-    # ORDER OBJECTS
+    # order objects
     pymol.order('*')
 
 @defer_update
@@ -403,22 +422,23 @@ def highlight_secondary_contacts(self, *args, **kwargs):
 def show_ring_interactions(self, *args, **kwargs):
     """
     """
-    # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
+    # get the class name of the object the function is attached to
     credo_class = self.__class__.__name__
 
-    # EXPLOIT THE FACT THAT THE HASH FUNCTION FOR EACH ENTITY IS OVERLOADED TO RETURN THE PRIMARY KEY
+    # exploit the fact that the hash function for each entity is overloaded to
+    # return the primary key
     credo_id = self._entity_id
 
     labels = kwargs.get('labels', True)
     group = kwargs.get('group', '{0}-{1}'.format(credo_class.upper(), credo_id))
 
-    # GET THE RING INTERACTIONS OF THIS OBJECT
+    # get the ring interactions of this object
     if hasattr(self, 'RingInteractions'):
         ring_interactions = self.RingInteractions
-    elif hasattr(self, 'get_ring_interactions'):
-        ring_interactions = self.get_ring_interactions(RingInteraction.closest_atom_distance<=4.5)
     else:
-        raise RuntimeError('Entity {entity} does not have aromatic ring interactions associated with it.'.format(entity=credo_class))
+        raise RuntimeError("Entity {entity} does not have aromatic ring "
+                           "interactions associated with it."
+                           .format(entity=credo_class))
 
     for ringint in ring_interactions:
         bgn, end = ringint.AromaticRingBgn, ringint.AromaticRingEnd
@@ -429,49 +449,58 @@ def show_ring_interactions(self, *args, **kwargs):
         pymol.color(config['pymol']['dashcolor']['aromatic']['vdw'], label)
         pymol.set('dash_radius', '0.08', label)
 
-        # HIDE THE TEXT LABELS
+        # hide the text labels
         if not labels: pymol.hide('labels', label)
 
         pymol.group(group, label)
 
 @defer_update
-def show_atom_ring_interactions(self, *args, **kwargs):
+def show_atom_ring_interactions(self, *expr, **kwargs):
     """
+    The ring centroids have to be added first.
     """
-    # GET THE CLASS NAME OF THE OBJECT THE FUNCTION IS ATTACHED TO
+    labels = kwargs.get('labels', True)
+
+    # get the class name of the object the function is attached to
     credo_class = self.__class__.__name__
 
-    # EXPLOIT THE FACT THAT THE HASH FUNCTION FOR EACH ENTITY IS OVERLOADED TO RETURN THE PRIMARY KEY
+    # exploit the fact that the hash function for each entity is overloaded to
+    # return the primary key
     credo_id = self._entity_id
 
-    labels = kwargs.get('labels', True)
     group = kwargs.get('group', '{0}-{1}'.format(credo_class.upper(), credo_id))
 
-    # GET THE RING INTERACTIONS OF THIS OBJECT
+    # get the ring interactions of this object
     if hasattr(self, 'AtomRingInteractions'):
-        atom_ring_interactions = self.AtomRingInteractions
-    elif hasattr(self, 'get_atom_ring_interactions'):
-        atom_ring_interactions = self.get_atom_ring_interactions()
+        atom_ring_interactions = self.AtomRingInteractions.filter(and_(*expr)).all()
     else:
-        raise RuntimeError('Entity {entity} does not have atom-ring interactions associated with it.'.format(entity=credo_class))
+        raise RuntimeError("Entity {entity} does not have atom-ring interactions "
+                           "associated with it.".format(entity=credo_class))
 
     for atomringint in atom_ring_interactions:
-        atom, aromaticring, interaction_type = atomringint.Atom, atomringint.AromaticRing, atomringint.interaction_type
+        atom = atomringint.Atom
+        aromaticring = atomringint.AromaticRing
+        interaction_type = atomringint.interaction_type if atomringint.interaction_type else 'UNDEF'
 
         label = 'ATOMRINGINT-{atomringint.interaction_type}-{atomringint.atom_ring_interaction_id}'.format(atomringint=atomringint)
         pymol.distance(label, atom.pymolstring, aromaticring.pymolstring)
 
-        # COLOR THE INTERACTION BASED ON TYPE
-        if atomringint.interaction_type == 'CARBONPI': color = config['pymol']['dashcolor']['weakhbond']['vdw']
-        elif atomringint.interaction_type == 'HALOGENPI': color = config['pymol']['dashcolor']['weakhbond']['vdw']
-        elif atomringint.interaction_type == 'DONORPI': color = config['pymol']['dashcolor']['hbond']['vdw']
-        elif atomringint.interaction_type == 'CATIONPI': color = config['pymol']['dashcolor']['ionic']['vdw']
-        else: color = config['pymol']['dashcolor']['undefined']['vdw']
+        # color the interaction based on type
+        if atomringint.interaction_type == 'CARBONPI':
+            color = config['pymol']['dashcolor']['weakhbond']['vdw']
+        elif atomringint.interaction_type == 'HALOGENPI':
+            color = config['pymol']['dashcolor']['xbond']['vdw']
+        elif atomringint.interaction_type == 'DONORPI':
+            color = config['pymol']['dashcolor']['hbond']['vdw']
+        elif atomringint.interaction_type == 'CATIONPI':
+            color = config['pymol']['dashcolor']['ionic']['vdw']
+        else:
+            color = config['pymol']['dashcolor']['undefined']['vdw']
 
         pymol.color(color, label)
         pymol.set('dash_radius', '0.08', label)
 
-        # HIDE THE TEXT LABEL
+        # hide the text label
         if not labels: pymol.hide('labels', label)
 
         pymol.group(group, label)
