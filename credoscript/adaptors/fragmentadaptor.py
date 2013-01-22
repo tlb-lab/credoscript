@@ -20,6 +20,8 @@ class FragmentAdaptor(object):
     @paginate
     def fetch_all_by_het_id(self, het_id, *expr, **kwargs):
         """
+        Returns all fragments that are derived from the given chemical component
+        HET-ID.
         """
         query = self.query.join(ChemCompFragment,
                                 ChemCompFragment.fragment_id==Fragment.fragment_id)
@@ -31,6 +33,7 @@ class FragmentAdaptor(object):
     @paginate
     def fetch_all_children(self, fragment_id, *expr, **kwargs):
         """
+        Returns all fragments that are derived from this fragment through RECAP.
         """
         query = self.query.join(FragmentHierarchy,
                                 FragmentHierarchy.child_id==Fragment.fragment_id)
@@ -92,6 +95,55 @@ class FragmentAdaptor(object):
         """
         return self.fetch_all_descendants(fragment_id, *expr, leaves=True, **kwargs)
 
+    @paginate
+    def fetch_all_having_xbonds(self, *expr, **kwargs):
+        """
+        Returns all fragments that form halogen bonds in CREDO.
+
+        Parameters
+        ----------
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        Fragment, LigandFragment
+
+        Returns
+        -------
+        fragments : list
+            fragments that form halogen bonds.
+        """
+        query = self.query.join('LigandFragments')
+        query = query.filter(and_(LigandFragment.num_xbond>0, *expr))
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_having_metal_complexes(self, *expr, **kwargs):
+        """
+        Returns all ligand fragments that form metal complexes.
+
+        Parameters
+        ----------
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        Fragment, LigandFragment
+
+        Returns
+        -------
+        fragments : list
+            fragments that form metal complexes.
+        """
+        query = self.query.join('LigandFragments')
+        query = query.filter(and_(LigandFragment.num_metal_complex>0, *expr))
+
+        return query.distinct()
+
 from ..models.fragment import Fragment
+from ..models.ligandfragment import LigandFragment
 from ..models.fragmenthierarchy import FragmentHierarchy
 from ..models.chemcompfragment import ChemCompFragment
