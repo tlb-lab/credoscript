@@ -518,6 +518,30 @@ class ChemCompAdaptor(object):
 
         return query
 
+    @paginate
+    def fetch_all_having_xbonds(self, *expr, **kwargs):
+        """
+        Returns all chemical components that form halogen bonds in CREDO.
+
+        Parameters
+        ----------
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        ChemComp, LigandComponent, LigandFragment
+
+        Returns
+        -------
+        chemcomps : list
+            chemcomps that form halogen bonds.
+        """
+        query = self.query.join('LigandComponents','LigandFragments')
+        query = query.filter(and_(LigandFragment.num_xbond>0, *expr))
+
+        return query.distinct()
+
 from ..models.xref import XRef
 from ..models.chemcomp import ChemComp
 from ..models.chemcompfragment import ChemCompFragment
@@ -525,3 +549,4 @@ from ..models.chemcompconformer import ChemCompConformer
 from ..models.chemcomprdmol import ChemCompRDMol
 from ..models.chemcomprdfp import ChemCompRDFP
 from ..models.residue import Residue
+from ..models.ligandfragment import LigandFragment
