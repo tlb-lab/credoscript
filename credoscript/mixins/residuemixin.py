@@ -20,10 +20,11 @@ class ResidueMixin(object):
         """
         return iter(self.Atoms)
 
-    def __getitem__(self, atom_name, alt_loc=' '):
+    def __getitem__(self, t):
         """
         """
-        return self.AtomMap.get((atom_name, alt_loc))
+        if not isinstance(t, tuple): t = (t, ' ')
+        return self.AtomMap.get(t)
 
     @property
     def _res_num_ins_code_tuple(self):

@@ -125,10 +125,11 @@ class Chain(Base, PathMixin):
         """
         return '<Chain({self.path})>'.format(self=self)
 
-    def __getitem__(self, res_num, ins_code=' '):
+    def __getitem__(self, t):
         """
         """
-        return self.ResidueMap.get((res_num, ins_code))
+        if not isinstance(t, tuple): t = (t, ' ')
+        return self.ResidueMap.get(t)
 
     def __getslice__(self, m, n):
         """
