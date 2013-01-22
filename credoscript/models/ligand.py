@@ -93,6 +93,11 @@ class Ligand(Base, PathMixin):
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    ChemComp = relationship("ChemComp",
+                            primaryjoin="Ligand.ligand_name==ChemComp.het_id",
+                            foreign_keys="[ChemComp.het_id]", uselist=False,
+                            innerjoin=True)
+
     ChemComps = relationship("ChemComp",
                             secondary=Base.metadata.tables['credo.ligand_components'],
                             primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
