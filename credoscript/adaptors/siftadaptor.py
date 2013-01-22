@@ -63,7 +63,7 @@ class SIFtAdaptor(object):
 
         query = Residue.query.join('Atoms','Contacts').filter(where)
         query = query.add_columns(*self._sift)
-        query = query.group_by(Residue.residue_id).order_by(Residue.residue_id)
+        query = query.group_by(Residue).order_by(Residue.residue_id)
 
         return query.all()
 
@@ -80,7 +80,7 @@ class SIFtAdaptor(object):
         query = query.join(BindingSiteResidue,
                            and_(BindingSiteResidue.residue_id==Atom.residue_id,
                                 BindingSiteResidue.entity_type_bm==Residue.entity_type_bm))
-        query = query.group_by(Residue.residue_id).order_by(Residue.residue_id)
+        query = query.group_by(Residue).order_by(Residue.residue_id)
         query = query.add_columns(*self._sift)
 
         return query.all()
