@@ -14,6 +14,22 @@ class ChainAdaptorTestCase(CredoAdaptorTestCase):
         """Fetch chains by structure_id"""
         self.assertPaginatedResult('fetch_all_by_structure_id', 1)
 
+    def test_fetch_all_polypeptides(self):
+        """Fetch all polypeptides"""
+        self.assertPaginatedResult('fetch_all_polypeptides')
+
+    def test_fetch_all_oligonucleotides(self):
+        """Fetch all oligonucleotides"""
+        self.assertPaginatedResult('fetch_all_oligonucleotides')
+
+    def test_fetch_all_kinases(self):
+        """Fetch all kinases"""
+        self.assertPaginatedResult('fetch_all_kinases')
+
+    def test_fetch_all_biotherapeutics(self):
+        """Fetch all kinases"""
+        self.assertPaginatedResult('fetch_all_biotherapeutics')
+
     def test_fetch_all_by_uniprot(self):
         """Fetch chains by UniProt accession"""
         self.assertPaginatedResult('fetch_all_by_uniprot', 'P00520')
