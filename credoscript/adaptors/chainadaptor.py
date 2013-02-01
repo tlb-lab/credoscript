@@ -57,9 +57,18 @@ class ChainAdaptor(PathAdaptorMixin):
         """
         """
         query = self.query.join('Polypeptide')
-        query = query.filter(and_(Polypetide.is_kinase==True, *expr))
+        query = query.filter(and_(Polypeptide.is_kinase==True, *expr))
 
         return query
+
+    @paginate
+    def fetch_all_biotherapeutics(self, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('XRefs')
+        query = query.filter(and_(XRef.source=='ChEMBL Biotherapeutic', *expr))
+
+        return query.distinct()
 
     @paginate
     def fetch_all_oligonucleotides(self, *expr, **kwargs):

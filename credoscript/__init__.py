@@ -30,7 +30,7 @@ if not os.path.exists(CONFIG_PATH):
 config   = json.loads(open(CONFIG_PATH).read())
 
 url      = URL(**config['connection'])
-engine   = create_engine(url, echo=config['debug']['SQL'])
+engine   = create_engine(url, echo=config['debug']['SQL'], connect_args={'sslmode': 'disable'})
 metadata = MetaData(bind=engine)
 
 # suppress warnings concerning postgresql-specific types and indexes
