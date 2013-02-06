@@ -14,7 +14,6 @@ from .ligandusr import LigandUSR
 from .ligandmolstring import LigandMolString
 from .ligand import Ligand
 from .ligandmatch import LigandMatch
-from .bindingsiteresidue import BindingSiteResidue
 from .ringinteraction import RingInteraction
 from .atomringinteraction import AtomRingInteraction
 from .groove import Groove
@@ -35,9 +34,9 @@ from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
 from .variation import Variation, Annotation, Phenotype
-from .bindingsitefuzcav import BindingSiteFuzcav
-from .bindingsite import BindingSite
+from .bindingsite import BindingSite, BindingSiteDomain, BindingSiteFuzcav, BindingSiteResidue
 from .ligandeff import LigandEff
 from .ligliginteraction import LigLigInteraction
 from .lignucinteraction import LigNucInteraction
+from .domain import Domain, DomainPeptide
 from .meta import Update

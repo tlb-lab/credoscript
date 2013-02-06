@@ -172,6 +172,13 @@ class Ligand(Base, PathMixin):
                         uselist=True,
                         backref=backref('Ligand', uselist=False, innerjoin=True))
 
+    DomainList = relationship("Domain",
+                              secondary=Base.metadata.tables['credo.binding_site_domains'],
+                              primaryjoin="Ligand.ligand_id==BindingSiteDomain.ligand_id",
+                              secondaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
+                              foreign_keys="[BindingSiteDomain.ligand_id, Domain.domain_id]",
+                              uselist=True, innerjoin=True)
+
     def __repr__(self):
         """
         """

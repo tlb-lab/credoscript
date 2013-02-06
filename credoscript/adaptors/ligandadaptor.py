@@ -437,5 +437,4 @@ from ..models.bindingsite import BindingSite
 from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
-from ..models.bindingsiteresidue import BindingSiteResidue
-from ..models.bindingsitefuzcav import BindingSiteFuzcav
+from ..models.bindingsite import BindingSiteResidue, BindingSiteFuzcav

@@ -44,6 +44,10 @@ class ChainTestCase(CredoEntityTestCase):
         """test the chain.Peptides dynamic relationship"""
         self.assertDynamicRelationship(self.entity, 'ProtFragments', models.ProtFragment)
 
+    def test_has_domains(self):
+        """test the chain.Domains dynamic relationship"""
+        self.assertDynamicRelationship(self.entity, 'Domains', models.Domain)
+
     def test_has_xrefs(self):
         self.assertDynamicRelationship(self.entity, 'XRefs', models.XRef)
 

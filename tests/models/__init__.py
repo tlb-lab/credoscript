@@ -13,3 +13,5 @@ from .chemcomptestcase import ChemCompTestCase
 from .fragmenttestcase import FragmentTestCase
 from .lignucinteractiontestcase import LigNucInteractionTestCase
 from .ligandmatchtestcase import LigandMatchTestCase
+from .domaintestcase import DomainTestCase, DomainPeptideCase
+from .bindingsitetestcase import BindingSiteTestCase

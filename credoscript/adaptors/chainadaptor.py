@@ -44,6 +44,15 @@ class ChainAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_by_domain_id(self, domain_id, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('Peptides', 'DomainPeptide')
+        query = query.filter(and_(DomainPeptide.domain_id==domain_id, *expr))
+
+        return query
+
+    @paginate
     def fetch_all_polypeptides(self, *expr, **kwargs):
         """
         """
@@ -105,8 +114,16 @@ class ChainAdaptor(PathAdaptorMixin):
         """
         """
         query = self.query.join('XRefs')
-        query = query.filter(and_(XRef.source=='GO',
-                                  XRef.xref==go, *expr))
+        query = query.filter(and_(XRef.source=='GO', XRef.xref==go, *expr))
+
+        return query.distinct()
+
+    @paginate
+    def fetch_all_by_xref(self, source, xref, *expr, **kwargs):
+        """
+        """
+        query = self.query.join('XRefs')
+        query = query.filter(and_(XRef.source==source, XRef.xref==xref, *expr))
 
         return query.distinct()
 
@@ -154,3 +171,4 @@ class ChainAdaptor(PathAdaptorMixin):
 from ..models.xref import XRef
 from ..models.chain import Chain, Polypeptide
 from ..models.biomolecule import Biomolecule
+from ..models.domain import DomainPeptide

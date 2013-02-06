@@ -61,6 +61,9 @@ class LigandTestCase(CredoEntityTestCase):
     def test_has_ligand_fragments(self):
         self.assertDynamicRelationship(self.ligand, 'LigandFragments', models.LigandFragment)
 
+    def test_has_domains(self):
+        self.assertDynamicRelationship(self.ligand, 'Domains', models.Domain)
+
     def test_has_xrefs(self):
         self.assertDynamicRelationship(self.ligand, 'XRefs', models.XRef)
 
