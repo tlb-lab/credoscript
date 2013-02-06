@@ -100,7 +100,6 @@ class ChemCompAdaptor(object):
 
         return query
 
-
     @paginate
     def fetch_all_by_xref(self, source, xref, **kwargs):
         """
