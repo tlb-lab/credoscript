@@ -92,5 +92,5 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
         return query.distinct()
 
 from ..models.peptide import Peptide
-from ..models.bindingsiteresidue import BindingSiteResidue
+from ..models.bindingsite import BindingSiteResidue
 from ..models.variation import Variation2UniProt, Annotation

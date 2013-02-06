@@ -144,6 +144,13 @@ class Chain(Base, PathMixin):
         return iter(self.Residues.all())
 
     @property
+    def Domains(self):
+        """
+        """
+        adaptor = DomainAdaptor(dynamic=True)
+        return adaptor.fetch_all_by_chain_id(self.chain_id)
+
+    @property
     def Variations(self):
         """
         """
@@ -217,6 +224,7 @@ class Oligonucleotide(Base):
     __table__ = Base.metadata.tables['credo.oligonucleotides']
 
 from ..adaptors.contactadaptor import ContactAdaptor
+from ..adaptors.domainadaptor import DomainAdaptor
 from ..adaptors.variationadaptor import VariationAdaptor
 from ..adaptors.ligandadaptor import LigandAdaptor
 from ..adaptors.siftadaptor import SIFtAdaptor

@@ -150,4 +150,4 @@ from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue
 from ..models.ligandfragmentatom import LigandFragmentAtom
-from ..models.bindingsiteresidue import BindingSiteResidue
+from ..models.bindingsite import BindingSiteResidue

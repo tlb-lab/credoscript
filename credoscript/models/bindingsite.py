@@ -1,12 +1,29 @@
 from contextlib import closing
 
 from sqlalchemy import func
+from sqlalchemy.orm import relationship, backref
+
 from credoscript import Base, Session
 
 class BindingSite(Base):
     """
+    Represents a unique protein-ligand binding site.
     """
     __tablename__ = 'credo.binding_sites'
+
+    Domains = relationship("Domain",
+                           secondary=Base.metadata.tables['credo.binding_site_domains'],
+                            primaryjoin="BindingSite.ligand_id==BindingSiteDomain.ligand_id",
+                            secondaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
+                            foreign_keys="[BindingSiteDomain.ligand_id, Domain.domain_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic',
+                            backref=backref('BindingSites', uselist=True, lazy='dynamic',
+                                            innerjoin=True))
+
+    def __repr__(self):
+        """
+        """
+        return '<BindingSite({self.ligand_id})>'.format(self=self)
 
     def pdbstring(self, **kwargs):
         """
@@ -23,3 +40,31 @@ class BindingSite(Base):
 
         with closing(Session()) as session:
             return session.query(fn).scalar()
+
+class BindingSiteDomain(Base):
+    """
+    Mapping between protein-ligand binding sites and the domains they consist of.
+    """
+    __tablename__ = 'credo.binding_site_domains'
+
+class BindingSiteFuzcav(Base):
+    """
+    """
+    __tablename__ = 'credo.binding_site_fuzcav'
+
+class BindingSiteResidue(Base):
+    """
+    This class represents a row from the mapping between ligands and the residues
+    they interact with, including solvents and other ligands.
+    """
+    __tablename__ = 'credo.binding_site_residues'
+
+    Peptide = relationship("Peptide",
+                           primaryjoin="Peptide.residue_id==BindingSiteResidue.residue_id",
+                           foreign_keys="[Peptide.residue_id]",
+                           uselist=False, innerjoin=True)
+
+    Residue = relationship("Residue",
+                           primaryjoin="and_(Residue.residue_id==BindingSiteResidue.residue_id, Residue.entity_type_bm==BindingSiteResidue.entity_type_bm)",
+                           foreign_keys="[Residue.residue_id, Residue.entity_type_bm]",
+                           uselist=False, innerjoin=True)

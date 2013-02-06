@@ -324,14 +324,18 @@ class LigandAdaptor(PathAdaptorMixin):
         if ligand_id:
             ligand = self.query.get(ligand_id)
 
-            if ligand:
-                usr_space, usr_moments = ligand.usr_space, ligand.usr_moments
-            else:
+            if not ligand:
                 raise ValueError('Ligand with ligand_id {} does not exist.'
                                  .format(ligand_id))
 
+            usr_space, usr_moments = ligand.usr_space, ligand.usr_moments
+
+            if not usr_moments:
+                raise ValueError('Ligand with ligand_id {} does not have USRCAT moments.'
+                                 .format(ligand_id))
+
         # raise an error if neither a cube nor the USR moments have been provided
-        if len(usr_moments) != 60:
+        if not usr_moments or len(usr_moments) != 60:
             raise ValueError('The 60 USR shape descriptors are required.')
 
         # factor by which the usr shape moments will be enlarged in user space
@@ -433,5 +437,4 @@ from ..models.bindingsite import BindingSite
 from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
-from ..models.bindingsiteresidue import BindingSiteResidue
-from ..models.bindingsitefuzcav import BindingSiteFuzcav
+from ..models.bindingsite import BindingSiteResidue, BindingSiteFuzcav

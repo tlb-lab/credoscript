@@ -62,4 +62,4 @@ class ProtFragmentAdaptor(PathAdaptorMixin):
 from ..models.structure import Structure
 from ..models.chain import Chain
 from ..models.protfragment import ProtFragment
-from ..models.bindingsiteresidue import BindingSiteResidue
+from ..models.bindingsite import BindingSiteResidue
