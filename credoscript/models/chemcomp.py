@@ -1,6 +1,7 @@
 from sqlalchemy.orm import aliased, backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
+from sqlalchemy.ext.hybrid import hybrid_method
 
 from credoscript import Base
 from credoscript.util import rdkit, requires
@@ -241,6 +242,24 @@ class ChemComp(Base):
         to compare the SMILES strings.
         """
         return self.ism.op('%%')(smiles)
+
+    @hybrid_method
+    @property
+    def is_het_peptide(self):
+        """
+        Meta column type indicating whether the chemical component is a heteropeptide
+        or not, i.e. if it consists of subcomponents according to the PDB.
+        """
+        return bool(self.subcomponents)
+
+    @is_het_peptide.expression
+    @property
+    def is_het_peptide(self):
+        """
+        Returns an SQLAlchemy boolean clause list that can enables usage of this
+        meta atom type to filter query constructs.
+        """
+        return ChemComp.subcomponents!=None
 
     def usrcat(self, *expr, **kwargs):
         """
