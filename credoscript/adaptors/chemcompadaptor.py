@@ -8,13 +8,16 @@ class ChemCompAdaptor(object):
     """
     Adaptor class to fetch chemical components from CREDO.
     """
-    def __init__(self, dynamic=False, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100, options=()):
         """
         """
         self.query = ChemComp.query
         self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
+
+        # add options to this query: can be joinedload, undefer etc.
+        for option in options: self.query = self.query.options(option)
 
     def fetch_by_chem_comp_id(self, chem_comp_id):
         """
