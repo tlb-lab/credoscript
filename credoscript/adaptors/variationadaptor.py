@@ -17,6 +17,11 @@ class VariationAdaptor(object):
         """
         return self.query.get(variation_id)
 
+    def fetch_by_variation_name(self, variation_name):
+        """
+        """
+        return self.query.filter_by(variation_name=variation_name).first()
+
     @paginate
     def fetch_all_by_res_map_id(self, res_map_id, *expr, **kwargs):
         """
