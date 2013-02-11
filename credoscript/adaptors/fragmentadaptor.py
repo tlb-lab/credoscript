@@ -62,38 +62,39 @@ class FragmentAdaptor(object):
     @paginate
     def fetch_all_descendants(self, fragment_id, *expr, **kwargs):
         """
+        Returns all the descending fragments of the fragment with the given
+        fragment_id using an recursive SQL query.
         """
-        descendants = Fragment.query.with_entities(Fragment.fragment_id)
-        descendants = descendants.join(FragmentHierarchy,
-                                       FragmentHierarchy.child_id==Fragment.fragment_id)
-        descendants = descendants.filter(FragmentHierarchy.parent_id==fragment_id)
+        # query part that will be used in both parts of the recursive query
+        query = Fragment.query.with_entities(Fragment.fragment_id)
+        query = query.join(FragmentHierarchy, FragmentHierarchy.child_id==Fragment.fragment_id)
+
+        # fragment_id is the recursive term
+        descendants = query.filter(FragmentHierarchy.parent_id==fragment_id)
         descendants = descendants.cte(name="descendants", recursive=True)
 
+        # alias is necessary to reference to the statement in the recursive part
         desc_alias = aliased(descendants, name="d")
 
-        end = Fragment.query.with_entities(Fragment.fragment_id)
-        end = end.join(FragmentHierarchy, FragmentHierarchy.child_id==Fragment.fragment_id)
-        end = end.join(desc_alias, desc_alias.c.fragment_id==FragmentHierarchy.parent_id)
+        # recursive part
+        end = query.join(desc_alias, desc_alias.c.fragment_id==FragmentHierarchy.parent_id)
         end = end.filter(FragmentHierarchy.child_id!=None)
-
         descendants = descendants.union(end)
 
-        query = self.query.join(descendants,
-                                Fragment.fragment_id==descendants.c.fragment_id)
-
-        query = query.filter(and_(*expr))
-        query = query.order_by(Fragment.fragment_id.asc())
-
-        # only return the terminal leaves
-        if kwargs.get('leaves', False):
-            query = query.filter(Fragment.is_terminal==True)
+        # Join the recursive statement against the fragments table to get all
+        # the fragment entities and add optional filter expressions
+        query = self.query.join(descendants, Fragment.fragment_id==descendants.c.fragment_id)
+        query = query.filter(and_(*expr)).order_by(Fragment.fragment_id.asc())
 
         return query
 
     def fetch_all_leaves(self, fragment_id, *expr, **kwargs):
         """
+        Returns only the terminal (leaf) fragments of the fragment with the
+        given fragment_id.
         """
-        return self.fetch_all_descendants(fragment_id, *expr, leaves=True, **kwargs)
+        return self.fetch_all_descendants(fragment_id, Fragment.is_terminal==True,
+                                          *expr, **kwargs)
 
     @paginate
     def fetch_all_having_xbonds(self, *expr, **kwargs):
