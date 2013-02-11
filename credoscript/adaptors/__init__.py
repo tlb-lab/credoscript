@@ -23,3 +23,4 @@ from .ligandmatchadaptor import LigandMatchAdaptor
 from .ligandfragmentadaptor import LigandFragmentAdaptor
 from .ligliginteractionadaptor import LigLigInteractionAdaptor
 from .lignucinteractionadaptor import LigNucInteractionAdaptor
+from .domainadaptor import DomainAdaptor

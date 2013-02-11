@@ -1,5 +1,6 @@
 from sqlalchemy.sql.expression import and_
 
+from credoscript.util import requires
 from credoscript.mixins.base import paginate
 
 class DomainAdaptor(object):
@@ -39,5 +40,40 @@ class DomainAdaptor(object):
 
         return query
 
+    @requires.rdkit_catridge
+    @paginate
+    def fetch_all_by_substruct(self, smiles, *expr, **kwargs):
+        """
+        Returns all Domains that are in contact with a ligand containing the
+        given SMILES substructure.
+
+        Parameters
+        ----------
+        smiles : str
+            SMILES string of the substructure to be used for substructure
+            searching.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Domain, Ligand, LigandComponent, ChemComp, ChemCompRDMol
+
+        Returns
+        -------
+        domains : list
+            List of domains that are in contact with a ligand containing the
+            given SMILES substructure.
+
+        Requires
+        --------
+        .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
+        """
+        query = Domain.query.join('Ligands','Components','ChemComp','RDMol')
+        query = query.filter(and_(ChemCompRDMol.contains(smiles), *expr))
+
+        return query
+
 from ..models.domain import Domain
 from ..models.peptide import Peptide
+from ..models.chemcomprdmol import ChemCompRDMol
