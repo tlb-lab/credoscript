@@ -1,3 +1,5 @@
+from sqlalchemy.ext.hybrid import hybrid_method
+
 from credoscript import Base
 from credoscript.mixins import PathMixin, ResidueMixin
 
@@ -81,6 +83,56 @@ class Residue(Base, PathMixin, ResidueMixin):
         adaptor = LigandAdaptor(dynamic=True)
         return adaptor.fetch_all_in_contact_with_residue_id(self.residue_id,
                                                             dynamic=True)
+
+    @hybrid_method
+    @property
+    def is_polymer(self):
+        """
+        Returns true if the residue belongs to a polymer, i.e. polypeptide,
+        oligonucleotide or polysaccharide.
+        """
+        return self.entity_type_bm > 2
+
+    @is_polymer.expression
+    @property
+    def is_polymer(self):
+        """
+        Returns true if the residue belongs to a polymer, i.e. polypeptide,
+        oligonucleotide or polysaccharide.
+        """
+        return Residue.entity_type_bm > 2
+
+    @hybrid_method
+    @property
+    def is_peptide(self):
+        """
+        Returns true if the residue belongs to a  polypeptide.
+        """
+        return self.entity_type_bm == 32
+
+    @is_peptide.expression
+    @property
+    def is_peptide(self):
+        """
+        Returns true if the residue belongs to polypeptide.
+        """
+        return Residue.entity_type_bm.op('&')(32) > 0
+
+    @hybrid_method
+    @property
+    def is_nucleotide(self):
+        """
+        Returns true if the residue belongs to a oligonucleotide.
+        """
+        return self.entity_type_bm & 24 > 0
+
+    @is_nucleotide.expression
+    @property
+    def is_nucleotide(self):
+        """
+        Returns true if the residue belongs to oligonucleotide.
+        """
+        return Residue.entity_type_bm.op('&')(24) > 0
 
     def sift(self, *expr):
         """
