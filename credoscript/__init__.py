@@ -13,7 +13,7 @@ import credoscript.util.psycopg2
 
 # credoscript version number scheme: year, month, release
 # based on the database release
-__version_info__ = (2013, 1, 1)
+__version_info__ = (2013, 2, 1)
 __version__ = '.'.join(map(str, __version_info__))
 
 # the following modules will be imported with from credoscript import *
