@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, or_
 
-from credoscript import interface_residues, phenotype_to_interface, variation_to_interface
+from credoscript import phenotype_to_interface, variation_to_interface
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 

@@ -1,7 +1,6 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import interface_residues
 from credoscript.mixins.base import paginate
 
 class AtomAdaptor(object):
@@ -297,20 +296,20 @@ class AtomAdaptor(object):
         bgn = self.query.join('ContactsBgn')
         bgn = bgn.join(IAtom, and_(IAtom.atom_id==Contact.atom_end_id,
                                    IAtom.biomolecule_id==Contact.biomolecule_id))
-        bgn = bgn.join(interface_residues,
-                       interface_residues.c.residue_end_id==IAtom.residue_id)
+        bgn = bgn.join(InterfacePeptidePair,
+                       InterfacePeptidePair.residue_end_id==IAtom.residue_id)
         bgn = bgn.filter(and_(Atom.biomolecule_id==biomolecule_id,
-                              interface_residues.c.interface_id==interface_id,
+                              InterfacePeptidePair.interface_id==interface_id,
                               Contact.structural_interaction_type_bm.op('&')(64) == 64,
                               *expr))
 
         end = self.query.join('ContactsEnd')
         end = end.join(IAtom, and_(IAtom.atom_id==Contact.atom_bgn_id,
                                    IAtom.biomolecule_id==Contact.biomolecule_id))
-        end = end.join(interface_residues,
-                       interface_residues.c.residue_bgn_id==IAtom.residue_id)
+        end = end.join(InterfacePeptidePair,
+                       InterfacePeptidePair.residue_bgn_id==IAtom.residue_id)
         end = end.filter(and_(Atom.biomolecule_id==biomolecule_id,
-                              interface_residues.c.interface_id==interface_id,
+                              InterfacePeptidePair.interface_id==interface_id,
                               Contact.structural_interaction_type_bm.op('&')(1) == 1,
                               *expr))
 
@@ -322,3 +321,4 @@ from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue
 from ..models.ligandfragmentatom import LigandFragmentAtom
+from ..models.interface import InterfacePeptidePair

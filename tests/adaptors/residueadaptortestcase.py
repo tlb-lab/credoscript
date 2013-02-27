@@ -22,11 +22,6 @@ class ResidueAdaptorTestCase(CredoAdaptorTestCase):
         """Fetch all residues that comprise a ligand ligand_id"""
         self.assertPaginatedResult('fetch_all_by_ligand_id', 123)
 
-    def test_fetch_all_by_interface_id(self):
-        """Fetch all the residues (including solvents) that are interacting across
-        the interface."""
-        self.assertPaginatedResult('fetch_all_by_interface_id', 1)
-
     def test_fetch_all_in_contact_with_residue_id(self):
         """Fetch all residues that are in contact with the Residue having the
         specified residue_id."""

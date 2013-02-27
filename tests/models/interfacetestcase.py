@@ -17,9 +17,9 @@ class InterfaceTestCase(CredoEntityTestCase):
         """test if Interface has a relationship to Chain (ChainEnd)"""
         self.assertOneToOne(self.entity, 'ChainEnd', models.Chain)
 
-    def test_has_residues(self):
+    def test_has_peptides(self):
         """retrieve all residues found in an interface"""
-        self.assertDynamicRelationship(self.entity, 'Residues', models.Residue)
+        self.assertDynamicRelationship(self.entity, 'Peptides', models.Peptide)
 
     def test_has_contacts(self):
         """test if Interface has a dynamic relationship to Contact"""

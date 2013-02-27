@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import interface_residues, residue_interaction_pairs
+from credoscript import residue_interaction_pairs
 from credoscript.mixins import PathAdaptorMixin, ResidueAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -43,49 +43,6 @@ class ResidueAdaptor(PathAdaptorMixin, ResidueAdaptorMixin):
         query = self.query.join(LigandComponent,
                                 LigandComponent.residue_id==Residue.residue_id)
         query = query.filter(and_(LigandComponent.ligand_id==ligand_id, *expr))
-
-        return query
-
-    @paginate
-    def fetch_all_by_interface_id(self, interface_id, *expr, **kwargs):
-        """
-        Returns all the residues (including solvents) that are interacting across
-        the interface.
-
-        Parameters
-        ----------
-        interface_id : int
-            Primary key of the interface.
-        *expr : BinaryExpressions, optional
-            SQLAlchemy BinaryExpressions that will be used to filter the query.
-
-        Queried Entities
-        ----------------
-        Residue, interface_residues
-
-        Returns
-        -------
-        contacts : list
-            List of residues.
-
-         Examples
-        --------
-        >>> interface = InterfaceAdaptor().fetch_by_interface_id(128)
-        >>> interface.get_residues(Residue.entity_type_bm==32)
-        >>> [<Residue(VAL 32 )>, <Residue(THR 91 )>, <Residue(LEU 23 )>,
-             <Residue(ASP 30 )>, <Residue(GLY 49 )>, <Residue(ARG 87 )>,...]
-        """
-        whereclause = and_(interface_residues.c.interface_id==interface_id, *expr)
-
-        bgn = self.query.join(interface_residues,
-                              interface_residues.c.residue_bgn_id==Residue.residue_id)
-        bgn = bgn.filter(whereclause)
-
-        end = self.query.join(interface_residues,
-                              interface_residues.c.residue_end_id==Residue.residue_id)
-        end = end.filter(whereclause)
-
-        query = bgn.union(end)
 
         return query
 

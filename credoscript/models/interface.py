@@ -49,17 +49,17 @@ class Interface(Base, PathMixin):
                             foreign_keys="[Chain.chain_id]", uselist=False,
                             innerjoin=True)
 
+    Peptides = relationship("Peptide",
+                            secondary=Base.metadata.tables['credo.interface_peptide_pairs'],
+                            primaryjoin="Interface.interface_id==InterfacePeptidePair.interface_id",
+                            secondaryjoin="or_(InterfacePeptidePair.residue_bgn_id==Peptide.residue_id, InterfacePeptidePair.residue_end_id==Peptide.residue_id)",
+                            foreign_keys="[InterfacePeptidePair.interface_id, Peptide.residue_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic')
+
     def __repr__(self):
         """
         """
         return '<Interface({self.path})>'.format(self=self)
-
-    @property
-    def Residues(self):
-        """
-        """
-        adaptor = ResidueAdaptor(dynamic=True)
-        return adaptor.fetch_all_by_interface_id(self.interface_id)
 
     @property
     def Contacts(self):
