@@ -1,6 +1,6 @@
 from .structure import Structure
 from .biomolecule import Biomolecule
-from .interface import Interface
+from .interface import Interface, InterfacePeptidePair
 from .chain import Chain, Polypeptide, Oligonucleotide
 from .residue import Residue
 from .aromaticring import AromaticRing
@@ -23,7 +23,7 @@ from .chemcompmolstring import ChemCompMolString
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
 from .resmap import ResMap
-from .peptide import Peptide
+from .peptide import Peptide, PeptideFeature
 from .nucleotide import Nucleotide
 from .saccharide import Saccharide
 from .xref import XRef

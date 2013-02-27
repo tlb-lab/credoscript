@@ -27,7 +27,7 @@
                         "atoms","binding_site_fuzcav",
                         "binding_sites","binding_site_domains","binding_site_residues",
                         "biomolecules","chains","contacts","domains","domain_peptides",
-                        "groove_residues","grooves","hetatms","interface_residues",
+                        "groove_residues","grooves","hetatms","interface_peptide_pairs",
                         "interfaces", "ligand_components","ligand_fcd","ligand_fragments",
                         "ligand_eff","ligand_fragment_atoms","ligand_molstrings","ligand_usr",
                         "ligands","nucleotides","oligonucleotides","peptides",

@@ -82,21 +82,15 @@ class InterfaceAdaptor(PathAdaptorMixin):
     @paginate
     def fetch_all_by_cath_dmn(self, cath, *expr, **kwargs):
         """
+        Returns all interfaces where at least one of the interacting chains
+        contains the domain with the given CATH identifier.
         """
-        where = and_(Peptide.cath==cath, *expr)
+        query = self.query.join('InterfacePeptidePairs','Domains')
 
-        query = self.query.join(interface_residues,
-                                interface_residues.c.interface_id==Interface.interface_id)
+        query = query.filter(and_(Domain.db_source=='CATH',
+                                  Domain.db_accession_id==cath, *expr))
 
-        bgn = query.join(Peptide,
-                         Peptide.residue_id==interface_residues.c.residue_bgn_id)
-        bgn = bgn.filter(where)
-
-        end = query.join(Peptide,
-                         Peptide.residue_id==interface_residues.c.residue_end_id)
-        end = end.filter(where)
-
-        return bgn.union(end)
+        return query.distinct()
 
     @paginate
     def fetch_all_by_phenotype_id(self, phenotype_id, *expr, **kwargs):
@@ -123,6 +117,7 @@ class InterfaceAdaptor(PathAdaptorMixin):
 
         return query.distinct()
 
-from ..models.interface import Interface
+from ..models.interface import Interface, InterfacePeptidePair
 from ..models.peptide import Peptide
+from ..models.domain import Domain
 from ..models.xref import XRef

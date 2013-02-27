@@ -196,12 +196,11 @@ class LigandAdaptor(PathAdaptorMixin):
         >>> LigandAdaptor().fetch_all_by_cath_dmn('1bcuH01')
         >>> [<Ligand(H 280 PRL)>]
         """
-        query = self.query.join(BindingSiteResidue, BindingSiteResidue.ligand_id==Ligand.ligand_id)
-        query = query.join(Peptide, Peptide.residue_id==BindingSiteResidue.residue_id)
+        query = self.query.join('BindingSiteResidues','Domain')
+        query = query.filter(and_(Domain.db_source=='CATH',
+                                  Domain.db_accession_id==dmn, *expr))
 
-        query = query.filter(and_(Peptide.cath==dmn, *expr)).distinct()
-
-        return query
+        return query.distinct()
 
     @paginate
     def fetch_all_true_fragments(self, *expr, **kwargs):
@@ -438,3 +437,4 @@ from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
 from ..models.bindingsite import BindingSiteResidue, BindingSiteFuzcav
+from ..models.domain import Domain

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 
 from credoscript import Base
 from credoscript.mixins import PathMixin
@@ -117,6 +117,37 @@ class Interface(Base, PathMixin):
         adaptor = AtomAdaptor(dynamic=True)
         return adaptor.fetch_all_water_in_contact_with_interface_id(self.interface_id,
                                                                     self.biomolecule_id)
+
+class InterfacePeptidePair(Base):
+    """
+    Mapping between interfaces and the interacting peptides of the participating
+    polypeptide chains.
+    """
+    __tablename__ = 'credo.interface_peptide_pairs'
+
+    Interface = relationship("Interface",
+                             primaryjoin="InterfacePeptidePair.interface_id==Interface.interface_id",
+                             foreign_keys="[InterfacePeptidePair.interface_id]",
+                             uselist=False, innerjoin=True,
+                             backref=backref('InterfacePeptidePairs', uselist=True,
+                                             innerjoin=True, lazy='dynamic'))
+
+    Peptides = relationship("Peptide",
+                            primaryjoin="or_(InterfacePeptidePair.residue_bgn_id==Peptide.residue_id, InterfacePeptidePair.residue_end_id==Peptide.residue_id)",
+                            foreign_keys="[Peptide.residue_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic')
+
+    Domains = relationship("Domain",
+                           secondary=Base.metadata.tables['credo.domain_peptides'],
+                           primaryjoin="or_(InterfacePeptidePair.residue_bgn_id==DomainPeptide.residue_id, InterfacePeptidePair.residue_end_id==DomainPeptide.residue_id)",
+                           secondaryjoin="DomainPeptide.domain_id==Domain.domain_id",
+                           foreign_keys="[DomainPeptide.residue_id, Domain.domain_id]",
+                           uselist=True, innerjoin=True, lazy='dynamic')
+
+    def __repr__(self):
+        """
+        """
+        return '<InterfacePeptidePair({self.interface_id} {self.residue_bgn_id} {self.residue_end_id})>'.format(self=self)
 
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor
