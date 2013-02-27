@@ -112,9 +112,7 @@ class ContactAdaptor(object):
         <Contact()>
         """
         where = and_(Atom.residue_id==residue_id,
-                     Contact.biomolecule_id==biomolecule_id,
-                     Atom.biomolecule_id==Contact.biomolecule_id,
-                     *expr)
+                     Contact.biomolecule_id==biomolecule_id, *expr)
 
         query = self.query.join('Atoms').filter(where)
 
