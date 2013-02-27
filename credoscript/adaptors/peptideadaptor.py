@@ -6,11 +6,14 @@ from credoscript.mixins.base import paginate
 class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
     """
     """
-    def __init__(self, dynamic=False, paginate=False, per_page=100):
+    def __init__(self, dynamic=False, paginate=False, per_page=100, options=()):
         self.query = Peptide.query
         self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
+        
+        # add options to this query: can be joinedload, undefer etc.
+        for option in options: self.query = self.query.options(option)
 
     def fetch_by_res_map_id(self, res_map_id):
         """
