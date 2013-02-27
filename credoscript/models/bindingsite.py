@@ -68,3 +68,10 @@ class BindingSiteResidue(Base):
                            primaryjoin="and_(Residue.residue_id==BindingSiteResidue.residue_id, Residue.entity_type_bm==BindingSiteResidue.entity_type_bm)",
                            foreign_keys="[Residue.residue_id, Residue.entity_type_bm]",
                            uselist=False, innerjoin=True)
+
+    Domain = relationship("Domain",
+                          secondary=Base.metadata.tables['credo.domain_peptides'],
+                          primaryjoin="BindingSiteResidue.residue_id==DomainPeptide.residue_id",
+                          secondaryjoin="DomainPeptide.domain_id==Domain.domain_id",
+                          foreign_keys="[DomainPeptide.residue_id, Domain.domain_id]",
+                          uselist=False, innerjoin=True)
