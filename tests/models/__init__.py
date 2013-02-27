@@ -2,6 +2,7 @@ from .structuretestcase import StructureTestCase
 from .biomoleculetestcase import BiomoleculeTestCase
 from .chaintestcase import ChainTestCase
 from .residuetestcase import ResidueTestCase
+from .peptidetestcase import PeptideTestCase
 from .atomtestcase import AtomTestCase
 from .ligandtestcase import LigandTestCase
 from .contacttestcase import ContactTestCase
