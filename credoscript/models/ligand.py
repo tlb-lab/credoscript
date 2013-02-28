@@ -169,15 +169,15 @@ class Ligand(Base, PathMixin):
     Effs = relationship("LigandEff",
                         primaryjoin="LigandEff.ligand_id==Ligand.ligand_id",
                         foreign_keys="[LigandEff.ligand_id]",
-                        uselist=True,
-                        backref=backref('Ligand', uselist=False, innerjoin=True))
+                        uselist=True, backref=backref('Ligand', uselist=False,
+                                                      innerjoin=True))
 
     DomainList = relationship("Domain",
                               secondary=Base.metadata.tables['credo.binding_site_domains'],
                               primaryjoin="Ligand.ligand_id==BindingSiteDomain.ligand_id",
                               secondaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
                               foreign_keys="[BindingSiteDomain.ligand_id, Domain.domain_id]",
-                              uselist=True, innerjoin=True)
+                              uselist=True)
 
     def __repr__(self):
         """
