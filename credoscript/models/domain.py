@@ -14,7 +14,7 @@ class Domain(Base):
                             secondaryjoin="DomainPeptide.residue_id==Peptide.residue_id",
                             foreign_keys="[DomainPeptide.domain_id, Peptide.residue_id]",
                             uselist=True, innerjoin=True, lazy='dynamic',
-                            backref=backref('DomainList', uselist=True, innerjoin=True))
+                            backref=backref('DomainList', uselist=True))
 
     # all ligands that are in contact with this domain
     Ligands = relationship("Ligand",
