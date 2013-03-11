@@ -94,6 +94,26 @@ class LigandAdaptor(PathAdaptorMixin):
         return query.distinct()
 
     @paginate
+    def fetch_all_by_domain_id(self, domain_id, *expr, **kwargs):
+        """
+        """
+        fragment_id = kwargs.get('fragment_id')
+        substruct = kwargs.get('substruct')
+        
+        query = self.query.join('BindingSiteDomains')
+        query = query.filter(and_(BindingSiteDomain.domain_id==domain_id, *expr))
+        
+        if fragment_id:
+            query = query.join(Ligand.LigandFragments)
+            query = query.filter(LigandFragment.fragment_id==fragment_id)
+        
+        elif substruct:
+            query = query.join(Ligand.ChemComps).join(ChemComp.RDMol)
+            query = query.filter(ChemCompRDMol.contains(substruct))
+
+        return query.distinct()
+
+    @paginate
     def fetch_all_by_chembl_id(self, chembl_id, *expr, **kwargs):
         """
         Returns all ligands that contain a chemical components that can be linked
