@@ -26,7 +26,7 @@ class ContactAdaptorTestCase(CredoAdaptorTestCase):
 
     def test_fetch_all_by_chain_id(self):
         """Fetch all contacts a chain has by chain_id"""
-        chain = models.Chain.query.get(1)
+        chain = models.Chain.query.limit(1).first()
         self.assertPaginatedResult('fetch_all_by_chain_id',
                                    chain.chain_id, chain.biomolecule_id)
 

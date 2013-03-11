@@ -3,7 +3,7 @@ from tests import CredoEntityTestCase
 
 class ProtFragmentTestCase(CredoEntityTestCase):
     def setUp(self):
-        self.entity = models.ProtFragment.query.filter_by(path='101M/0/A/PF:9').first()
+        self.entity = models.ProtFragment.query.filter_by(path='101M/0/A/L:9').first()
 
     def test_has_chain(self):
         """test if ProtFragment has a Chain parent"""
