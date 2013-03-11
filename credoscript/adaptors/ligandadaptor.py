@@ -276,6 +276,16 @@ class LigandAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_drug_like(self, *expr, **kwargs):
+        """
+        Returns all ligands that pass the drug-like filter.
+        """
+        query = self.query.join('ChemComp')
+        query = query.filter(and_(ChemComp.is_drug_like==True, *expr))
+
+        return query
+
+    @paginate
     def fetch_all_having_xbonds(self, *expr, **kwargs):
         """
         Returns all ligands that form halogen bonds.
