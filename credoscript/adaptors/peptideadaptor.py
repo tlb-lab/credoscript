@@ -11,7 +11,7 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
         self.dynamic = dynamic
         self.paginate = paginate
         self.per_page = per_page
-        
+
         # add options to this query: can be joinedload, undefer etc.
         for option in options: self.query = self.query.options(option)
 
@@ -30,7 +30,7 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
 
         # add more variation data to the returned entities
         if kwargs.get('vardata'):
-            query = query.add_entity(Variation2UniProt)
+            query = query.add_entity(Variation2UniProt).add_entity(Variation)
 
         return query.distinct()
 
@@ -45,6 +45,7 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
         # add more variation data to the returned entities
         if kwargs.get('vardata'):
             query = query.add_entity(Variation2UniProt)
+            query = query.add_entity(Variation)
 
         return query.distinct()
 
@@ -84,16 +85,17 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
         Returns all peptides that have mapped variations and are in contact with
         the ligand having the input ligand identifier.
         """
-        query = self.query.join('Variation2PDB','Variation2UniProt')
+        query = self.query.join('Variation2PDB','Variation2UniProt','Variation')
         query = query.join(BindingSiteResidue, BindingSiteResidue.residue_id==Peptide.residue_id)
         query = query.filter(and_(BindingSiteResidue.ligand_id==ligand_id, *expr))
 
         # add more variation data to the returned entities
         if kwargs.get('vardata'):
             query = query.add_entity(Variation2UniProt)
+            query = query.add_entity(Variation)
 
         return query.distinct()
 
 from ..models.peptide import Peptide
 from ..models.bindingsite import BindingSiteResidue
-from ..models.variation import Variation2UniProt, Annotation
+from ..models.variation import Variation2UniProt, Annotation, Variation
