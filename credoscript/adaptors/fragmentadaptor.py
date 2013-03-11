@@ -1,5 +1,5 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_, func
+from sqlalchemy.sql.expression import and_, func, or_
 
 from credoscript.mixins.base import paginate
 
@@ -144,6 +144,57 @@ class FragmentAdaptor(object):
 
         return query.distinct()
 
+    @paginate
+    def fetch_all_fragment_sets(self, *expr, **kwargs):
+        """
+        Returns a set of fragments that can be found as a RECAP fragment in other
+        chemical components and that can also be found in CREDO interacting with
+        a protein through electrostatic interactions.
+
+        Parameters
+        ----------
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        Fragment, ChemCompFragment, ChemComp, LigandFragment
+
+        Returns
+        -------
+        fragments : list
+            A list of tuples in the form (Fragment, fragment HET-ID, number of
+            chemical components that contain the fragment).
+        """
+        query = self.query.add_columns(ChemComp.het_id)
+        query = query.join("ChemCompFragments","ChemComp")
+        query = query.join("LigandFragments")
+
+        query = query.filter(and_(ChemComp.is_fragment==True,
+                                  ChemComp.is_lig_in_credo==True,
+                                  ChemCompFragment.is_root==True,
+                                  LigandFragment.num_covalent==0,
+                                  Fragment.is_shared==True,
+                                  or_(LigandFragment.num_hbond>0,
+                                      LigandFragment.num_xbond>0,
+                                      LigandFragment.num_ionic>0,
+                                      LigandFragment.num_weak_hbond>0,
+                                      LigandFragment.num_carbonyl>0),
+                                  *expr))
+
+        fragments = query.distinct().cte(name="fragments")
+
+        query = self.query.select_from(fragments)
+        query = query.add_columns(fragments.c.het_id.label("fragment_het_id"),
+                                  func.count(ChemCompFragment.het_id).label("num_chem_comps"))
+
+        query = query.join(ChemCompFragment, ChemCompFragment.fragment_id==fragments.c.fragment_id)
+        query = query.filter(fragments.c.het_id!=ChemCompFragment.het_id)
+        query = query.group_by(fragments).order_by("num_chem_comps DESC")
+
+        return query
+
+from ..models.chemcomp import ChemComp
 from ..models.fragment import Fragment
 from ..models.ligandfragment import LigandFragment
 from ..models.fragmenthierarchy import FragmentHierarchy
