@@ -74,7 +74,7 @@ class Structure(Base):
     - The __getitem__ method is overloaded so that Structure[1] will return
       the first Biomolecule (biological assembly) of this structure
     """
-    __table__ = Base.metadata.tables['credo.structures']
+    __tablename__ = 'credo.structures'
 
     Biomolecules = relationship("Biomolecule",
                                 primaryjoin="Biomolecule.structure_id==Structure.structure_id",
@@ -93,10 +93,6 @@ class Structure(Base):
                          primaryjoin="and_(XRef.entity_type=='Structure', XRef.entity_id==Structure.structure_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
-
-    # deferred columns
-    title = deferred(__table__.c.title)
-    authors = deferred(__table__.c.authors)
 
     def __repr__(self):
         """
