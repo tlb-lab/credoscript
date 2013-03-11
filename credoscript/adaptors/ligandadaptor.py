@@ -238,7 +238,7 @@ class LigandAdaptor(PathAdaptorMixin):
 
         Joins
         -----
-        Ligand, BindingSiteResidue, Peptide
+        Ligand, BindingSiteDomains, Domain
 
         Returns
         -------
