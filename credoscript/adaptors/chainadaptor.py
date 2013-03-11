@@ -50,7 +50,7 @@ class ChainAdaptor(PathAdaptorMixin):
         query = self.query.join('Peptides', 'DomainPeptide')
         query = query.filter(and_(DomainPeptide.domain_id==domain_id, *expr))
 
-        return query
+        return query.distinct()
 
     @paginate
     def fetch_all_polypeptides(self, *expr, **kwargs):
