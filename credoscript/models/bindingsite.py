@@ -46,6 +46,11 @@ class BindingSiteDomain(Base):
     Mapping between protein-ligand binding sites and the domains they consist of.
     """
     __tablename__ = 'credo.binding_site_domains'
+    
+    Domain = relationship("Domain",
+                          primaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
+                          foreign_keys="[Domain.domain_id]",  uselist=False,
+                          innerjoin=True)
 
 class BindingSiteFuzcav(Base):
     """
