@@ -189,6 +189,41 @@ class LigandAdaptor(PathAdaptorMixin):
         return query
 
     @paginate
+    def fetch_all_by_domain_source_and_accession(self, source, accession,
+                                                 *expr, **kwargs):
+        """
+        """
+        query = self.query.join('BindingSiteDomains','Domain')
+        query = query.filter(and_(Domain.db_source==source,
+                                  Domain.db_accession_id==accession,
+                                  *expr))
+
+        return query.distinct()
+
+    def fetch_all_by_pfam(self, pfam, *expr, **kwargs):
+        """
+        Returns all ligands that are in contact with peptides having the specified
+        Pfam domain identifier.
+
+        Parameters
+        ----------
+        pfam : str
+            Pfam domain.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Joins
+        -----
+        Ligand, BindingSiteDomains, Domain
+
+        Returns
+        -------
+        ligands : list
+            All ligands that are in contact with a protein having the specified
+            Pfam domain identifier.
+        """
+        return self.fetch_all_by_domain_source_and_accession('Pfam', pfam, *expr)
+
     def fetch_all_by_cath_dmn(self, dmn, *expr, **kwargs):
         """
         Returns all ligands that are in contact with peptides having the specified
@@ -216,11 +251,7 @@ class LigandAdaptor(PathAdaptorMixin):
         >>> LigandAdaptor().fetch_all_by_cath_dmn('1bcuH01')
         >>> [<Ligand(H 280 PRL)>]
         """
-        query = self.query.join('BindingSiteResidues','Domain')
-        query = query.filter(and_(Domain.db_source=='CATH',
-                                  Domain.db_accession_id==dmn, *expr))
-
-        return query.distinct()
+        return self.fetch_all_by_domain_source_and_accession('CATH', dmn, *expr)
 
     @paginate
     def fetch_all_true_fragments(self, *expr, **kwargs):
@@ -452,9 +483,10 @@ from ..models.peptide import Peptide
 from ..models.ligand import Ligand
 from ..models.ligandfragment import LigandFragment
 from ..models.chemcomp import ChemComp
+from ..models.chemcomprdmol import ChemCompRDMol
 from ..models.bindingsite import BindingSite
 from ..models.biomolecule import Biomolecule
 from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
-from ..models.bindingsite import BindingSiteResidue, BindingSiteFuzcav
+from ..models.bindingsite import BindingSiteDomain, BindingSiteResidue, BindingSiteFuzcav
 from ..models.domain import Domain
