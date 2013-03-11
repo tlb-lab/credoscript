@@ -172,6 +172,12 @@ class Ligand(Base, PathMixin):
                         uselist=True, backref=backref('Ligand', uselist=False,
                                                       innerjoin=True))
 
+    BindingSiteDomains = relationship("BindingSiteDomain",
+                                       primaryjoin="BindingSiteDomain.ligand_id==Ligand.ligand_id",
+                                       foreign_keys="[BindingSiteDomain.ligand_id]",
+                                       uselist=True, innerjoin=True, lazy='dynamic',
+                                       backref=backref('Ligand', uselist=False, innerjoin=True))
+
     DomainList = relationship("Domain",
                               secondary=Base.metadata.tables['credo.binding_site_domains'],
                               primaryjoin="Ligand.ligand_id==BindingSiteDomain.ligand_id",
