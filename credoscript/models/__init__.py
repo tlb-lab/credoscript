@@ -16,7 +16,7 @@ from .ligand import Ligand
 from .ligandmatch import LigandMatch
 from .ringinteraction import RingInteraction
 from .atomringinteraction import AtomRingInteraction
-from .groove import Groove
+from .groove import Groove, GrooveResiduePair
 from .chemcomp import ChemComp
 from .chemcompfragment import ChemCompFragment
 from .chemcompmolstring import ChemCompMolString

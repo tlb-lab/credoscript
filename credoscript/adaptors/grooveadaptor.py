@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_
 
-from credoscript import groove_residues, phenotype_to_groove
+from credoscript import phenotype_to_groove
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -55,9 +55,9 @@ class GrooveAdaptor(PathAdaptorMixin):
     def fetch_all_by_cath_dmn(self, dmn, *expr, **kwargs):
         """
         """
-        query = self.query.join(groove_residues, groove_residues.c.groove_id==Groove.groove_id)
-        query = query.join(Peptide, Peptide.residue_id==groove_residues.c.residue_prot_id)
-        query = query.filter(and_(Peptide.cath==dmn, *expr))
+        query = self.query.join('Peptides','Domains')
+        query = query.filter(and_(Domain.db_source=='CATH',
+                                  Domain.db_accession_id==dmn, *expr))
 
         return query
 
@@ -85,4 +85,5 @@ class GrooveAdaptor(PathAdaptorMixin):
 
 from ..models.groove import Groove
 from ..models.peptide import Peptide
+from ..models.domain import Domain
 from ..models.xref import XRef

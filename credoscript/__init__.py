@@ -52,7 +52,6 @@ from credoscript.mixins import Base
 Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
 
 # do not map against class
-groove_residues = metadata.tables['credo.groove_residues']
 prot_fragment_residues = metadata.tables['credo.prot_fragment_residues']
 chem_comp_fragment_atoms = metadata.tables['pdbchem.chem_comp_fragment_atoms']
 citations = metadata.tables['pdb.citations']
