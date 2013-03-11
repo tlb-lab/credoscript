@@ -1,4 +1,4 @@
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
 
 from credoscript.util import requires
 from credoscript.mixins.base import paginate
@@ -39,13 +39,45 @@ class DomainAdaptor(object):
         query = query.filter(and_(Peptide.chain_id==chain_id, *expr))
 
         return query
+    
+    @paginate
+    def fetch_all_by_fragment_id(self, fragment_id, *expr, **kwargs):
+        """
+        Returns all protein domains that are in contact with the fragments having
+        the given fragment_id.
+        
+        Parameters
+        ----------
+        fragment_id : int
+            Primary key of the fragment.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Domain, Ligand, LigandFragment
+
+        Returns
+        -------
+        domains : list
+            List of domains that are in contact with the fragments having the
+            given fragment_id.
+        """
+        query = self.query.join('Ligands','LigandFragments')
+        query = query.filter(and_(LigandFragment.fragment_id==fragment_id, *expr))
+
+        if kwargs.get('hits'):
+            query = query.add_columns(func.count(Ligand.ligand_id.distinct()))
+            query = query.group_by(Domain)
+
+        return query.distinct()
 
     @requires.rdkit_catridge
     @paginate
     def fetch_all_by_substruct(self, smiles, *expr, **kwargs):
         """
-        Returns all Domains that are in contact with a ligand containing the
-        given SMILES substructure.
+        Returns all protein domains that are in contact with a ligand containing
+        the given SMILES substructure.
 
         Parameters
         ----------
@@ -72,8 +104,14 @@ class DomainAdaptor(object):
         query = Domain.query.join('Ligands','Components','ChemComp','RDMol')
         query = query.filter(and_(ChemCompRDMol.contains(smiles), *expr))
 
-        return query
+        if kwargs.get('hits'):
+            query = query.add_columns(func.count(Ligand.ligand_id.distinct()))
+            query = query.group_by(Domain)
+
+        return query.distinct()
 
 from ..models.domain import Domain
+from ..models.ligand import Ligand
+from ..models.ligandfragment import LigandFragment
 from ..models.peptide import Peptide
 from ..models.chemcomprdmol import ChemCompRDMol
