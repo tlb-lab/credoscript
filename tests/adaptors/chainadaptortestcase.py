@@ -14,6 +14,10 @@ class ChainAdaptorTestCase(CredoAdaptorTestCase):
         """Fetch chains by structure_id"""
         self.assertPaginatedResult('fetch_all_by_structure_id', 1)
 
+    def test_fetch_all_by_domain_id(self):
+        """Fetch chains by domain_id"""
+        self.assertPaginatedResult('fetch_all_by_domain_id', 1)
+
     def test_fetch_all_polypeptides(self):
         """Fetch all polypeptides"""
         self.assertPaginatedResult('fetch_all_polypeptides')
