@@ -31,6 +31,34 @@ class FragmentAdaptor(object):
         return query
 
     @paginate
+    def fetch_all_by_domain_id(self, domain_id, *expr, **kwargs):
+        """
+        Returns all fragments that are in contact with the protein domain having
+        the specified primary key.
+            
+        Parameters
+        ----------
+        domain_id : int
+            Primary key of the CREDO protein domain.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried entities
+        ----------------
+        Fragment, LigandFragment, Ligand, BindingSiteDomain
+
+        Returns
+        -------
+        fragments : list
+            fragments that are in contact with the protein domain having the
+            specified primary key.
+        """
+        query = self.query.join('LigandFragments', 'Ligand', 'BindingSiteDomains')
+        query = query.filter(and_(BindingSiteDomain.domain_id==domain_id, *expr))
+
+        return query.distinct()
+
+    @paginate
     def fetch_all_children(self, fragment_id, *expr, **kwargs):
         """
         Returns all fragments that are derived from this fragment through RECAP.
@@ -199,3 +227,4 @@ from ..models.fragment import Fragment
 from ..models.ligandfragment import LigandFragment
 from ..models.fragmenthierarchy import FragmentHierarchy
 from ..models.chemcompfragment import ChemCompFragment
+from ..models.bindingsite import BindingSiteDomain
