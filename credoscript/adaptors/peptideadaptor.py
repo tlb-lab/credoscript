@@ -24,7 +24,7 @@ class PeptideAdaptor(ResidueAdaptorMixin, PathAdaptorMixin):
     def fetch_all_by_variation_id(self, variation_id, *expr, **kwargs):
         """
         """
-        query = self.query.join('Variation2PDB','Variation2UniProt')
+        query = self.query.join('Variation2PDB','Variation2UniProt','Variation')
         query = query.filter(and_(Variation2UniProt.variation_id==variation_id,
                                   *expr))
 
