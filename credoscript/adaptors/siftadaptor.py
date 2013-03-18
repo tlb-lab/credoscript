@@ -71,19 +71,27 @@ class SIFtAdaptor(object):
         """
         Returns the SIFt of a ligand.
         """
-        where = and_(BindingSiteResidue.ligand_id==ligand_id,
-                     Contact.biomolecule_id==biomolecule_id,
+        HetAtom = aliased(Atom)
+        
+        where = and_(Contact.biomolecule_id==biomolecule_id,
+                     Atom.biomolecule_id==biomolecule_id,
                      Contact.is_same_entity==False,
-                     *expr)
+                     Hetatm.ligand_id==ligand_id, *expr)
+        
+        query = Contact.query.add_columns(Atom.residue_id.label('residue_id'))
 
-        query = Residue.query.join('Atoms','Contacts').filter(where)
-        query = query.join(BindingSiteResidue,
-                           and_(BindingSiteResidue.residue_id==Atom.residue_id,
-                                BindingSiteResidue.entity_type_bm==Residue.entity_type_bm))
-        query = query.group_by(Residue).order_by(Residue.residue_id)
-        query = query.add_columns(*self._sift)
+        bgn = query.join('AtomBgn')
+        bgn = bgn.join(Hetatm, Hetatm.atom_id==Contact.atom_end_id)
+        bgn = bgn.filter(where)
 
-        return query.all()
+        end = query.join('AtomEnd')
+        end = end.join(Hetatm, Hetatm.atom_id==Contact.atom_bgn_id)
+        end = end.filter(where)
+
+        query = bgn.union_all(end).group_by('residue_id').order_by('residue_id')
+        subquery = query.with_entities(Atom.residue_id, *self._sift).subquery()
+
+        return self._fetch_sift(subquery)
 
     def fetch_by_ligand_id_and_atom_names(self, ligand_id, biomolecule_id,
                                           atom_names, *expr, **kwargs):
