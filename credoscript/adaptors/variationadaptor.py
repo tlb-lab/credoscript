@@ -1,6 +1,4 @@
 from sqlalchemy.sql.expression import and_
-
-from credoscript import variation_to_binding_site
 from credoscript.mixins.base import paginate
 
 class VariationAdaptor(object):
@@ -69,13 +67,11 @@ class VariationAdaptor(object):
         Returns all variations that can be mapped onto binding sites defined by
         the ligand having the input ligand identifier.
         """
-        query = self.query.join(variation_to_binding_site,
-                                variation_to_binding_site.c.variation_id==Variation.variation_id)
-        query = query.filter(and_(variation_to_binding_site.c.ligand_id==ligand_id,
+        query = self.query.join('Variation2BindingSites')
+        query = query.filter(and_(Variation2BindingSite.ligand_id==ligand_id,
                                   *expr))
-        query = query.distinct()
 
-        return query
+        return query.distinct()
 
-from ..models.variation import Variation, Annotation, Variation2UniProt, Variation2PDB
+from ..models.variation import Variation, Annotation, Variation2UniProt, Variation2PDB, Variation2BindingSite
 from ..models.peptide import Peptide

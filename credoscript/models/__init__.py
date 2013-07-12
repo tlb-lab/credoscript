@@ -33,8 +33,8 @@ from .protfragmentresidue import ProtFragmentResidue
 from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
-from .variation import Variation, Annotation, Phenotype
-from .bindingsite import BindingSite, BindingSiteDomain, BindingSiteFuzcav, BindingSiteResidue
+from .variation import Variation, Annotation, Phenotype, Variation2UniProt, Variation2BindingSite
+from .bindingsite import BindingSite, BindingSiteDomain, BindingSiteFuzcav, BindingSiteResidue, BindingSiteAtomSurfaceArea
 from .ligandeff import LigandEff
 from .ligliginteraction import LigLigInteraction
 from .lignucinteraction import LigNucInteraction

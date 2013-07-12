@@ -183,6 +183,11 @@ def paginate(func):
     def wrapper(self, *args, **kwargs):
         query = func(self, *args, **kwargs)
 
+        # add an orderby clause if given to the decorated function
+        orderby = kwargs.get('orderby')
+        if orderby:
+            query = query.order_by(*orderby)
+
         # return query to simulate a dynamic relationship
         if self.dynamic:
             return query

@@ -62,7 +62,6 @@ phenotype_to_chain = metadata.tables['variations.phenotype_to_chain']
 phenotype_to_ligand = metadata.tables['variations.phenotype_to_ligand']
 phenotype_to_interface = metadata.tables['variations.phenotype_to_interface']
 phenotype_to_groove = metadata.tables['variations.phenotype_to_groove']
-variation_to_binding_site = metadata.tables['variations.variation_to_binding_site']
 variation_to_interface = metadata.tables['variations.variation_to_interface']
 
 try:

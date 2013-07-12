@@ -20,7 +20,7 @@ class Variation(Base):
     Annotations = relationship("Annotation",
                                primaryjoin="Variation.variation_id==Annotation.variation_id",
                                foreign_keys="[Annotation.variation_id]",
-                               uselist=True, innerjoin=True,
+                               uselist=True,
                                backref=backref('Variation', uselist=False))
 
     Variation2UniProt = relationship("Variation2UniProt",
@@ -69,6 +69,41 @@ class Variation2PDB(Base):
                            uselist=False, innerjoin=True,
                            backref=backref('Variation2PDB', uselist=False))
 
+class Variation2BindingSite(Base):
+    """
+    """
+    __tablename__ = 'variations.variation_to_binding_site'
+
+    Variation = relationship("Variation",
+                             primaryjoin="Variation.variation_id==Variation2BindingSite.variation_id",
+                             foreign_keys="[Variation.variation_id]",
+                             uselist=False, innerjoin=True,
+                             backref=backref('Variation2BindingSites', uselist=True,
+                                             innerjoin=True))
+
+    Variation2UniProt = relationship("Variation2UniProt",
+                                     primaryjoin="and_(Variation2UniProt.variation_id==Variation2BindingSite.variation_id, \
+                                                       Variation2UniProt.variation_to_uniprot_id==Variation2BindingSite.variation_to_uniprot_id)",
+                                     foreign_keys="[Variation2UniProt.variation_id, Variation2UniProt.variation_to_uniprot_id]",
+                                     uselist=False, innerjoin=True)
+
+    Peptide = relationship("Peptide",
+                           primaryjoin="Peptide.residue_id==Variation2BindingSite.residue_id",
+                           foreign_keys="[Peptide.residue_id]",
+                           uselist=False, innerjoin=True)
+
+    Ligand = relationship("Ligand",
+                          primaryjoin="Ligand.ligand_id==Variation2BindingSite.ligand_id",
+                          foreign_keys="[Ligand.ligand_id]",
+                          uselist=False, innerjoin=True,
+                          backref=backref('Variation2BindingSites', uselist=True,
+                                             innerjoin=True))
+
+    def __repr__(self):
+        """
+        """
+        return '<Variation2BindingSite({self.variation_id} {self.variation_to_uniprot_id} {self.ligand_id} {self.residue_id})>'.format(self=self)
+
 class Annotation(Base):
     """
     """
@@ -77,7 +112,7 @@ class Annotation(Base):
     Phenotype = relationship("Phenotype",
                              primaryjoin="Annotation.phenotype_id==Phenotype.phenotype_id",
                              foreign_keys="[Phenotype.phenotype_id]",
-                             uselist=False, innerjoin=True,
+                             uselist=False,
                              backref=backref('Annotations', uselist=True))
 
     def __repr__(self):

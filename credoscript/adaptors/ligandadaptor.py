@@ -1,6 +1,6 @@
 from sqlalchemy.sql.expression import and_, func
 
-from credoscript import phenotype_to_ligand, variation_to_binding_site
+from credoscript import phenotype_to_ligand
 from credoscript.mixins import PathAdaptorMixin
 from credoscript.mixins.base import paginate
 
@@ -73,9 +73,8 @@ class LigandAdaptor(PathAdaptorMixin):
         Returns all ligands whose binding sites are in in contact with residues
         that can be linked to variations with the given variation_id.
         """
-        query = self.query.join(variation_to_binding_site,
-                                variation_to_binding_site.c.ligand_id==Ligand.ligand_id)
-        query = query.filter(and_(variation_to_binding_site.c.variation_id==variation_id,
+        query = self.query.join('Variation2BindingSites')
+        query = query.filter(and_(Variation2BindingSite.variation_id==variation_id,
                                   *expr))
 
         return query.distinct()
@@ -99,14 +98,14 @@ class LigandAdaptor(PathAdaptorMixin):
         """
         fragment_id = kwargs.get('fragment_id')
         substruct = kwargs.get('substruct')
-        
+
         query = self.query.join('BindingSiteDomains')
         query = query.filter(and_(BindingSiteDomain.domain_id==domain_id, *expr))
-        
+
         if fragment_id:
             query = query.join(Ligand.LigandFragments)
             query = query.filter(LigandFragment.fragment_id==fragment_id)
-        
+
         elif substruct:
             query = query.join(Ligand.ChemComps).join(ChemComp.RDMol)
             query = query.filter(ChemCompRDMol.contains(substruct))
@@ -500,3 +499,4 @@ from ..models.structure import Structure
 from ..models.ligandusr import LigandUSR
 from ..models.bindingsite import BindingSiteDomain, BindingSiteResidue, BindingSiteFuzcav
 from ..models.domain import Domain
+from ..models.variation import Variation2BindingSite

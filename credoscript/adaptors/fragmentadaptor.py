@@ -35,7 +35,7 @@ class FragmentAdaptor(object):
         """
         Returns all fragments that are in contact with the protein domain having
         the specified primary key.
-            
+
         Parameters
         ----------
         domain_id : int
