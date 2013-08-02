@@ -41,6 +41,7 @@ class Residue(Base, PathMixin, ResidueMixin):
     """
     __tablename__ = 'credo.residues'
 
+
     @property
     def Contacts(self):
         """
@@ -148,7 +149,7 @@ class Residue(Base, PathMixin, ResidueMixin):
         sift : tuple
             sum of all the contact types of all contacts this residue has.
         """
-        return SIFtAdaptor().fetch_by_residue_id(self.ligand_id,
+        return SIFtAdaptor().fetch_by_own_residue_id(self.residue_id,
                                                  self.biomolecule_id,
                                                  *expr)
 

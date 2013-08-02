@@ -3,6 +3,7 @@ import json
 import warnings
 
 from sqlalchemy import create_engine, MetaData
+from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import SAWarning
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine.url import URL
@@ -29,9 +30,12 @@ if not os.path.exists(CONFIG_PATH):
 
 config   = json.loads(open(CONFIG_PATH).read())
 
+poolclass = { 'null':NullPool }.get(config.get('poolclass'))
+
 url      = URL(**config['connection'])
 engine   = create_engine(url, echo=config['debug']['SQL'],
-                         connect_args={'sslmode': 'disable'})
+                         connect_args={'sslmode': 'disable'},
+                         poolclass=poolclass)
 metadata = MetaData(bind=engine)
 
 # suppress warnings concerning postgresql-specific types and indexes
@@ -62,6 +66,7 @@ phenotype_to_chain = metadata.tables['variations.phenotype_to_chain']
 phenotype_to_ligand = metadata.tables['variations.phenotype_to_ligand']
 phenotype_to_interface = metadata.tables['variations.phenotype_to_interface']
 phenotype_to_groove = metadata.tables['variations.phenotype_to_groove']
+variation_to_binding_site = metadata.tables['variations.variation_to_binding_site']
 variation_to_interface = metadata.tables['variations.variation_to_interface']
 
 try:
