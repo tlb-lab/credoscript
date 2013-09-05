@@ -1,6 +1,7 @@
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import and_, func, or_
+from sqlalchemy.sql.expression import and_, func, or_, text
 
+from credoscript import Session
 from credoscript.mixins.base import paginate
 
 class FragmentAdaptor(object):
@@ -219,6 +220,63 @@ class FragmentAdaptor(object):
         query = query.join(ChemCompFragment, ChemCompFragment.fragment_id==fragments.c.fragment_id)
         query = query.filter(fragments.c.het_id!=ChemCompFragment.het_id)
         query = query.group_by(fragments).order_by("num_chem_comps DESC")
+
+        return query
+        
+    @paginate
+    def fetch_by_trgm_sim(self, smiles, *expr, **kwargs):
+        """
+        Returns all fragments that are similar to the given SMILES string
+        using trigam similarity (similar to LINGO).
+
+        Parameters
+        ----------
+        threshold : float, default=0.6
+            Similarity threshold that will be used for searching.
+        limit : int, default=25
+            Maximum number of hits that will be returned.
+
+        Returns
+        -------
+        resultset : list
+            List of tuples (Fragment, similarity) containing the chemical components
+            and the calculated trigram similarity.
+
+        Queried Entities
+        ----------------
+        Fragment
+
+        Examples
+        --------
+        >>>> FragmentAdaptor().fetch_all_by_trgm_sim('Cc1ccc(cc1Nc2nccc(n2)c3cccnc3)NC(=O)c4ccc(cc4)CN5CC[NH+](CC5)C')
+        [(<Fragment(STI)>, 0.883721), (<Fragment(NIL)>, 0.73913),
+        (<Fragment(PRC)>, 0.738095), (<Fragment(406)>, 0.666667),
+        (<Fragment(J07)>, 0.604167), (<Fragment(AD5)>, 0.6),
+        (<Fragment(AAX)>, 0.6), (<Fragment(VX6)>, 0.6)]
+
+        Requires
+        --------
+        .. important:: `pg_trgm  <http://www.postgresql.org/docs/current/static/pgtrgm.html>`_ PostgreSQL extension.
+        """
+        session = Session()
+
+        threshold = kwargs.get('threshold', 0.6)
+
+        # SET THE SIMILARITY THRESHOLD FOR THE INDEX
+        session.execute(text("SELECT set_limit(:threshold)").execution_options(autocommit=True).params(threshold=threshold))
+
+        similarity = func.similarity(Fragment.ism, smiles).label('similarity')
+
+        query = self.query.add_column(similarity)
+        query = query.filter(and_(Fragment.like(smiles), *expr))
+
+        # KNN-GIST
+        query = query.order_by(Fragment.ism.op('<->')(smiles))
+        
+        if kwargs.get('limit'):
+            query = query.limit(kwargs['limit'])
+
+        session.close()
 
         return query
 
