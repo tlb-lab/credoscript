@@ -69,5 +69,13 @@ class Fragment(Base):
         """
         adaptor = FragmentAdaptor(dynamic=True)
         return adaptor.fetch_all_descendants(self.fragment_id)
+        
+    @classmethod
+    def like(self, smiles):
+        """
+        Returns an SQL function expression that uses the PostgreSQL trigram index
+        to compare the SMILES strings.
+        """
+        return self.ism.op('%%')(smiles)
 
 from ..adaptors.fragmentadaptor import FragmentAdaptor
