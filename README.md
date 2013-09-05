@@ -33,10 +33,10 @@ for object-relational mapping (ORM) purposes.
 ## Obtaining the source code
 
 The source code for **credoscript** can be obtained by either downloading a source
-package from the [Bitbucket](https://bitbucket.org/aschreyer/credoscript) repository
+package from the [Bitbucket](https://bitbucket.org/blundell/credoscript) repository
 or by cloning it with
 
-    $ hg clone https://bitbucket.org/aschreyer/credoscript
+    $ hg clone https://bitbucket.org/blundell/credoscript
 
 And switching to the stable branch:
 
