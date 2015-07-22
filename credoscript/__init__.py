@@ -46,16 +46,17 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
         #raise exc.DisconnectionError()
     cursor.close()
 
+pool_map = {'null': NullPool, 'singleton': SingletonThreadPool, 'queue': QueuePool}
 
-poolclass    = {'null':NullPool, 'singleton':SingletonThreadPool,
-                'queue': QueuePool}.get(config['connection'].pop('poolclass','queue'))
-pool_size    = config['connection'].pop('pool_size', 5)
-pool_recycle = config['connection'].pop('pool_recycle', 300)
+pool_kwargs = {'poolclass': pool_map.get(config['connection'].pop('poolclass', 'queue')),
+               'pool_recycle': config['connection'].pop('pool_recycle', 300)}
+if pool_kwargs['poolclass'] is not NullPool:
+    pool_kwargs['pool_size'] = config['connection'].pop('pool_size', 5)
 
 url      = URL(**config['connection'])
 engine   = create_engine(url, echo=config['debug']['SQL'],
                          connect_args={'sslmode': 'disable'},
-                         poolclass=poolclass, pool_size=pool_size, pool_recycle=pool_recycle)
+                         **pool_kwargs)
 metadata = MetaData(bind=engine)
 
 # suppress warnings concerning postgresql-specific types and indexes
