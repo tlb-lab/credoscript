@@ -1,15 +1,15 @@
 from sqlalchemy.orm import backref, relationship
-from credoscript import Base
+from credoscript import Base, schema
 
 class Domain(Base):
     """
     Represents a unique protein domain from CATH, Pfam or SCOP in CREDO. CATH
     and SCOP are usually linked to a single PDB chain whereas Pfam is not.
     """
-    __tablename__ = 'credo.domains'
+    __tablename__ = '%s.domains' % schema['credo']
 
     Peptides = relationship("Peptide",
-                            secondary=Base.metadata.tables['credo.domain_peptides'],
+                            secondary=Base.metadata.tables['%s.domain_peptides' % schema['credo']],
                             primaryjoin="Domain.domain_id==DomainPeptide.domain_id",
                             secondaryjoin="DomainPeptide.residue_id==Peptide.residue_id",
                             foreign_keys="[DomainPeptide.domain_id, Peptide.residue_id]",
@@ -18,7 +18,7 @@ class Domain(Base):
 
     # all ligands that are in contact with this domain
     Ligands = relationship("Ligand",
-                           secondary=Base.metadata.tables['credo.binding_site_domains'],
+                           secondary=Base.metadata.tables['%s.binding_site_domains' % schema['credo']],
                            primaryjoin="Domain.domain_id==BindingSiteDomain.domain_id",
                            secondaryjoin="BindingSiteDomain.ligand_id==Ligand.ligand_id",
                            foreign_keys="[BindingSiteDomain.domain_id, Ligand.ligand_id]",
@@ -43,7 +43,7 @@ class DomainPeptide(Base):
     """
     Mapping between domains and the peptides they consist of.
     """
-    __tablename__ = 'credo.domain_peptides'
+    __tablename__ = '%s.domain_peptides' % schema['credo']
 
     Peptide = relationship("Peptide",
                            primaryjoin="DomainPeptide.residue_id==Peptide.residue_id",

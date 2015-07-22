@@ -1,4 +1,4 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class ResMap(Base):
     '''
@@ -51,7 +51,7 @@ class ResMap(Base):
     MSD SIFTS sequence-to-structure mapping
         http://www.ebi.ac.uk/pdbe/docs/sifts/methodology.html
     '''
-    __tablename__ = 'pdb.res_map'
+    __tablename__ = '%s.res_map' % schema['pdb']
     
     def __repr__(self):
         '''

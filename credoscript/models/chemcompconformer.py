@@ -1,9 +1,9 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class ChemCompConformer(Base):
     """
     """
-    __tablename__ = 'pdbchem.chem_comp_conformers'
+    __tablename__ = '%s.chem_comp_conformers' % schema['pdbchem']
 
     def __repr__(self):
         """

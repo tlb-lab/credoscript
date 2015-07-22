@@ -1,4 +1,4 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class XRef(Base):
     '''
@@ -24,7 +24,7 @@ class XRef(Base):
     -----
     
     '''
-    __tablename__ = 'credo.xrefs'
+    __tablename__ = '%s.xrefs' % schema['credo']
     
     def __repr__(self):
         '''

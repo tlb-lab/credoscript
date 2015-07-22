@@ -2,7 +2,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 from credoscript.support.vector import Vector
 
@@ -70,7 +70,7 @@ class Atom(Base, PathMixin):
     -----
 
     """
-    __tablename__ = 'credo.atoms'
+    __tablename__ = '%s.atoms' % schema['credo']
 
     Contacts  = relationship("Contact",
                              primaryjoin="and_(or_(Contact.atom_bgn_id==Atom.atom_id, Contact.atom_end_id==Atom.atom_id), Contact.biomolecule_id==Atom.biomolecule_id)",

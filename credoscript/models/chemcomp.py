@@ -3,7 +3,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.util import rdkit, requires
 
 class ChemComp(Base):
@@ -115,7 +115,7 @@ class ChemComp(Base):
     - The __mod__ (%) method is overloaded for this class and will return the
       tanimoto similarity between this and another chemical component from CREDO.
     """
-    __tablename__ = 'pdbchem.chem_comps'
+    __tablename__ = '%s.chem_comps' % schema['pdbchem']
 
     ChemCompFragments = relationship("ChemCompFragment",
                                      primaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
@@ -130,7 +130,7 @@ class ChemComp(Base):
                               backref=backref('ChemComp', uselist=False, innerjoin=True))
 
     Fragments = relationship("Fragment",
-                             secondary=Base.metadata.tables['pdbchem.chem_comp_fragments'],
+                             secondary=Base.metadata.tables['%s.chem_comp_fragments' % schema['pdbchem']],
                              primaryjoin="ChemComp.het_id==ChemCompFragment.het_id",
                              secondaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                              foreign_keys="[ChemCompFragment.het_id, Fragment.fragment_id]",

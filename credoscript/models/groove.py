@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 class Groove(Base, PathMixin):
@@ -15,7 +15,7 @@ class Groove(Base, PathMixin):
     -----------------
 
     """
-    __tablename__ = 'credo.grooves'
+    __tablename__ = '%s.grooves' % schema['credo']
 
     ChainProt = relationship("Chain",
                              primaryjoin="Chain.chain_id==Groove.chain_prot_id",
@@ -26,7 +26,7 @@ class Groove(Base, PathMixin):
                             foreign_keys="[Chain.chain_id]", uselist=False, innerjoin=True)
     
     Peptides = relationship("Peptide",
-                            secondary=Base.metadata.tables['credo.groove_residue_pairs'],
+                            secondary=Base.metadata.tables['%s.groove_residue_pairs' % schema['credo']],
                             primaryjoin="Groove.groove_id==GrooveResiduePair.groove_id",
                             secondaryjoin="GrooveResiduePair.residue_prot_id==Peptide.residue_id",
                             foreign_keys="[GrooveResiduePair.groove_id, Peptide.residue_id]",
@@ -66,7 +66,7 @@ class Groove(Base, PathMixin):
 class GrooveResiduePair(Base):
     """
     """
-    __tablename__ = 'credo.groove_residue_pairs'
+    __tablename__ = '%s.groove_residue_pairs' % schema['credo']
     
     Groove = relationship("Groove",
                           primaryjoin="GrooveResiduePair.groove_id==Groove.groove_id",

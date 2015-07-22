@@ -1,10 +1,10 @@
 from sqlalchemy.orm import relationship
-from credoscript import Base
+from credoscript import Base, schema
 
 class Hetatm(Base):
     '''
     '''
-    __tablename__ = 'credo.hetatms'
+    __tablename__ = '%s.hetatms' % schema['credo']
     
     Contacts  = relationship("Contact",
                              primaryjoin="or_(Contact.atom_bgn_id==Hetatm.atom_id, Contact.atom_end_id==Hetatm.atom_id)",

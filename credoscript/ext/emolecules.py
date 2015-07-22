@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from sqlalchemy.sql.expression import and_, func, text
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base, session
+from credoscript import Base, schema, session
 
 class Emolecule(Base):
     '''

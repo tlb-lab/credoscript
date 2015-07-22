@@ -4,14 +4,14 @@ This extension adds support for the OpenEye PostgreSQL cartridge.
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import and_, func, text
 
-from credoscript import Base, Session
+from credoscript import Base, schema, Session
 from credoscript.adaptors import ChemCompAdaptor
 from credoscript.mixins.base import paginate
 
 class ChemCompOEFP(Base):
     '''
     '''
-    __tablename__ = 'pdbchem.chem_comp_oefps'
+    __tablename__ = '%s.chem_comp_oefps' % schema['pdbchem']
 
     ChemComp = relationship("ChemComp",
                             primaryjoin="ChemCompOEFP.het_id==ChemComp.het_id",

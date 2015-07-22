@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin, ResidueMixin
 
 class Saccharide(Base, PathMixin, ResidueMixin):
@@ -39,7 +39,7 @@ class Saccharide(Base, PathMixin, ResidueMixin):
     their names, e.g. Saccharide['C']. Returns a list due to atoms with
     possible alternate locations.
     '''
-    __tablename__ = 'credo.saccharides'
+    __tablename__ = '%s.saccharides' % schema['credo']
     
     Residue = relationship("Residue",
                            primaryjoin="Residue.residue_id==Saccharide.residue_id",

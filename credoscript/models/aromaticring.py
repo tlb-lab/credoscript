@@ -1,4 +1,4 @@
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 from credoscript.support.vector import Vector
 
@@ -36,7 +36,7 @@ class AromaticRing(Base, PathMixin):
     Atoms : list
         All atoms of this aromatic ring.
     """
-    __tablename__ = 'credo.aromatic_rings'
+    __tablename__ = '%s.aromatic_rings' % schema['credo']
 
     def __repr__(self):
         """

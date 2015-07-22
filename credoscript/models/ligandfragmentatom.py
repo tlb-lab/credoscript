@@ -1,6 +1,6 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandFragmentAtom(Base):
     '''
     '''
-    __tablename__ = 'credo.ligand_fragment_atoms'
+    __tablename__ = '%s.ligand_fragment_atoms' % schema['credo']

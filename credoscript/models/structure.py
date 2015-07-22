@@ -3,7 +3,7 @@ from sqlalchemy.sql.expression import and_, cast
 from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from credoscript import Base, Session, citations
+from credoscript import Base, schema, Session, citations
 
 class Structure(Base):
     """
@@ -74,7 +74,7 @@ class Structure(Base):
     - The __getitem__ method is overloaded so that Structure[1] will return
       the first Biomolecule (biological assembly) of this structure
     """
-    __tablename__ = 'credo.structures'
+    __tablename__ = '%s.structures' % schema['credo']
 
     Biomolecules = relationship("Biomolecule",
                                 primaryjoin="Biomolecule.structure_id==Structure.structure_id",

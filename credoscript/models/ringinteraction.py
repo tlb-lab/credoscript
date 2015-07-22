@@ -1,6 +1,6 @@
 from sqlalchemy.orm import relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class RingInteraction(Base):
     """
@@ -44,7 +44,7 @@ class RingInteraction(Base):
     Notes
     -----
     """
-    __tablename__ = 'credo.ring_interactions'
+    __tablename__ = '%s.ring_interactions' % schema['credo']
 
     AromaticRingBgn = relationship("AromaticRing",
                                      primaryjoin="AromaticRing.aromatic_ring_id==RingInteraction.aromatic_ring_bgn_id",

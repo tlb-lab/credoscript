@@ -1,6 +1,6 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandEff(Base):
     """
     """
-    __tablename__ = 'credo.ligand_eff'
+    __tablename__ = '%s.ligand_eff' % schema['credo']

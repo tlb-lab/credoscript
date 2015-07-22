@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandComponent(Base):
     """
@@ -9,7 +9,7 @@ class LigandComponent(Base):
     Overloaded operators
     --------------------
     """
-    __tablename__ = 'credo.ligand_components'
+    __tablename__ = '%s.ligand_components' % schema['credo']
 
     Atoms = relationship("Atom",
                          primaryjoin = "Atom.residue_id==LigandComponent.residue_id",

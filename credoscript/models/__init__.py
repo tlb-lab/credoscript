@@ -34,9 +34,9 @@ from .chemcompconformer import ChemCompConformer
 from .chemcomprdmol import ChemCompRDMol
 from .chemcomprdfp import ChemCompRDFP
 from .variation import Variation, Annotation, Phenotype, Variation2UniProt, Variation2BindingSite
-from .bindingsite import BindingSite, BindingSiteDomain, BindingSiteFuzcav, BindingSiteResidue, BindingSiteAtomSurfaceArea
+from .bindingsite import BindingSite, BindingSiteDomain, BindingSiteFuzcav, BindingSiteResidue #, BindingSiteAtomSurfaceArea
 from .ligandeff import LigandEff
 from .ligliginteraction import LigLigInteraction
 from .lignucinteraction import LigNucInteraction
 from .domain import Domain, DomainPeptide
-from .meta import Update
+#from .meta import Update

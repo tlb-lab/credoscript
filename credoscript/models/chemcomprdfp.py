@@ -1,9 +1,9 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class ChemCompRDFP(Base):
     '''
     '''
-    __tablename__ = 'pdbchem.chem_comp_rdfps'
+    __tablename__ = '%s.chem_comp_rdfps' % schema['pdbchem']
 
     def __repr__(self):
         '''

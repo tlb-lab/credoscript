@@ -1,11 +1,11 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandFragment(Base):
     """
     """
-    __tablename__ = 'credo.ligand_fragments'
+    __tablename__ = '%s.ligand_fragments' % schema['credo']
 
     Fragment = relationship("Fragment",
                             primaryjoin="Fragment.fragment_id==LigandFragment.fragment_id",
@@ -14,14 +14,14 @@ class LigandFragment(Base):
                             backref=backref('LigandFragments', uselist=True))
 
     Atoms = relationship("Atom",
-                         secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
+                         secondary=Base.metadata.tables['%s.ligand_fragment_atoms' % schema['credo']],
                          primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
                          secondaryjoin="LigandFragmentAtom.atom_id==Atom.atom_id",
                          foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
 
     Contacts = relationship("Contact",
-                            secondary=Base.metadata.tables['credo.ligand_fragment_atoms'],
+                            secondary=Base.metadata.tables['%s.ligand_fragment_atoms' % schema['credo']],
                             primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
                             secondaryjoin="and_(or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id, LigandFragmentAtom.atom_id==Contact.atom_end_id), Contact.biomolecule_id==LigandFragment.biomolecule_id)",
                             foreign_keys="[LigandFragmentAtom.ligand_fragment_id, Contact.atom_bgn_id, Contact.atom_end_id, Contact.biomolecule_id]",

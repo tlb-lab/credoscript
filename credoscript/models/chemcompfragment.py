@@ -1,11 +1,11 @@
 from sqlalchemy.sql.expression import func
 
-from credoscript import Base, Session, chem_comp_fragment_atoms
+from credoscript import Base, schema, Session, chem_comp_fragment_atoms
 
 class ChemCompFragment(Base):
     """
     """
-    __tablename__ = 'pdbchem.chem_comp_fragments'
+    __tablename__ = '%s.chem_comp_fragments' % schema['pdbchem']
     
     def __repr__(self):
         """

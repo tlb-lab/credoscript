@@ -1,13 +1,13 @@
 from sqlalchemy.orm import relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 class LigNucInteraction(Base, PathMixin):
     """
     Represents a ligand-nucleic interaction from CREDO.
     """
-    __tablename__ = 'credo.lig_nuc_interactions'
+    __tablename__ = '%s.lig_nuc_interactions' % schema['credo']
 
     Biomolecule = relationship("Biomolecule",
                                primaryjoin="Biomolecule.biomolecule_id==LigNucInteraction.biomolecule_id",

@@ -1,6 +1,6 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class ProtFragmentResidue(Base):
     '''
     '''
-    __tablename__ = 'credo.prot_fragment_residues'
+    __tablename__ = '%s.prot_fragment_residues' % schema['credo']

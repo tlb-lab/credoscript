@@ -6,7 +6,8 @@
         "password": "",
         "host": "",
         "port": 5432,
-        "database": ""
+        "database": "",
+	"poolclass": "queue"
     },
 
     "debug":
@@ -23,6 +24,7 @@
     {
         "credo":
         {
+	    "name":     "credo",
             "reflect": ["aromatic_ring_atoms","aromatic_rings","atom_ring_interactions",
                         "atoms","binding_site_fuzcav",
                         "binding_sites","binding_site_domains","binding_site_residues","binding_site_atom_surface_areas",
@@ -42,12 +44,14 @@
 
         "pdb":
         {
-            "reflect": ["res_map","citations","disordered_regions"]
+            "name":     "pdb",
+	    "reflect": ["res_map","citations","disordered_regions"]
         },
 
         "pdbchem":
         {
-            "reflect": ["chem_comps","chem_comp_conformers","chem_comp_fragment_atoms",
+            "name":     "pdbchem",
+	    "reflect": ["chem_comps","chem_comp_conformers","chem_comp_fragment_atoms",
                         "chem_comp_fragments","chem_comp_oefps","chem_comp_rdfps",
                         "chem_comp_rdmols","chem_comp_structures","fragments",
                         "fragment_hierarchies"]
@@ -55,7 +59,8 @@
 
         "variations":
         {
-            "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
+            "name":     "variations",
+	    "reflect": ["variations","variation_to_uniprot","variation_to_pdb",
                         "phenotypes","annotations","phenotype_to_ligand",
                         "phenotype_to_interface","variation_to_binding_site",
                         "variation_to_interface","sources", "phenotype_to_chain",

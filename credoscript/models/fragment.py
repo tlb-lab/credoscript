@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class Fragment(Base):
     """
@@ -17,7 +17,7 @@ class Fragment(Base):
     ChemComps : Query
         Chemical components that share this fragment.
     """
-    __tablename__ = 'pdbchem.fragments'
+    __tablename__ = '%s.fragments' % schema['pdbchem']
 
     ChemCompFragments = relationship("ChemCompFragment",
                                        primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
@@ -27,7 +27,7 @@ class Fragment(Base):
                                                        remote_side="[ChemCompFragment.fragment_id]"))
 
     ChemComps = relationship("ChemComp",
-                              secondary=Base.metadata.tables['pdbchem.chem_comp_fragments'],
+                              secondary=Base.metadata.tables['%s.chem_comp_fragments' % schema['pdbchem']],
                               primaryjoin="Fragment.fragment_id==ChemCompFragment.fragment_id",
                               secondaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                               foreign_keys="[ChemCompFragment.fragment_id, ChemComp.het_id]",

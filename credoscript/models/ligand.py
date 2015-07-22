@@ -2,7 +2,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.expression import and_, func, or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 from credoscript.util import rdkit, requires
 
@@ -85,7 +85,7 @@ class Ligand(Base, PathMixin):
     --------
     LigandAdaptor : Fetch Ligands from the database.
     """
-    __tablename__ = 'credo.ligands'
+    __tablename__ = '%s.ligands' % schema['credo']
 
     Components = relationship("LigandComponent",
                               primaryjoin="LigandComponent.ligand_id==Ligand.ligand_id",
@@ -99,7 +99,7 @@ class Ligand(Base, PathMixin):
                             innerjoin=True)
 
     ChemComps = relationship("ChemComp",
-                            secondary=Base.metadata.tables['credo.ligand_components'],
+                            secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                             primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                             secondaryjoin="LigandComponent.het_id==ChemComp.het_id",
                             foreign_keys="[LigandComponent.ligand_id, ChemComp.het_id]",
@@ -107,7 +107,7 @@ class Ligand(Base, PathMixin):
 
     # the residues this ligand consists of
     Residues = relationship("Residue",
-                            secondary=Base.metadata.tables['credo.ligand_components'],
+                            secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                             primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                             secondaryjoin="LigandComponent.residue_id==Residue.residue_id",
                             foreign_keys="[LigandComponent.ligand_id, Residue.residue_id]",
@@ -115,7 +115,7 @@ class Ligand(Base, PathMixin):
                             backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     AromaticRings = relationship("AromaticRing",
-                                  secondary=Base.metadata.tables['credo.ligand_components'],
+                                  secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                                   primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                                   secondaryjoin="LigandComponent.residue_id==AromaticRing.residue_id",
                                   foreign_keys="[LigandComponent.ligand_id, AromaticRing.residue_id]",
@@ -123,7 +123,7 @@ class Ligand(Base, PathMixin):
                                   backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
     Atoms = relationship("Atom",
-                         secondary=Base.metadata.tables['credo.ligand_components'],
+                         secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                          primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                          secondaryjoin="and_(LigandComponent.residue_id==Atom.residue_id, Ligand.biomolecule_id==Atom.biomolecule_id)",
                          foreign_keys="[LigandComponent.ligand_id, Atom.residue_id, Atom.biomolecule_id]",
@@ -179,7 +179,7 @@ class Ligand(Base, PathMixin):
                                        backref=backref('Ligand', uselist=False, innerjoin=True))
 
     DomainList = relationship("Domain",
-                              secondary=Base.metadata.tables['credo.binding_site_domains'],
+                              secondary=Base.metadata.tables['%s.binding_site_domains' % schema['credo']],
                               primaryjoin="Ligand.ligand_id==BindingSiteDomain.ligand_id",
                               secondaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
                               foreign_keys="[BindingSiteDomain.ligand_id, Domain.domain_id]",
@@ -517,7 +517,7 @@ class Ligand(Base, PathMixin):
 
 from .atom import Atom
 from .residue import Residue
-from .bindingsite import BindingSiteAtomSurfaceArea
+#from .bindingsite import BindingSiteAtomSurfaceArea
 from ..adaptors.chemcompadaptor import ChemCompAdaptor
 from ..adaptors.residueadaptor import ResidueAdaptor
 from ..adaptors.atomadaptor import AtomAdaptor

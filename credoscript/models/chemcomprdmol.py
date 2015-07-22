@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import func
 try: from rdkit.Chem import MolFromSmarts, MolFromSmiles
 except ImportError: pass
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.util import requires
 
 class ChemCompRDMol(Base):
@@ -14,7 +14,7 @@ class ChemCompRDMol(Base):
     Only available if the RDKit PostgreSQL cartridge is installed on the server
     and the RDKit Python wrappers are available on the client side.
     """
-    __tablename__ = 'pdbchem.chem_comp_rdmols'
+    __tablename__ = '%s.chem_comp_rdmols' % schema['pdbchem']
 
     def __repr__(self):
         """

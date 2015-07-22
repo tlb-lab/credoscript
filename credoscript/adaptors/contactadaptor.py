@@ -296,9 +296,10 @@ class ContactAdaptor(object):
 
         Parameters
         ----------
-        ligand__id : int
+        ligand_id : int
             `Ligand` identifier.
         biomolecule_id : int
+        atom_names : list
 
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.

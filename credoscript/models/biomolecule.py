@@ -1,7 +1,7 @@
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 class Biomolecule(Base, PathMixin):
@@ -63,7 +63,7 @@ class Biomolecule(Base, PathMixin):
     - Not all atoms and residues of a Biomolecule can be found in CREDO; only complete
       residues and their atoms that interact are stored.
     """
-    __tablename__ = 'credo.biomolecules'
+    __tablename__ = '%s.biomolecules' % schema['credo']
 
     Chains = relationship("Chain",
                           primaryjoin="Chain.biomolecule_id==Biomolecule.biomolecule_id",

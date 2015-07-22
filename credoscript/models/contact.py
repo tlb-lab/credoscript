@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.support import interactiontypes as it
 
 class Contact(Base):
@@ -13,7 +13,7 @@ class Contact(Base):
     contact_id : int
         Primary key.
     '''
-    __table__ = Base.metadata.tables['credo.contacts']
+    __table__ = Base.metadata.tables['%s.contacts' % schema['credo']]
     
     AtomBgn  = relationship("Atom",
                             primaryjoin="and_(Atom.atom_id==Contact.atom_bgn_id, Atom.biomolecule_id==Contact.biomolecule_id)", # PARTITION CONSTRAINT-EXCLUSION

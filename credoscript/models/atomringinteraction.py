@@ -1,11 +1,11 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class AtomRingInteraction(Base):
     '''
     '''
-    __tablename__ = 'credo.atom_ring_interactions'
+    __tablename__ = '%s.atom_ring_interactions' % schema['credo']
 
     Atom = relationship("Atom",
                         primaryjoin="Atom.atom_id==AtomRingInteraction.atom_id",

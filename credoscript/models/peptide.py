@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin, ResidueMixin
 
 class Peptide(Base, PathMixin, ResidueMixin):
@@ -67,7 +67,7 @@ class Peptide(Base, PathMixin, ResidueMixin):
     their names, e.g. Residue['CA']. Returns a list due to atoms with
     possible alternate locations.
     '''
-    __tablename__ = 'credo.peptides'
+    __tablename__ = '%s.peptides' % schema['credo']
 
     ResMap = relationship("ResMap",
                            primaryjoin="ResMap.res_map_id==Peptide.res_map_id",
@@ -75,7 +75,7 @@ class Peptide(Base, PathMixin, ResidueMixin):
                            uselist=False, innerjoin=True)
 
     Domains = relationship("Domain",
-                           secondary=Base.metadata.tables['credo.domain_peptides'],
+                           secondary=Base.metadata.tables['%s.domain_peptides' % schema['credo']],
                            primaryjoin="Peptide.residue_id==DomainPeptide.residue_id",
                            secondaryjoin="DomainPeptide.domain_id==Domain.domain_id",
                            foreign_keys="[DomainPeptide.domain_id, DomainPeptide.residue_id]",
@@ -113,7 +113,7 @@ class Peptide(Base, PathMixin, ResidueMixin):
 class PeptideFeature(Base):
     """
     """
-    __tablename__ = 'credo.peptide_features'
+    __tablename__ = '%s.peptide_features' % schema['credo']
 
     def __repr__(self):
         """

@@ -1,11 +1,11 @@
 from sqlalchemy.orm import deferred
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandMolString(Base):
     """
     """
-    __table__ = Base.metadata.tables['credo.ligand_molstrings']
+    __table__ = Base.metadata.tables['%s.ligand_molstrings' % schema['credo']]
 
     # deferred columns
     pdb = deferred(__table__.c.pdb)

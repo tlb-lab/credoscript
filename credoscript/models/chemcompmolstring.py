@@ -1,11 +1,11 @@
 from sqlalchemy.orm import deferred
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class ChemCompMolString(Base):
     '''
     '''
-    __table__ = Base.metadata.tables['pdbchem.chem_comp_structures']
+    __table__ = Base.metadata.tables['%s.chem_comp_structures' % schema['pdbchem']]
     
     # DEFERRED COLUMNS  
     sdf = deferred(__table__.c.sdf)

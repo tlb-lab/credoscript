@@ -7,7 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_method
 try: from rdkit.Chem import Mol, MolFromSmarts
 except ImportError: pass
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript import adaptors as credoadaptor
 from credoscript.support import requires
 

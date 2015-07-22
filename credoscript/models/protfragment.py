@@ -1,17 +1,17 @@
 import re
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 
 class ProtFragment(Base, PathMixin):
     '''
     '''
-    __tablename__ = 'credo.prot_fragments'
+    __tablename__ = '%s.prot_fragments' % schema['credo']
 
     Peptides = relationship("Peptide",
-                            secondary = Base.metadata.tables['credo.prot_fragment_residues'],
+                            secondary = Base.metadata.tables['%s.prot_fragment_residues' % schema['credo']],
                             primaryjoin = "ProtFragment.prot_fragment_id==ProtFragmentResidue.prot_fragment_id",
                             secondaryjoin = "ProtFragmentResidue.residue_id==Peptide.residue_id",
                             foreign_keys = "[ProtFragmentResidue.prot_fragment_id, Peptide.residue_id]",

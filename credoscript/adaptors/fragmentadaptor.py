@@ -222,9 +222,9 @@ class FragmentAdaptor(object):
         query = query.group_by(fragments).order_by("num_chem_comps DESC")
 
         return query
-        
+
     @paginate
-    def fetch_by_trgm_sim(self, smiles, *expr, **kwargs):
+    def fetch_all_by_trgm_sim(self, smiles, *expr, **kwargs):
         """
         Returns all fragments that are similar to the given SMILES string
         using trigam similarity (similar to LINGO).
@@ -272,7 +272,7 @@ class FragmentAdaptor(object):
 
         # KNN-GIST
         query = query.order_by(Fragment.ism.op('<->')(smiles))
-        
+
         if kwargs.get('limit'):
             query = query.limit(kwargs['limit'])
 

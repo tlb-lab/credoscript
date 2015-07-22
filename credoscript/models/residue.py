@@ -1,6 +1,6 @@
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin, ResidueMixin
 
 class Residue(Base, PathMixin, ResidueMixin):
@@ -39,7 +39,7 @@ class Residue(Base, PathMixin, ResidueMixin):
     their names, e.g. Residue['CA']. Returns a list due to atoms with
     possible alternate locations.
     """
-    __tablename__ = 'credo.residues'
+    __tablename__ = '%s.residues' % schema['credo']
 
 
     @property

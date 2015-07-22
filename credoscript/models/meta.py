@@ -2,13 +2,13 @@
 This modules contains mapped classes for entities that deal with the CREDO
 database itself.
 """
-from credoscript import Base
+from credoscript import Base, schema
 
 class Update(Base):
     """
     This class is used to represent an update in the CREDO database.
     """
-    __tablename__ = 'credo.updates'
+    __tablename__ = '%s.updates' % schema['credo']
 
     def __repr__(self):
         """

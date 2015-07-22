@@ -2,14 +2,14 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 class LigLigInteraction(Base, PathMixin):
     """
     Represents a ligand-ligand interaction from CREDO.
     """
-    __tablename__ = 'credo.lig_lig_interactions'
+    __tablename__ = '%s.lig_lig_interactions' % schema['credo']
 
     LigandBgn = relationship("Ligand",
                              primaryjoin="Ligand.ligand_id==LigLigInteraction.lig_bgn_id",

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 
 class Interface(Base, PathMixin):
@@ -37,7 +37,7 @@ class Interface(Base, PathMixin):
     --------
     InterfaceAdaptor : Fetch Interfaces from the database.
     """
-    __tablename__ = 'credo.interfaces'
+    __tablename__ = '%s.interfaces' % schema['credo']
 
     ChainBgn = relationship("Chain",
                             primaryjoin="Chain.chain_id==Interface.chain_bgn_id",
@@ -50,7 +50,7 @@ class Interface(Base, PathMixin):
                             innerjoin=True)
 
     Peptides = relationship("Peptide",
-                            secondary=Base.metadata.tables['credo.interface_peptide_pairs'],
+                            secondary=Base.metadata.tables['%s.interface_peptide_pairs' % schema['credo']],
                             primaryjoin="Interface.interface_id==InterfacePeptidePair.interface_id",
                             secondaryjoin="or_(InterfacePeptidePair.residue_bgn_id==Peptide.residue_id, InterfacePeptidePair.residue_end_id==Peptide.residue_id)",
                             foreign_keys="[InterfacePeptidePair.interface_id, Peptide.residue_id]",
@@ -123,7 +123,7 @@ class InterfacePeptidePair(Base):
     Mapping between interfaces and the interacting peptides of the participating
     polypeptide chains.
     """
-    __tablename__ = 'credo.interface_peptide_pairs'
+    __tablename__ = '%s.interface_peptide_pairs' % schema['credo']
 
     Interface = relationship("Interface",
                              primaryjoin="InterfacePeptidePair.interface_id==Interface.interface_id",
@@ -138,7 +138,7 @@ class InterfacePeptidePair(Base):
                             uselist=True, innerjoin=True, lazy='dynamic')
 
     Domains = relationship("Domain",
-                           secondary=Base.metadata.tables['credo.domain_peptides'],
+                           secondary=Base.metadata.tables['%s.domain_peptides' % schema['credo']],
                            primaryjoin="or_(InterfacePeptidePair.residue_bgn_id==DomainPeptide.residue_id, InterfacePeptidePair.residue_end_id==DomainPeptide.residue_id)",
                            secondaryjoin="DomainPeptide.domain_id==Domain.domain_id",
                            foreign_keys="[DomainPeptide.residue_id, Domain.domain_id]",

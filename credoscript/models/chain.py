@@ -3,7 +3,7 @@ from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_
 
-from credoscript import Base, Session, disordered_regions
+from credoscript import Base, schema, Session, disordered_regions
 from credoscript.mixins import PathMixin
 
 class Chain(Base, PathMixin):
@@ -52,7 +52,7 @@ class Chain(Base, PathMixin):
       residue number with Chain[123]. Returns a list in cases where residues have
       insertion codes.
     """
-    __table__ = Base.metadata.tables['credo.chains']
+    __table__ = Base.metadata.tables['%s.chains' % schema['credo']]
 
     Residues = relationship("Residue",
                             primaryjoin="Residue.chain_id==Chain.chain_id",
@@ -216,12 +216,12 @@ class Chain(Base, PathMixin):
 class Polypeptide(Base):
     """
     """
-    __table__ = Base.metadata.tables['credo.polypeptides']
+    __table__ = Base.metadata.tables['%s.polypeptides' % schema['credo']]
 
 class Oligonucleotide(Base):
     """
     """
-    __table__ = Base.metadata.tables['credo.oligonucleotides']
+    __table__ = Base.metadata.tables['%s.oligonucleotides' % schema['credo']]
 
 from ..adaptors.contactadaptor import ContactAdaptor
 from ..adaptors.domainadaptor import DomainAdaptor

@@ -1,6 +1,6 @@
-from credoscript import Base
+from credoscript import Base, schema
 
 class LigandUSR(Base):
     '''
     '''
-    __tablename__ = 'credo.ligand_usr'
+    __tablename__ = '%s.ligand_usr' % schema['credo']

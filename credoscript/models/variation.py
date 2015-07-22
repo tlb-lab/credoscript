@@ -1,16 +1,16 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base
+from credoscript import Base, schema
 
 class Source(Base):
     """
     """
-    __tablename__ = 'variations.sources'
+    __tablename__ = '%s.sources' % schema['variations']
 
 class Variation(Base):
     """
     """
-    __tablename__ = 'variations.variations'
+    __tablename__ = '%s.variations' % schema['variations']
 
     Source = relationship("Source",
                           primaryjoin="Variation.source_id==Source.source_id",
@@ -30,7 +30,7 @@ class Variation(Base):
                                      backref=backref('Variation', uselist=False))
 
     Variation2PDB = relationship("Variation2PDB",
-                       secondary = Base.metadata.tables['variations.variation_to_uniprot'],
+                       secondary = Base.metadata.tables['%s.variation_to_uniprot' % schema['variations']],
                        primaryjoin = "Variation.variation_id==Variation2UniProt.variation_id",
                        secondaryjoin = "Variation2UniProt.variation_to_uniprot_id==Variation2PDB.variation_to_uniprot_id",
                        foreign_keys = "[Variation2UniProt.variation_id, Variation2PDB.variation_to_uniprot_id]",
@@ -45,7 +45,7 @@ class Variation(Base):
 class Variation2UniProt(Base):
     """
     """
-    __tablename__ = 'variations.variation_to_uniprot'
+    __tablename__ = '%s.variation_to_uniprot' % schema['variations']
 
     Variation2PDB = relationship("Variation2PDB",
                                  primaryjoin = "Variation2UniProt.variation_to_uniprot_id==Variation2PDB.variation_to_uniprot_id",
@@ -61,7 +61,7 @@ class Variation2UniProt(Base):
 class Variation2PDB(Base):
     """
     """
-    __tablename__ = 'variations.variation_to_pdb'
+    __tablename__ = '%s.variation_to_pdb' % schema['variations']
 
     Peptide = relationship("Peptide",
                            primaryjoin="Variation2PDB.res_map_id==Peptide.res_map_id",
@@ -72,7 +72,7 @@ class Variation2PDB(Base):
 class Variation2BindingSite(Base):
     """
     """
-    __tablename__ = 'variations.variation_to_binding_site'
+    __tablename__ = '%s.variation_to_binding_site' % schema['variations']
 
     Variation = relationship("Variation",
                              primaryjoin="Variation.variation_id==Variation2BindingSite.variation_id",
@@ -107,7 +107,7 @@ class Variation2BindingSite(Base):
 class Annotation(Base):
     """
     """
-    __tablename__ = 'variations.annotations'
+    __tablename__ = '%s.annotations' % schema['variations']
 
     Phenotype = relationship("Phenotype",
                              primaryjoin="Annotation.phenotype_id==Phenotype.phenotype_id",
@@ -123,7 +123,7 @@ class Annotation(Base):
 class Phenotype(Base):
     """
     """
-    __tablename__ = 'variations.phenotypes'
+    __tablename__ = '%s.phenotypes' % schema['variations']
 
     def __repr__(self):
         """

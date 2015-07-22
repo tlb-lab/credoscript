@@ -7,7 +7,7 @@ from xml.etree.ElementTree import Element, SubElement
 from sqlalchemy.orm import aliased, backref, relationship
 from sqlalchemy.sql.expression import and_, or_
 
-from credoscript import Base
+from credoscript import Base, schema
 from credoscript.mixins.base import paginate
 
 class LigandUniProtSIFtNode(Base):
@@ -51,7 +51,7 @@ class LigandUniProtSIFtNode(Base):
     Leaves : list
         List of all terminal nodes (leaves), i.e. ligands, below this node.
     """
-    __tablename__ = 'credo.ligand_uniprot_sift_nodes'
+    __tablename__ = '%s.ligand_uniprot_sift_nodes' % schema['credo']
 
     # the parent node
     Parent = relationship("LigandUniProtSIFtNode",
@@ -96,7 +96,7 @@ class LigandUniProtSIFtNode(Base):
 
     # returns the ligands of the node if it has leaves
     Ligands = relationship("Ligand",
-                           secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
+                           secondary=Base.metadata.tables['%s.ligand_uniprot_sift_node_to_ligand' % schema['credo']],
                            primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
                                         or_(LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node, \
                                             LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node))",
@@ -106,7 +106,7 @@ class LigandUniProtSIFtNode(Base):
                            backref=backref('LigandUniProtSIFtNode', uselist=False, innerjoin=True))
 
     LeftLigand = relationship("Ligand",
-                              secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
+                              secondary=Base.metadata.tables['%s.ligand_uniprot_sift_node_to_ligand' % schema['credo']],
                               primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
                                                 LigandUniProtSIFtNode.links==LigandUniProtSIFtNode2Ligand.node)",
                               secondaryjoin="LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id",
@@ -114,7 +114,7 @@ class LigandUniProtSIFtNode(Base):
                               uselist=False)
 
     RightLigand = relationship("Ligand",
-                               secondary=Base.metadata.tables['credo.ligand_uniprot_sift_node_to_ligand'],
+                               secondary=Base.metadata.tables['%s.ligand_uniprot_sift_node_to_ligand' % schema['credo']],
                                primaryjoin="and_(LigandUniProtSIFtNode.uniprot==LigandUniProtSIFtNode2Ligand.uniprot, \
                                                  LigandUniProtSIFtNode.rechts==LigandUniProtSIFtNode2Ligand.node)",
                                secondaryjoin="LigandUniProtSIFtNode2Ligand.ligand_id==Ligand.ligand_id",
@@ -332,7 +332,7 @@ class LigandUniProtSIFtNode(Base):
         return root
 
 class LigandUniProtSIFtNode2Ligand(Base):
-    __tablename__ = 'credo.ligand_uniprot_sift_node_to_ligand'
+    __tablename__ = '%s.ligand_uniprot_sift_node_to_ligand' % schema['credo']
 
     Ligand = relationship("Ligand",
                           primaryjoin="Ligand.ligand_id==LigandUniProtSIFtNode2Ligand.ligand_id",
@@ -340,7 +340,7 @@ class LigandUniProtSIFtNode2Ligand(Base):
                           uselist=False, innerjoin=True)
 
 class LigandUniProtSIFtNodeProperty(Base):
-    __tablename__ = 'credo.ligand_uniprot_sift_node_properties'
+    __tablename__ = '%s.ligand_uniprot_sift_node_properties' % schema['credo']
 
 class LigandUniProtSIFtNodeAdaptor(object):
     """
