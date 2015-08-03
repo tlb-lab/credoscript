@@ -76,10 +76,13 @@ metadata.reflect(schema=schema['pdb'], only=lambda t,m: t in config['schema']['p
 metadata.reflect(schema=schema['variations'], only=lambda t,m: t in config['schema']['variations']['reflect'])
 
 # database session
-Session = scoped_session(sessionmaker(bind=engine, autocommit=True)) #
+Session = scoped_session(sessionmaker(bind=engine)) #, autocommit=True)) 
+# BO: Autocommit True leads to some settings (like similarity thresholds) not applying to a query;
+# Adrian had it on for some reason, despite not being the "recommended" settings, probably to avoid accumulation
+# of open connections.
 
 # import Base here because the module imports the Session object
-from credoscript.mixins import Base
+from credoscript.mixins import Base, BaseQuery
 
 # the declarative base that is used for all credo entities
 Base = declarative_base(bind=engine, metadata=metadata, cls=Base)

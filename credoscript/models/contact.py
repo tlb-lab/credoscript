@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from credoscript import Base, schema
+from credoscript import Base, BaseQuery, schema
 from credoscript.support import interactiontypes as it
 
 class Contact(Base):
@@ -15,14 +15,14 @@ class Contact(Base):
     '''
     __table__ = Base.metadata.tables['%s.contacts' % schema['credo']]
     
-    AtomBgn  = relationship("Atom",
+    AtomBgn  = relationship("Atom", query_class=BaseQuery,
                             primaryjoin="and_(Atom.atom_id==Contact.atom_bgn_id, Atom.biomolecule_id==Contact.biomolecule_id)", # PARTITION CONSTRAINT-EXCLUSION
                             foreign_keys="[Atom.atom_id, Atom.biomolecule_id]",
                             uselist=False, innerjoin=True,
                             backref=backref('ContactsBgn', uselist=True,
                                             innerjoin=True, lazy='dynamic'))
     
-    AtomEnd = relationship("Atom",
+    AtomEnd = relationship("Atom", query_class=BaseQuery,
                            primaryjoin="and_(Atom.atom_id==Contact.atom_end_id, Atom.biomolecule_id==Contact.biomolecule_id)", # PARTITION CONSTRAINT-EXCLUSION
                            foreign_keys="[Atom.atom_id, Atom.biomolecule_id]",
                            uselist=False, innerjoin=True,

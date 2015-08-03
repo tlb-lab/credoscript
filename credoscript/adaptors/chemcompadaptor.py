@@ -306,7 +306,7 @@ class ChemCompAdaptor(object):
             The query rdmol in SMILES format.
         threshold : float, default=0.5
             The similarity threshold that will be used for searching.
-        fp : {'circular','atompair','torsion'}
+        fp : {'circular','atompair','torsion','maccs','layered','avalon'}
             RDKit fingerprint type to be used for similarity searching.
         *expr : BinaryExpressions, optional
             SQLAlchemy BinaryExpressions that will be used to filter the query.
@@ -332,6 +332,7 @@ class ChemCompAdaptor(object):
         session = Session()
 
         threshold = kwargs.get('threshold', 0.5)
+        metric = kwargs.get('metric', 'tanimoto')
         fp = kwargs.get('fp', 'circular')
 
         if fp == 'circular':
@@ -345,25 +346,52 @@ class ChemCompAdaptor(object):
         elif fp == 'atompair':
             query = func.rdkit.atompairbv_fp(smi).label('queryfp')
             target = ChemCompRDFP.atompair_fp
-
+            
+        elif fp == 'maccs':
+            query = func.rdkit.maccs_fp(smi).label('queryfp')
+            target = ChemCompRDFP.maccs_fp
+            
+        elif fp == 'layered':
+            query = func.rdkit.layered_fp(smi).label('queryfp')
+            target = ChemCompRDFP.layered_fp
+        
+        elif fp == 'avalon':
+            query = func.rdkit.avalon_fp(smi).label('queryfp')
+            target = ChemCompRDFP.avalon_fp
+          
         else:
             msg = "The fingerprint type [{0}] does not exist.".format(fp)
             raise RuntimeError(msg)
 
         # set the similarity threshold for the index
-        session.execute(text("SET rdkit.tanimoto_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
-
-        tanimoto = func.rdkit.tanimoto_sml(query, target).label('tanimoto')
-        index = func.rdkit.tanimoto_sml_op(query,target)
-
-        query = self.query.add_column(tanimoto)
+        if metric == 'tanimoto':
+            session.execute(text("SET rdkit.tanimoto_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
+            sim_thresh = func.current_setting('rdkit.tanimoto_threshold').label('sim_thresh')
+            similarity = func.rdkit.tanimoto_sml(query, target).label('similarity')
+            
+            index = func.rdkit.tanimoto_sml_op(query,target)
+        elif metric == 'dice':
+            session.execute(text("SET rdkit.dice_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
+            sim_thresh = func.current_setting('rdkit.dice_threshold').label('sim_thresh')
+            similarity = func.rdkit.dice_sml(query, target).label('similarity')
+            index = func.rdkit.dice_sml_op(query,target)
+        
+        
+        query = self.query.add_columns(similarity, sim_thresh)
+        #query = self.query.add_column(similarity)
+        
         query = query.join('RDFP').filter(and_(index, *expr))
-        query = query.order_by('tanimoto DESC')
+        query = query.order_by('similarity DESC')
+        
+        if kwargs.get('limit'):
+            query = query.limit(kwargs['limit']) #.all()
+            
+        results = query.all()
+        #session.close()
 
-        session.close()
+        return results # query
 
-        return query
-
+        
     @paginate
     def fetch_all_by_trgm_sim(self, smiles, *expr, **kwargs):
         """
@@ -407,16 +435,21 @@ class ChemCompAdaptor(object):
         session.execute(text("SELECT set_limit(:threshold)").execution_options(autocommit=True).params(threshold=threshold))
 
         similarity = func.similarity(ChemComp.ism, smiles).label('similarity')
+        sim_thresh = func.show_limit().label('sim_thresh')
 
-        query = self.query.add_column(similarity)
+        query = self.query.add_columns(similarity, sim_thresh)
         query = query.filter(and_(ChemComp.like(smiles), *expr))
 
         # KNN-GIST
         query = query.order_by(ChemComp.ism.op('<->')(smiles))
 
-        session.close()
+        if kwargs.get('limit'):
+            query = query.limit(kwargs['limit'])
+            
+        results = query.all()
+        #session.close()
 
-        return query
+        return results #query
 
     @paginate
     def fetch_all_by_usr_moments(self, *expr, **kwargs):

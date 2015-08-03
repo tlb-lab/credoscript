@@ -92,6 +92,10 @@ class BaseQuery(Query):
     Adapted from the Flask-SQLAlchemy extension (http://packages.python.org/Flas
     k-SQLAlchemy/api.html#flaskext.sqlalchemy.Pagination)
     """
+    def __init__(self, *args, **kwargs):
+        self.cls = args[0].class_  # Base class available as property, for self-contained Column access
+        super(BaseQuery, self).__init__(*args, **kwargs)
+
     def paginate(self, page=1, per_page=100):
         """
         """
@@ -153,7 +157,11 @@ class Base(object):
         table = "<table>{}</table>".format(rows)
 
         return table
-
+        
+    @classmethod
+    def get_cls(cls):
+        return cls
+        
     @property
     def __data__(self):
         """

@@ -12,7 +12,7 @@ from .ligandfragment import LigandFragment
 from .ligandfragmentatom import LigandFragmentAtom
 from .ligandusr import LigandUSR
 from .ligandmolstring import LigandMolString
-from .ligand import Ligand
+from .ligand import Ligand, LigandPDBInfo
 from .ligandmatch import LigandMatch
 from .ringinteraction import RingInteraction
 from .atomringinteraction import AtomRingInteraction
@@ -22,6 +22,7 @@ from .chemcompfragment import ChemCompFragment
 from .chemcompmolstring import ChemCompMolString
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
+from .fragment_rdkit import FragmentRDMol #, FragmentRDFP
 from .resmap import ResMap
 from .peptide import Peptide, PeptideFeature
 from .nucleotide import Nucleotide

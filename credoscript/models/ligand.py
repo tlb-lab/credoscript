@@ -1,10 +1,27 @@
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, column_property
 from sqlalchemy.sql.expression import and_, func, or_
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base, schema
+from credoscript import Base, BaseQuery, schema
 from credoscript.mixins import PathMixin
 from credoscript.util import rdkit, requires
+
+class LigandPDBInfo(Base, PathMixin):
+    """
+    
+    """
+    
+    __tablename__ = '%s.ligands' % schema['pdb']
+    
+    def __repr__(self):
+        """
+        """
+        return '<LigandPDBInfo({self.path})>'.format(self=self)
+           
+    @property
+    def path(self):
+        return "%(pdb)s/*/%(pdb_chain_id)s/%(het_id)s`%(res_num)s" % self.__dict__
+
 
 class Ligand(Base, PathMixin):
     """
@@ -85,28 +102,41 @@ class Ligand(Base, PathMixin):
     --------
     LigandAdaptor : Fetch Ligands from the database.
     """
+    
     __tablename__ = '%s.ligands' % schema['credo']
-
-    Components = relationship("LigandComponent",
+    
+    
+    Components = relationship("LigandComponent", query_class=BaseQuery,
                               primaryjoin="LigandComponent.ligand_id==Ligand.ligand_id",
                               foreign_keys="[LigandComponent.ligand_id]",
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('Ligand', uselist=False, innerjoin=True))
 
-    ChemComp = relationship("ChemComp",
+    ChemComp = relationship("ChemComp", query_class=BaseQuery,
                             primaryjoin="Ligand.ligand_name==ChemComp.het_id",
                             foreign_keys="[ChemComp.het_id]", uselist=False,
                             innerjoin=True)
 
-    ChemComps = relationship("ChemComp",
+    ChemComps = relationship("ChemComp", query_class=BaseQuery,
                             secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                             primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                             secondaryjoin="LigandComponent.het_id==ChemComp.het_id",
                             foreign_keys="[LigandComponent.ligand_id, ChemComp.het_id]",
                             uselist=True, innerjoin=True, lazy='dynamic')
+                            
+    # Information on PDB schema
+    PDBInfo = relationship("LigandPDBInfo", 
+                            primaryjoin="and_(Ligand.ligand_name == LigandPDBInfo.het_id, \
+                                              Ligand.pdb_chain_id == LigandPDBInfo.pdb_chain_id, \
+                                              Ligand.res_num == LigandPDBInfo.res_num, \
+                                              func.text2ptree(Ligand.path).op('<@', is_comparison=True)\
+                                              (func.text2ptree(LigandPDBInfo.pdb)))",
+                            foreign_keys="[LigandPDBInfo.het_id, LigandPDBInfo.pdb_chain_id, LigandPDBInfo.res_num]",
+                            uselist=False, single_parent=True) #, innerjoin=True) #,
+                    # credo_dev ("ligand_name", "pdb_chain_id", "res_num");
 
     # the residues this ligand consists of
-    Residues = relationship("Residue",
+    Residues = relationship("Residue", query_class=BaseQuery,
                             secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                             primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                             secondaryjoin="LigandComponent.residue_id==Residue.residue_id",
@@ -114,7 +144,7 @@ class Ligand(Base, PathMixin):
                             uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
-    AromaticRings = relationship("AromaticRing",
+    AromaticRings = relationship("AromaticRing", query_class=BaseQuery,
                                   secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                                   primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                                   secondaryjoin="LigandComponent.residue_id==AromaticRing.residue_id",
@@ -122,14 +152,14 @@ class Ligand(Base, PathMixin):
                                   uselist=True, innerjoin=True, lazy='dynamic',
                                   backref=backref('LigandComponent', uselist=False, innerjoin=True))
 
-    Atoms = relationship("Atom",
+    Atoms = relationship("Atom", query_class=BaseQuery,
                          secondary=Base.metadata.tables['%s.ligand_components' % schema['credo']],
                          primaryjoin="Ligand.ligand_id==LigandComponent.ligand_id",
                          secondaryjoin="and_(LigandComponent.residue_id==Atom.residue_id, Ligand.biomolecule_id==Atom.biomolecule_id)",
                          foreign_keys="[LigandComponent.ligand_id, Atom.residue_id, Atom.biomolecule_id]",
                          uselist=True, innerjoin=True, lazy='dynamic')
 
-    LigandFragments = relationship("LigandFragment",
+    LigandFragments = relationship("LigandFragment", query_class=BaseQuery,
                                    primaryjoin="LigandFragment.ligand_id==Ligand.ligand_id",
                                    foreign_keys="[LigandFragment.ligand_id]",
                                    uselist=True, innerjoin=True, lazy='dynamic',
@@ -247,12 +277,34 @@ class Ligand(Base, PathMixin):
         if isinstance(other, Ligand):
             return rdkit.tanimoto_sml(self.MolString.ism, other.MolString.ism)
 
+    @hybrid_method
     @property
-    def name(self):
+    def het_id(self):
         """
         Alias for ligand_name.
         """
         return self.ligand_name
+        
+    @hybrid_method
+    @property
+    def pdbid(self):
+        """PDBID of the ligand"""
+        return self.path.split('/')[0]
+        
+    @pdbid.expression
+    @property
+    def pdbid(self):
+        """Returns SQLAlchemy clause to enable usage of the PDB ligand"""
+        return func.subptree(self.path, 0, 1)
+         
+    @hybrid_method
+    @property
+    def name(self):
+        """Name of the ligand according to the entry on PDB"""
+        try:
+            return self.PDBInfo.name
+        except AttributeError:
+            return ''
 
     @hybrid_method
     @property
@@ -514,7 +566,9 @@ class Ligand(Base, PathMixin):
                                                             usr_space=self.usr_space,
                                                             usr_moments=self.usr_moments,
                                                             **kwargs)
-
+                                                            
+Ligand.pdb = column_property(func.subptree(Ligand.path,0,1))
+ 
 from .atom import Atom
 from .residue import Residue
 #from .bindingsite import BindingSiteAtomSurfaceArea

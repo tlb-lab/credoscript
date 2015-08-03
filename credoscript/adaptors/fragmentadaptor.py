@@ -2,6 +2,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import and_, func, or_, text
 
 from credoscript import Session
+from credoscript.util import requires
 from credoscript.mixins.base import paginate
 
 class FragmentAdaptor(object):
@@ -223,6 +224,104 @@ class FragmentAdaptor(object):
 
         return query
 
+    @requires.rdkit_catridge
+    @paginate
+    def fetch_all_by_sim(self, smi, *expr, **kwargs):
+        """
+        Returns all fragments that match the given SMILES string with at
+        least the given similarity threshold using chemical fingerprints.
+
+        Parameters
+        ----------
+        smi : str
+            The query rdmol in SMILES format.
+        threshold : float, default=0.5
+            The similarity threshold that will be used for searching.
+        fp : {'circular','atompair','torsion','maccs','layered','avalon'}
+            RDKit fingerprint type to be used for similarity searching.
+        *expr : BinaryExpressions, optional
+            SQLAlchemy BinaryExpressions that will be used to filter the query.
+
+        Queried Entities
+        ----------------
+        Fragments, FragmentRDFP
+
+        Returns
+        -------
+        hits : list
+            List of tuples in the form (Fragment, similarity)
+
+        Examples
+        --------
+        >>> #PENDING
+
+        Requires
+        --------
+        .. important:: `RDKit  <http://www.rdkit.org>`_ PostgreSQL cartridge.
+        """
+        
+        session = Session()
+
+        threshold = kwargs.get('threshold', 0.5)
+        metric = kwargs.get('metric', 'tanimoto')
+        fp = kwargs.get('fp', 'circular')
+
+        if fp == 'circular':
+            query = func.rdkit.morganbv_fp(smi,2).label('queryfp')
+            target = FragmentRDFP.circular_fp
+
+        elif fp == 'torsion':
+            query = func.rdkit.torsionbv_fp(smi).label('queryfp')
+            target = FragmentRDFP.torsion_fp
+
+        elif fp == 'atompair':
+            query = func.rdkit.atompairbv_fp(smi).label('queryfp')
+            target = FragmentRDFP.atompair_fp
+            
+        elif fp == 'maccs':
+            query = func.rdkit.maccs_fp(smi).label('queryfp')
+            target = FragmentRDFP.maccs_fp
+            
+        elif fp == 'layered':
+            query = func.rdkit.layered_fp(smi).label('queryfp')
+            target = FragmentRDFP.layered_fp
+        
+        elif fp == 'avalon':
+            query = func.rdkit.avalon_fp(smi).label('queryfp')
+            target = FragmentRDFP.avalon_fp
+          
+        else:
+            msg = "The fingerprint type [{0}] does not exist.".format(fp)
+            raise RuntimeError(msg)
+
+        # set the similarity threshold for the index
+        if metric == 'tanimoto':
+            session.execute(text("SET rdkit.tanimoto_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
+            sim_thresh = func.current_setting('rdkit.tanimoto_threshold').label('sim_thresh')
+
+            similarity = func.rdkit.tanimoto_sml(query, target).label('similarity')
+            index = func.rdkit.tanimoto_sml_op(query,target)
+        elif metric == 'dice':
+            session.execute(text("SET rdkit.dice_threshold=:threshold").execution_options(autocommit=True).params(threshold=threshold))
+            sim_thresh = func.current_setting('rdkit.dice_threshold').label('sim_thresh')
+
+            similarity = func.rdkit.dice_sml(query, target).label('similarity')
+            index = func.rdkit.dice_sml_op(query,target)
+            
+            
+        query = self.query.add_columns(similarity, sim_thresh)
+        query = query.join('RDFP').filter(and_(index, *expr))
+        query = query.order_by('similarity DESC')
+        
+        if kwargs.get('limit'):
+            query = query.limit(kwargs['limit']) #.all(
+
+        results = query.all()
+        #session.close()
+
+        return results # query
+
+    
     @paginate
     def fetch_all_by_trgm_sim(self, smiles, *expr, **kwargs):
         """
@@ -266,8 +365,9 @@ class FragmentAdaptor(object):
         session.execute(text("SELECT set_limit(:threshold)").execution_options(autocommit=True).params(threshold=threshold))
 
         similarity = func.similarity(Fragment.ism, smiles).label('similarity')
+        sim_thresh = func.show_limit().label('sim_thresh')
 
-        query = self.query.add_column(similarity)
+        query = self.query.add_columns(similarity, sim_thresh)
         query = query.filter(and_(Fragment.like(smiles), *expr))
 
         # KNN-GIST
@@ -276,12 +376,14 @@ class FragmentAdaptor(object):
         if kwargs.get('limit'):
             query = query.limit(kwargs['limit'])
 
-        session.close()
+        results = query.all()
+        #session.close()
 
-        return query
+        return results #query
 
 from ..models.chemcomp import ChemComp
 from ..models.fragment import Fragment
+from ..models.fragment_rdkit import FragmentRDMol, FragmentRDFP
 from ..models.ligandfragment import LigandFragment
 from ..models.fragmenthierarchy import FragmentHierarchy
 from ..models.chemcompfragment import ChemCompFragment

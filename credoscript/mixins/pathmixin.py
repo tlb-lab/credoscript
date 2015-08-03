@@ -9,8 +9,29 @@ import re
 
 from sqlalchemy.orm import deferred
 from sqlalchemy.sql.expression import and_
+from sqlalchemy.types import UserDefinedType
+from sqlalchemy.dialects.postgresql.base import ischema_names
 
 from credoscript.mixins.base import paginate
+
+class PTREE(UserDefinedType):
+    """Path tree custom type. Not currently used.""" 
+
+    def get_col_spec(self):
+        return "ptree"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            return value
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            return value
+        return process
+
+ischema_names['ptree'] = PTREE
+
 
 class PathMixin(object):
     """

@@ -3,7 +3,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
 from sqlalchemy.ext.hybrid import hybrid_method
 
-from credoscript import Base, schema
+from credoscript import Base, BaseQuery, schema
 from credoscript.util import rdkit, requires
 
 class ChemComp(Base):
@@ -117,31 +117,31 @@ class ChemComp(Base):
     """
     __tablename__ = '%s.chem_comps' % schema['pdbchem']
 
-    ChemCompFragments = relationship("ChemCompFragment",
+    ChemCompFragments = relationship("ChemCompFragment", query_class=BaseQuery,
                                      primaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                                      foreign_keys = "[ChemCompFragment.het_id]",
                                      uselist=True, innerjoin=True, lazy='dynamic',
                                      backref=backref('ChemComp', uselist=False, innerjoin=True))
 
-    Conformers = relationship("ChemCompConformer",
+    Conformers = relationship("ChemCompConformer", query_class=BaseQuery,
                               primaryjoin="ChemCompConformer.het_id==ChemComp.het_id",
                               foreign_keys = "[ChemCompConformer.het_id]",
                               uselist=True, innerjoin=True, lazy='dynamic',
                               backref=backref('ChemComp', uselist=False, innerjoin=True))
 
-    Fragments = relationship("Fragment",
+    Fragments = relationship("Fragment", query_class=BaseQuery,
                              secondary=Base.metadata.tables['%s.chem_comp_fragments' % schema['pdbchem']],
                              primaryjoin="ChemComp.het_id==ChemCompFragment.het_id",
                              secondaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                              foreign_keys="[ChemCompFragment.het_id, Fragment.fragment_id]",
                              lazy='dynamic', uselist=True, innerjoin=True)
 
-    Ligands = relationship("Ligand",
+    Ligands = relationship("Ligand", query_class=BaseQuery,
                            primaryjoin="Ligand.ligand_name==ChemComp.het_id",
                            foreign_keys = "[Ligand.ligand_name]",
                            lazy='dynamic', uselist=True, innerjoin=True)
 
-    XRefs = relationship("XRef",
+    XRefs = relationship("XRef", query_class=BaseQuery,
                          primaryjoin="and_(XRef.entity_type=='ChemComp', XRef.entity_id==ChemComp.chem_comp_id)",
                          foreign_keys="[XRef.entity_type, XRef.entity_id]",
                          lazy='dynamic', uselist=True, innerjoin=True)
@@ -242,6 +242,14 @@ class ChemComp(Base):
         to compare the SMILES strings.
         """
         return self.ism.op('%%')(smiles)
+        
+    @hybrid_method
+    @property
+    def pdb_name(self):
+        try:
+            return self.Ligands.filter(Ligand.name != None).first().name
+        except AttributeError:
+            return 'N/A'
 
     @hybrid_method
     @property
@@ -296,4 +304,5 @@ class ChemComp(Base):
                                                           **kwargs)
 
 from .chemcompconformer import ChemCompConformer
+from .ligand import Ligand
 from ..adaptors.chemcompadaptor import ChemCompAdaptor

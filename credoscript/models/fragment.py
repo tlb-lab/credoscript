@@ -1,6 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 
-from credoscript import Base, schema
+from credoscript import Base, BaseQuery, schema
 
 class Fragment(Base):
     """
@@ -26,12 +26,25 @@ class Fragment(Base):
                                        backref=backref('Fragment', uselist=False,
                                                        remote_side="[ChemCompFragment.fragment_id]"))
 
-    ChemComps = relationship("ChemComp",
+    ChemComps = relationship("ChemComp", query_class=BaseQuery,
                               secondary=Base.metadata.tables['%s.chem_comp_fragments' % schema['pdbchem']],
                               primaryjoin="Fragment.fragment_id==ChemCompFragment.fragment_id",
                               secondaryjoin="ChemCompFragment.het_id==ChemComp.het_id",
                               foreign_keys="[ChemCompFragment.fragment_id, ChemComp.het_id]",
-                              lazy='dynamic', uselist=True, innerjoin=True)
+                              lazy='dynamic', uselist=True, innerjoin=True) # 
+                              
+    RDMol = relationship("FragmentRDMol",
+                         primaryjoin="FragmentRDMol.fragment_id==Fragment.fragment_id",
+                         foreign_keys="[FragmentRDMol.fragment_id]",
+                         uselist=False, innerjoin=True,
+                         backref=backref('Fragment', uselist=False, innerjoin=True))
+
+    RDFP = relationship("FragmentRDFP",
+                        primaryjoin="FragmentRDFP.fragment_id==Fragment.fragment_id",
+                        foreign_keys="[FragmentRDFP.fragment_id]",
+                        uselist=False, innerjoin=True,
+                        backref=backref('Fragment', uselist=False, innerjoin=True))
+
 
     def __repr__(self):
         """
@@ -78,4 +91,5 @@ class Fragment(Base):
         """
         return self.ism.op('%%')(smiles)
 
+    
 from ..adaptors.fragmentadaptor import FragmentAdaptor
