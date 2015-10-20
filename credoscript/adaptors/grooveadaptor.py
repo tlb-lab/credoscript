@@ -1,4 +1,4 @@
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, or_
 
 from credoscript import phenotype_to_groove
 from credoscript.mixins import PathAdaptorMixin

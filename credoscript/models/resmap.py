@@ -56,4 +56,4 @@ class ResMap(Base):
     def __repr__(self):
         '''
         '''
-        return '<ResMap({self.entry} {self.entity_id} {self.db_res_num})>'.format(self=self)
+        return '<ResMap({self.entry} {self.entity_id} {self.pdb_res_num})>'.format(self=self)

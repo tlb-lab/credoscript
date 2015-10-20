@@ -6,3 +6,4 @@ config.json
 *.pyc
 *~
 docs/_*
+*.pyo

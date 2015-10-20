@@ -316,6 +316,8 @@ class FragmentAdaptor(object):
         if kwargs.get('limit'):
             query = query.limit(kwargs['limit']) #.all(
 
+        #print query.statement
+        
         results = query.all()
         #session.close()
 
