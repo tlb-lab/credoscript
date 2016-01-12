@@ -1,3 +1,5 @@
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from credoscript import Base, schema
 from credoscript.mixins import PathMixin
 from credoscript.support.vector import Vector
@@ -38,10 +40,27 @@ class AromaticRing(Base, PathMixin):
     """
     __tablename__ = '%s.aromatic_rings' % schema['credo']
 
+
     def __repr__(self):
         """
         """
         return "<AromaticRing({self.path})>".format(self=self)
+    
+    def get_imz_string(self, mol_name=None):
+        path_toks = self.path.split('/')
+        name_concat = '+'.join(at.atom_name for at in self.Atoms)
+
+        s = 0
+        if not mol_name:
+            s = 2
+        elif isinstance(mol_name, basestring):
+            path_toks[0] = mol_name
+        path_toks[1] = ''
+        path = '/'.join(path_toks[s:-1] + [name_concat])
+
+        return "{} ({}) [{}]".format(path,
+                                     ' '.join('%.3f' % e for e in self.centroid),
+                                     ' '.join('%.3f' % e for e in self.normal))
 
     @property
     def Centroid(self):
@@ -72,5 +91,22 @@ class AromaticRing(Base, PathMixin):
         adaptor = RingInteractionAdaptor(dynamic=True)
         return adaptor.fetch_all_by_aromatic_ring_id(self.aromatic_ring_id)
 
+    @hybrid_property
+    def is_ligand(self):
+        """
+        Does the ring belong to a ligand?
+        """
+        return True if LigandComponentAdaptor().fetch_by_residue_id(self.residue_id) else False
+
+
+    @is_ligand.expression
+    def is_ligand(cls):
+        """
+        Returns an SQLAlchemy boolean clause list that can enables usage of this property to filter query constructs.
+        """
+        return LigandComponent.residue_id == cls.residue_id
+
+
 from ..adaptors.atomadaptor import AtomAdaptor
+from ..adaptors.ligandcomponentadaptor import LigandComponentAdaptor, LigandComponent
 from ..adaptors.ringinteractionadaptor import RingInteractionAdaptor

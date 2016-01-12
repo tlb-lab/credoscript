@@ -43,6 +43,29 @@ class RingInteractionAdaptor(object):
 
         return query
 
+    @paginate
+    def fetch_all_by_ligand_fragment_id(self, ligand_fragment_id, *expr, **kwargs):
+        """
+        """
+        where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expr)
+
+        query = self.query.join(
+            (AromaticRing, or_(RingInteraction.aromatic_ring_bgn_id==AromaticRing.aromatic_ring_id,
+                               RingInteraction.aromatic_ring_end_id==AromaticRing.aromatic_ring_id)),
+            (AromaticRingAtom, AromaticRingAtom.aromatic_ring_id==AromaticRing.aromatic_ring_id),
+            (LigandComponent, LigandComponent.residue_id==AromaticRing.residue_id),
+            (LigandFragment, LigandFragment.ligand_id==LigandComponent.ligand_id),
+            (LigandFragmentAtom, and_(LigandFragmentAtom.ligand_fragment_id==LigandFragment.ligand_fragment_id,
+                                      LigandFragmentAtom.atom_id==AromaticRingAtom.atom_id))
+        )
+
+        query = query.filter(where)
+
+        return query.distinct()
+
 from ..models.aromaticring import AromaticRing
+from ..models.aromaticringatom import AromaticRingAtom
 from ..models.ligandcomponent import LigandComponent
+from ..models.ligandfragment import LigandFragment
+from ..models.ligandfragmentatom import LigandFragmentAtom
 from ..models.ringinteraction import RingInteraction

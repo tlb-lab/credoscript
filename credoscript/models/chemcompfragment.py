@@ -1,3 +1,4 @@
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import func
 
 from credoscript import Base, schema, Session, chem_comp_fragment_atoms

@@ -1,4 +1,4 @@
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, or_
 
 from credoscript.mixins.base import paginate
 
@@ -109,7 +109,36 @@ class AtomRingInteractionAdaptor(object):
 
         return query
 
+    @paginate
+    def fetch_all_by_ligand_fragment_id(self, ligand_fragment_id, *expr, **kwargs):
+        """
+        """
+        where = and_(LigandFragmentAtom.ligand_fragment_id==ligand_fragment_id, *expr)
+
+        # ATOM BELONGS TO LIGAND FRAGMENT
+        atom = self.query.join((LigandFragmentAtom,
+                                LigandFragmentAtom.atom_id==AtomRingInteraction.atom_id)
+                               ).filter(where).distinct()
+
+        # RING BELONGS TO LIGAND FRAGMENT
+        ring = self.query.join(
+            (AromaticRing, AromaticRing.aromatic_ring_id==AtomRingInteraction.aromatic_ring_id),
+            (AromaticRingAtom, AromaticRingAtom.aromatic_ring_id==AromaticRing.aromatic_ring_id),
+            (LigandComponent, LigandComponent.residue_id==AromaticRing.residue_id),
+            (LigandFragment, LigandFragment.ligand_id==LigandComponent.ligand_id),
+            (LigandFragmentAtom, and_(LigandFragmentAtom.ligand_fragment_id==LigandFragment.ligand_fragment_id,
+                                      LigandFragmentAtom.atom_id==AromaticRingAtom.atom_id))
+        ).filter(where).distinct()
+
+        query = atom.union(ring)
+
+        return query
+
+
 from ..models.hetatm import Hetatm
 from ..models.ligandcomponent import LigandComponent
+from ..models.ligandfragment import LigandFragment
+from ..models.ligandfragmentatom import LigandFragmentAtom
 from ..models.aromaticring import AromaticRing
+from ..models.aromaticringatom import AromaticRingAtom
 from ..models.atomringinteraction import AtomRingInteraction

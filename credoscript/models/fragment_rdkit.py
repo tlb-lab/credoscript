@@ -1,4 +1,5 @@
-from sqlalchemy.orm import reconstructor
+from sqlalchemy import Column
+#from sqlalchemy.orm import reconstructor
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.sql.expression import func
 
@@ -7,6 +8,7 @@ except ImportError: pass
 
 from credoscript import Base, schema
 from credoscript.util import requires
+from credoscript.ext.rdkit_ import RDMol
 
 class FragmentRDMol(Base):
     """
@@ -15,6 +17,9 @@ class FragmentRDMol(Base):
     and the RDKit Python wrappers are available on the client side.
     """
     __tablename__ = '%s.fragment_rdmols' % schema['pdbchem']
+    __table_args__ = {'autoload': True, 'extend_existing': True}
+    
+    rdmol = Column('rdmol', RDMol())
 
     def __repr__(self):
         """
@@ -61,14 +66,14 @@ class FragmentRDMol(Base):
         """
         return iter(self.rdmol.GetAtoms())
 
-    @reconstructor
-    @requires.rdkit
-    def init_on_load(self):
-        """
-        Turns the rdmol column that is returned as a SMILES string back into an
-        RDMol object.
-        """
-        self.rdmol = MolFromSmiles(str(self.rdmol))
+    # @reconstructor
+    # @requires.rdkit
+    # def init_on_load(self):
+        # """
+        # Turns the rdmol column that is returned as a SMILES string back into an
+        # RDMol object.
+        # """
+        # self.rdmol = MolFromSmiles(str(self.rdmol))
 
     @hybrid_method
     @requires.rdkit

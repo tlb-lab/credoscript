@@ -1,4 +1,5 @@
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, column_property
+from sqlalchemy import select
 
 from credoscript import Base, BaseQuery, schema
 
@@ -23,8 +24,7 @@ class Fragment(Base):
                                        primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
                                        foreign_keys = "[ChemCompFragment.fragment_id]",
                                        lazy='dynamic', uselist=True, innerjoin=True,
-                                       backref=backref('Fragment', uselist=False,
-                                                       remote_side="[ChemCompFragment.fragment_id]"))
+                                       backref=backref('Fragment', uselist=False, innerjoin=True, lazy=False))
 
     ChemComps = relationship("ChemComp", query_class=BaseQuery,
                               secondary=Base.metadata.tables['%s.chem_comp_fragments' % schema['pdbchem']],
@@ -44,7 +44,6 @@ class Fragment(Base):
                         foreign_keys="[FragmentRDFP.fragment_id]",
                         uselist=False, innerjoin=True,
                         backref=backref('Fragment', uselist=False, innerjoin=True))
-
 
     def __repr__(self):
         """
@@ -91,5 +90,5 @@ class Fragment(Base):
         """
         return self.ism.op('%%')(smiles)
 
-    
 from ..adaptors.fragmentadaptor import FragmentAdaptor
+

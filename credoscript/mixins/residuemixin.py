@@ -69,6 +69,8 @@ class ResidueMixin(object):
                             uselist=True, innerjoin=True, lazy='dynamic',
                             backref=backref('{cls}'.format(cls=self.__name__),
                                             uselist=False, innerjoin=True))
+                                            
+    # TODO: PiGroups?
 
 class ResidueAdaptorMixin(object):
     """

@@ -1,4 +1,5 @@
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import select
+from sqlalchemy.orm import backref, relationship, column_property
 
 from credoscript import Base, schema
 
@@ -10,8 +11,10 @@ class LigandFragment(Base):
     Fragment = relationship("Fragment",
                             primaryjoin="Fragment.fragment_id==LigandFragment.fragment_id",
                             foreign_keys="[Fragment.fragment_id]",
-                            uselist=False,
+                            uselist=False, innerjoin=True, 
                             backref=backref('LigandFragments', uselist=True))
+                            
+    #Ligand = backreffed from Ligand
 
     Atoms = relationship("Atom",
                          secondary=Base.metadata.tables['%s.ligand_fragment_atoms' % schema['credo']],

@@ -33,6 +33,7 @@
                         "interfaces", "ligand_components","ligand_fcd","ligand_fragments",
                         "ligand_eff","ligand_fragment_atoms","ligand_molstrings","ligand_usr",
                         "ligands","nucleotides","oligonucleotides","peptides",
+                        "pi_groups","pi_interactions","pi_group_residues","pi_group_atoms",
                         "polypeptides","polysaccharides","prot_fragment_residues",
                         "prot_fragments","residue_interaction_pairs","residues",
                         "ring_interactions","saccharides","structures","xrefs",

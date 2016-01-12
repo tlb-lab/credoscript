@@ -14,9 +14,9 @@ class RingInteraction(Base):
         Foreign key of the first `AromaticRing`.
     aromatic_ring_end_id : int
         Foreign key of the second `AromaticRing`.
-    aromatic_ring_atom_bgn_id : int
+    closest_atom_bgn_id : int
         The atom of the first aromatic ring that is the closest to the second.
-    aromatic_ring_atom_end_id : int
+    closest_atom_end_id : int
         The atom of the second aromatic ring that is the closest to the first.
     distance : float
         Distance between the centroids of the aromatic rings.
@@ -70,3 +70,14 @@ class RingInteraction(Base):
         """
         """
         return "<RingInteraction({self.ring_interaction_id} {self.interaction_type})>".format(self=self)
+
+    def get_imz_str(self, mol_name=None):
+        '''
+        '''
+        fields = [ring.get_imz_string(mol_name) for ring in (self.AromaticRingBgn, self.AromaticRingEnd)]
+
+        if self.AromaticRingBgn.is_ligand and not self.AromaticRingEnd.is_ligand:
+            fields.reverse()
+        fields.append(self.interaction_type)
+
+        return '\t'.join(fields)

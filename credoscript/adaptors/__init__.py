@@ -6,6 +6,8 @@ from .ligandcomponentadaptor import LigandComponentAdaptor
 from .residueadaptor import ResidueAdaptor
 from .aromaticringadaptor import AromaticRingAdaptor
 from .ringinteractionadaptor import RingInteractionAdaptor
+from .pigroupadaptor import PiGroupAdaptor
+from .pi_interactionadaptor import PiInteractionAdaptor
 from .atomadaptor import AtomAdaptor
 from .contactadaptor import ContactAdaptor
 from .atomringinteractionadaptor import AtomRingInteractionAdaptor

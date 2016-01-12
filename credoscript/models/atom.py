@@ -82,15 +82,40 @@ class Atom(Base, PathMixin):
         """
         """
         return "<Atom({self.path})>".format(self=self)
+        
+    @property
+    def res_num(self):
+        return self.Residue.res_num
+        
+    @property
+    def res_name(self):
+        return self.Residue.res_name
+        
+    @property
+    def ins_code(self):
+        return self.Residue.ins_code
+        
+    @property
+    def chain_id(self):
+        return self.Residue.Chain.pdb_chain_id
 
     @property
     def _atom_name_alt_loc_tuple(self):
-            """
-            Full name of a PDB residue consisting of its residue number and insertion
-            code. Only used for the Chain.Residues|Peptides mappers.
-            """
-            return self.atom_name, self.alt_loc
+        """
+        Full name of a PDB atom consisting of its name and alternate location identifier.
+        Only used for the Residue|Peptide.Atom mappers.
+        """
+        return self.atom_name, self.alt_loc
 
+    @property
+    def pdb_line(self):
+        name_fix = " %s" % self.atom_name if (len(self.atom_name) < 4 and not self.atom_name.startswith('H')) else self.atom_name
+        line = "{:6s}{:5d} {:4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}  \n".format(
+               self.group_pdb, self.atom_serial, name_fix, self.alt_loc, self.res_name,
+               self.chain_id, self.res_num, self.ins_code, self.coords[0], self.coords[1], self.coords[2],
+               self.occupancy, self.b_factor, self.element)
+        return line
+    
     @property
     def Vector(self):
         """
@@ -162,5 +187,14 @@ class Atom(Base, PathMixin):
         """
         return or_(Atom.atom_name=='C', Atom.atom_name=='N',
                    Atom.atom_name=='CA', Atom.atom_name=='O')
+    
+    @property
+    def type_bm(self):
+        all_prop = ["is_acceptor","is_donor","is_weak_acceptor","is_weak_donor","is_xbond_acceptor","is_xbond_donor",
+                    "is_pos_ionisable" ,"is_neg_ionisable","is_aromatic","is_hydrophobe",
+                    "is_carbonyl_carbon","is_carbonyl_oxygen","is_metal"]
+
+        return sum([int(getattr(self, prop, 0)) << i for (i, prop) in enumerate(all_prop)])
+        
 
 from ..adaptors.atomadaptor import AtomAdaptor

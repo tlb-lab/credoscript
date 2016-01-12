@@ -16,6 +16,15 @@ class LigandFragmentAdaptor(object):
         """
         return self.query.get(ligand_fragment_id)
 
+    def fetch_by_fragment_id(self, fragment_id, hit=None):
+        """
+        Returns query for ligand fragments representing a given fragment_id and (optionally) a hit.
+        """
+        if not hit:
+            return self.query.filter_by(fragment_id=fragment_id)
+        else:
+            return self.query.filter_by(fragment_id=fragment_id, hit=hit)
+    
     @paginate
     def fetch_all_by_ligand_id(self, ligand_id):
         """

@@ -4,6 +4,7 @@ from .interface import Interface, InterfacePeptidePair
 from .chain import Chain, Polypeptide, Oligonucleotide
 from .residue import Residue
 from .aromaticring import AromaticRing
+from .pigroup import PiGroup
 from .atom import Atom
 from .contact import Contact
 from .hetatm import Hetatm
@@ -16,13 +17,14 @@ from .ligand import Ligand, LigandPDBInfo
 from .ligandmatch import LigandMatch
 from .ringinteraction import RingInteraction
 from .atomringinteraction import AtomRingInteraction
+from .pi_interaction import PiInteraction
 from .groove import Groove, GrooveResiduePair
 from .chemcomp import ChemComp
 from .chemcompfragment import ChemCompFragment
 from .chemcompmolstring import ChemCompMolString
+from .fragment_rdkit import FragmentRDMol #, FragmentRDFP
 from .fragment import Fragment
 from .fragmenthierarchy import FragmentHierarchy
-from .fragment_rdkit import FragmentRDMol #, FragmentRDFP
 from .resmap import ResMap
 from .peptide import Peptide, PeptideFeature
 from .nucleotide import Nucleotide

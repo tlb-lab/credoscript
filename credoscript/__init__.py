@@ -36,7 +36,7 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
     cursor = dbapi_connection.cursor()
     try:
         cursor.execute("SELECT 1")
-    except:
+    except Exception:
         # optional - dispose the whole pool
         # instead of invalidating one at a time
         connection_proxy._pool.dispose()
@@ -87,6 +87,10 @@ from credoscript.mixins import Base, BaseQuery
 # the declarative base that is used for all credo entities
 Base = declarative_base(bind=engine, metadata=metadata, cls=Base)
 
+# To be joined for mapping
+pi_groups   = metadata.tables['%s.pi_groups' % schema['credo']]
+pi_residues = metadata.tables['%s.pi_group_residues' % schema['credo']]
+
 # do not map against class
 prot_fragment_residues = metadata.tables['%s.prot_fragment_residues' % schema['credo']]
 chem_comp_fragment_atoms = metadata.tables['%s.chem_comp_fragment_atoms' % schema['pdbchem']]
@@ -104,4 +108,4 @@ try:
     from rdkit import Chem
     config['extras']['rdkit'] = True
 except ImportError:
-    pass
+    print "Warning: RDKit failed to be imported"

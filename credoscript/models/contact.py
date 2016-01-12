@@ -166,3 +166,29 @@ class Contact(Base):
                 self.is_proximal, self.is_hbond, self.is_weak_hbond, self.is_xbond,
                 self.is_ionic, self.is_metal_complex, self.is_aromatic,
                 self.is_hydrophobic, self.is_carbonyl)
+
+    def get_imz_str(self, mol_name=None):
+        '''
+        '''
+        if mol_name is True:
+            path_bgn = self.AtomBgn.pymolstring
+            path_end = self.AtomEnd.pymolstring
+        elif not mol_name:
+            path_bgn = '/'.join(self.AtomBgn.path.split('/')[2:])
+            path_end = '/'.join(self.AtomEnd.path.split('/')[2:])
+        else:
+            path_bgn = '/'.join([mol_name, ''] + self.AtomBgn.path.split('/')[2:])
+            path_end = '/'.join([mol_name, ''] + self.AtomEnd.path.split('/')[2:])
+
+
+        type_bgn = self.AtomBgn.type_bm
+        type_end = self.AtomEnd.type_bm
+
+        if self._bm_bitwise_all(it.LIG_PRO):  # Cavichord expects the ligand to come second
+            path_bgn, path_end = path_end, path_bgn
+            type_bgn, type_end = type_end, type_bgn
+
+
+        contact_line = "{0}\t{1}\t{2}\t{3}\t{4}".format(path_bgn, path_end, '\t'.join(str(int(s)) for s in self.sift),
+                                                        type_bgn, type_end)
+        return contact_line

@@ -71,6 +71,16 @@ class PathMixin(object):
         Returns a PyMOL selection string with the biomolecule identifier removed.
         """
         return '/' + re.sub('/\d+/','//', self.path)
+        
+    def path_fmt(self, first=0, last=None, **kwargs):
+        """
+        """
+        if not first and not last and not kwargs:
+            return self.path
+        elif not kwargs:
+            path_tokens = self.path.split('/')
+            return '/'.join(path_tokens[first:(last or len(path_tokens))])
+
 
 class PathAdaptorMixin(object):
     """
