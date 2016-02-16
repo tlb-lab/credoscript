@@ -2,6 +2,7 @@ import functools
 from math import ceil
 
 from sqlalchemy.orm import Query
+from sqlalchemy.exc import CompileError
 
 from credoscript import Session
 
@@ -129,8 +130,10 @@ class Base(object):
         # this has to be done in a for loop to catch the error that might occur
         # if the entity has data type stemming from an extension
         for key in mapper.c.keys():
-            try: meta.append((str(key), str(mapper.c[key].type)))
-            except NotImplementedError: meta.append((str(key), "CUSTOM"))
+            try:
+                meta.append((str(key), str(mapper.c[key].type)))
+            except (NotImplementedError, CompileError):
+                meta.append((str(key), "CUSTOM"))
 
         return meta
 

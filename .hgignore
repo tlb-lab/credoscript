@@ -5,5 +5,5 @@ config.json
 *.komodoproject
 *.pyc
 *~
-docs/_*
+docs
 *.pyo
