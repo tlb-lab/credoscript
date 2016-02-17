@@ -1,12 +1,16 @@
+from sqlalchemy import Column
 from sqlalchemy.orm import reconstructor
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.sql.expression import func
 
-try: from rdkit.Chem import MolFromSmarts, MolFromSmiles
-except ImportError: pass
+try: 
+    from rdkit.Chem import MolFromSmarts, MolFromSmiles
+except ImportError: 
+    pass
 
 from credoscript import Base, schema
 from credoscript.util import requires
+from credoscript.ext.rdkit_ import RDMol
 
 class ChemCompRDMol(Base):
     """
@@ -15,12 +19,16 @@ class ChemCompRDMol(Base):
     and the RDKit Python wrappers are available on the client side.
     """
     __tablename__ = '%s.chem_comp_rdmols' % schema['pdbchem']
+    __table_args__ = {'autoload': True, 'extend_existing': True}
+
+    rdmol = Column('rdmol', RDMol())
 
     def __repr__(self):
         """
         """
         return '<ChemCompRDMol({self.het_id})>'.format(self=self)
 
+    @requires.rdkit
     def __len__(self):
         """
         Returns the number of atoms in this RDMol.
@@ -36,6 +44,7 @@ class ChemCompRDMol(Base):
         """
         return self.rdmol.GetNumAtoms()
 
+    @requires.rdkit
     def __contains__(self, smiles):
         """
         Returns true if the given SMILES string is a substructure of this RDMol.
@@ -51,6 +60,7 @@ class ChemCompRDMol(Base):
         """
         return self.contains(smiles)
 
+    @requires.rdkit
     def __iter__(self):
         """
         Returns an iterator over the atoms of this RDMol.
@@ -61,14 +71,14 @@ class ChemCompRDMol(Base):
         """
         return iter(self.rdmol.GetAtoms())
 
-    @reconstructor
-    @requires.rdkit
-    def init_on_load(self):
-        """
-        Turns the rdmol column that is returned as a SMILES string back into an
-        RDMol object.
-        """
-        self.rdmol = MolFromSmiles(str(self.rdmol))
+    # @reconstructor
+    # @requires.rdkit
+    # def init_on_load(self):
+    #     """
+    #     Turns the rdmol column that is returned as a SMILES string back into an
+    #     RDMol object.
+    #     """
+    #     self.rdmol = MolFromSmiles(str(self.rdmol))
 
     @hybrid_method
     @requires.rdkit

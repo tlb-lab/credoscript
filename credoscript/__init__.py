@@ -108,4 +108,6 @@ try:
     from rdkit import Chem
     config['extras']['rdkit'] = True
 except ImportError:
-    print "Warning: RDKit failed to be imported"
+    if config['extras']['rdkit']:
+        warnings.warn("Failed to import RDKit package", UserWarning)
+        config['extras']['rdkit'] = False

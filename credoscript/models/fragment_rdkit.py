@@ -3,8 +3,10 @@ from sqlalchemy import Column
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.sql.expression import func
 
-try: from rdkit.Chem import MolFromSmarts, MolFromSmiles
-except ImportError: pass
+try:
+    from rdkit.Chem import MolFromSmarts, MolFromSmiles
+except ImportError:
+    pass
 
 from credoscript import Base, schema
 from credoscript.util import requires
@@ -26,6 +28,7 @@ class FragmentRDMol(Base):
         """
         return '<FragmentRDMol({self.fragment_id})>'.format(self=self)
 
+    @requires.rdkit
     def __len__(self):
         """
         Returns the number of atoms in this RDMol.
@@ -41,6 +44,7 @@ class FragmentRDMol(Base):
         """
         return self.rdmol.GetNumAtoms()
 
+    @requires.rdkit
     def __contains__(self, smiles):
         """
         Returns true if the given SMILES string is a substructure of this RDMol.
@@ -56,6 +60,7 @@ class FragmentRDMol(Base):
         """
         return self.contains(smiles)
 
+    @requires.rdkit
     def __iter__(self):
         """
         Returns an iterator over the atoms of this RDMol.
