@@ -1,5 +1,5 @@
 from sqlalchemy import Column
-#from sqlalchemy.orm import reconstructor
+from sqlalchemy.orm import reconstructor, column_property
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.sql.expression import func
 
@@ -12,6 +12,9 @@ from credoscript import Base, schema
 from credoscript.util import requires
 from credoscript.ext.rdkit_ import RDMol
 
+
+frag_rdmol_table = Base.metadata.tables['%s.fragment_rdmols' % schema['pdbchem']]
+
 class FragmentRDMol(Base):
     """
     This class contains the RDKit RDMol object for a fragment from CREDO.
@@ -22,6 +25,7 @@ class FragmentRDMol(Base):
     __table_args__ = {'autoload': True, 'extend_existing': True}
     
     rdmol = Column('rdmol', RDMol())
+    as_smarts = column_property(func.rdkit.mol_to_smarts(frag_rdmol_table.c.rdmol), deferred=True)
 
     def __repr__(self):
         """

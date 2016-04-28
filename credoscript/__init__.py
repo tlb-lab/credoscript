@@ -80,6 +80,9 @@ Session = scoped_session(sessionmaker(bind=engine)) #, autocommit=True))
 # BO: Autocommit True leads to some settings (like similarity thresholds) not applying to a query;
 # Adrian had it on for some reason, despite not being the "recommended" settings, probably to avoid accumulation
 # of open connections.
+# OK, I may know why AS had it set: the web interface sometimes leads to transactions getting somehow aborted
+# and since they don't get rolled back, commands get ignored. Autocommit disables transactions, so this stops being an issue.
+# This ought to be properly dealt with on the web interface, though.
 
 # import Base here because the module imports the Session object
 from credoscript.mixins import Base, BaseQuery

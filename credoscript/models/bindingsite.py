@@ -16,9 +16,8 @@ class BindingSite(Base):
                             primaryjoin="BindingSite.ligand_id==BindingSiteDomain.ligand_id",
                             secondaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
                             foreign_keys="[BindingSiteDomain.ligand_id, Domain.domain_id]",
-                            uselist=True, innerjoin=True, lazy='dynamic',
-                            backref=backref('BindingSites', uselist=True, lazy='dynamic',
-                                            innerjoin=True))
+                            uselist=True, lazy='dynamic',
+                            backref=backref('BindingSites', uselist=True, lazy='dynamic'))
 
     def __repr__(self):
         """
@@ -41,6 +40,7 @@ class BindingSite(Base):
         with closing(Session()) as session:
             return session.query(fn).scalar()
 
+
 class BindingSiteDomain(Base):
     """
     Mapping between protein-ligand binding sites and the domains they consist of.
@@ -49,13 +49,14 @@ class BindingSiteDomain(Base):
 
     Domain = relationship("Domain",
                           primaryjoin="BindingSiteDomain.domain_id==Domain.domain_id",
-                          foreign_keys="[Domain.domain_id]",  uselist=False,
-                          innerjoin=True)
+                          foreign_keys="[Domain.domain_id]",  uselist=False)
+
 
 class BindingSiteFuzcav(Base):
     """
     """
     __tablename__ = '%s.binding_site_fuzcav' % schema['credo']
+
 
 class BindingSiteResidue(Base):
     """
@@ -64,22 +65,24 @@ class BindingSiteResidue(Base):
     """
     __tablename__ = '%s.binding_site_residues' % schema['credo']
 
+    BindingSite = relationship(BindingSite, primaryjoin="BindingSite.ligand_id == BindingSiteResidue.ligand_id",
+                               foreign_keys="[BindingSite.ligand_id]", uselist=False,
+                               backref="residues")
+
     Peptide = relationship("Peptide",
                            primaryjoin="Peptide.residue_id==BindingSiteResidue.residue_id",
-                           foreign_keys="[Peptide.residue_id]",
-                           uselist=False, innerjoin=True)
+                           foreign_keys="[Peptide.residue_id]", uselist=False)
 
     Residue = relationship("Residue",
                            primaryjoin="and_(Residue.residue_id==BindingSiteResidue.residue_id, Residue.entity_type_bm==BindingSiteResidue.entity_type_bm)",
-                           foreign_keys="[Residue.residue_id, Residue.entity_type_bm]",
-                           uselist=False, innerjoin=True)
+                           foreign_keys="[Residue.residue_id, Residue.entity_type_bm]", uselist=False)
 
     Domain = relationship("Domain",
                           secondary=Base.metadata.tables['%s.domain_peptides' % schema['credo']],
                           primaryjoin="BindingSiteResidue.residue_id==DomainPeptide.residue_id",
                           secondaryjoin="DomainPeptide.domain_id==Domain.domain_id",
                           foreign_keys="[DomainPeptide.residue_id, Domain.domain_id]",
-                          uselist=False, innerjoin=True)
+                          uselist=False)
 
 # class BindingSiteAtomSurfaceArea(Base):
     # """
