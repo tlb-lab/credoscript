@@ -1,6 +1,7 @@
 import functools
 from math import ceil
 
+from sqlalchemy.sql import func
 from sqlalchemy.orm import Query
 from sqlalchemy.exc import CompileError
 
@@ -106,6 +107,10 @@ class BaseQuery(Query):
         count = self.order_by(False).count()
 
         return Pagination(self, page, per_page, count, items)
+
+    def count_star(self):
+        stmt = self.statement.with_only_columns([func.count()]).order_by(None)
+        return self.session.execute(stmt).scalar()
 
 class Base(object):
     """

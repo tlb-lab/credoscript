@@ -1,6 +1,6 @@
-from sqlalchemy.orm import backref, relationship, column_property
+from sqlalchemy.orm import backref, relationship, column_property, synonym
 from sqlalchemy.sql.expression import and_, func, or_
-from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
 from credoscript import Base, BaseQuery, schema
 from credoscript.mixins import PathMixin
@@ -104,8 +104,10 @@ class Ligand(Base, PathMixin):
     """
     
     __tablename__ = '%s.ligands' % schema['credo']
-    
-    
+
+
+    het_id = synonym('ligand_name')
+
     Components = relationship("LigandComponent", query_class=BaseQuery,
                               primaryjoin="LigandComponent.ligand_id==Ligand.ligand_id",
                               foreign_keys="[LigandComponent.ligand_id]",
@@ -277,28 +279,18 @@ class Ligand(Base, PathMixin):
         if isinstance(other, Ligand):
             return rdkit.tanimoto_sml(self.MolString.ism, other.MolString.ism)
 
-    @hybrid_method
-    @property
-    def het_id(self):
-        """
-        Alias for ligand_name.
-        """
-        return self.ligand_name
         
-    @hybrid_method
-    @property
+    @hybrid_property
     def pdbid(self):
         """PDBID of the ligand"""
         return self.path.split('/')[0]
         
     @pdbid.expression
-    @property
     def pdbid(self):
         """Returns SQLAlchemy clause to enable usage of the PDB ligand"""
         return func.subptree(self.path, 0, 1)
          
-    @hybrid_method
-    @property
+    @hybrid_property
     def name(self):
         """Name of the ligand according to the entry on PDB"""
         try:
@@ -306,8 +298,7 @@ class Ligand(Base, PathMixin):
         except AttributeError:
             return ''
 
-    @hybrid_method
-    @property
+    @hybrid_property
     def is_enzyme_cmpd(self):
         """
         Meta Boolean flag indicating whether the ligand is the enzyme's substrate

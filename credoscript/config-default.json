@@ -55,7 +55,7 @@
 	    "reflect": ["chem_comps","chem_comp_conformers","chem_comp_fragment_atoms",
                         "chem_comp_fragments","chem_comp_oefps","chem_comp_rdfps",
                         "chem_comp_rdmols","chem_comp_structures",
-						"fragments","fragment_hierarchy","fragment_rdmols", "fragment_rdfps"]
+						"fragments","fragment_synonyms","fragment_hierarchy","fragment_rdmols", "fragment_rdfps"]
         },
 
         "variations":

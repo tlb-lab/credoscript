@@ -1,4 +1,5 @@
-from sqlalchemy.orm import backref, relationship, column_property
+from sqlalchemy.orm import backref, relationship, column_property, synonym
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select
 
 from credoscript import Base, BaseQuery, schema
@@ -19,6 +20,8 @@ class Fragment(Base):
         Chemical components that share this fragment.
     """
     __tablename__ = '%s.fragments' % schema['pdbchem']
+
+    ism_ob_can = synonym('ism')
 
     ChemCompFragments = relationship("ChemCompFragment",
                                        primaryjoin="ChemCompFragment.fragment_id==Fragment.fragment_id",
@@ -49,6 +52,20 @@ class Fragment(Base):
         """
         """
         return '<Fragment({self.fragment_id})>'.format(self=self)
+
+
+    @hybrid_property
+    def ism_ob_univ(self):
+        return self.Synonyms.ism_ob
+
+    @hybrid_property
+    def ism_oe(self):
+        return self.Synonyms.ism_oe
+
+    @hybrid_property
+    def ism_rdk(self):
+        return self.Synonyms.ism_rdk
+
 
     @property
     def Children(self):
@@ -89,6 +106,17 @@ class Fragment(Base):
         to compare the SMILES strings.
         """
         return self.ism.op('%%')(smiles)
+
+
+class FragmentSynonyms(Base):
+
+    __tablename__ = '%s.fragment_synonyms' % schema['pdbchem']
+
+    Fragment = relationship(Fragment,
+                            primaryjoin="Fragment.fragment_id==FragmentSynonyms.fragment_id",
+                            foreign_keys="[Fragment.fragment_id]", uselist=False,
+                            backref=backref('Synonyms', uselist=False, innerjoin=True, lazy=False))
+
 
 from ..adaptors.fragmentadaptor import FragmentAdaptor
 
