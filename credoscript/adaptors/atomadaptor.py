@@ -96,7 +96,8 @@ class AtomAdaptor(object):
     def fetch_all_by_pi_id(self, pi_id, biomolecule_id, *expr, **kwargs):
         """
         """
-        query = self.query.join(PiGroupAtom, PiGroupAtom.atom_id==Atom.atom_id)
+        query = self.query.join(PiGroupAtom, and_(PiGroupAtom.atom_id==Atom.atom_id,
+                                                  PiGroupAtom.biomolecule_id==Atom.biomolecule_id))
         query = query.filter(and_(PiGroupAtom.pi_id==pi_id,
                                   Atom.biomolecule_id==biomolecule_id, *expr))
 
@@ -327,7 +328,7 @@ class AtomAdaptor(object):
 
 from ..models.contact import Contact
 from ..models.aromaticringatom import AromaticRingAtom
-from ..models.pigroupatom import PiGroupAtom
+from ..models.pigroup import PiGroupAtom
 from ..models.atom import Atom
 from ..models.hetatm import Hetatm
 from ..models.residue import Residue

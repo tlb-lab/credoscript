@@ -33,11 +33,9 @@ class PiInteractionAdaptor(object):
         where = and_(LigandComponent.ligand_id==ligand_id, *expr)
 
         query = self.query.join(PiGroup,
-                                or_(PiInteraction.pi_bgn_id==PiGroup.pi_id,
-                                    PiInteraction.pi_end_id==PiGroup.pi_id))
-
-        query = query.join(LigandComponent,
-                           PiGroup.residue_id == LigandComponent.residue_id)
+                                or_(and_(PiInteraction.pi_bgn_id==PiGroup.pi_id, PiInteraction.pi_bgn_is_ring==False),
+                                    and_(PiInteraction.pi_end_id==PiGroup.pi_id, PiInteraction.pi_end_is_ring==False)),
+                                PiGroup.LigandComponent)
 
         query = query.filter(where)
 
@@ -52,9 +50,7 @@ class PiInteractionAdaptor(object):
         query = self.query.join(
             (PiGroup, or_(and_(PiInteraction.pi_bgn_id==PiGroup.pi_id, PiInteraction.pi_bgn_is_ring==False),
                           and_(PiInteraction.pi_end_id==PiGroup.pi_id, PiInteraction.pi_end_is_ring==False))),
-            (PiGroupAtom, PiGroupAtom.pi_id==PiGroup.pi_id),
-            (LigandComponent, LigandComponent.residue_id==PiGroup.residue_id),
-            (LigandFragment, LigandFragment.ligand_id==LigandComponent.ligand_id),
+            PiGroup.LigandComponent, LigandComponent.LigandFragments, PiGroup.PiGroupAtoms,
             (LigandFragmentAtom, and_(LigandFragmentAtom.ligand_fragment_id==LigandFragment.ligand_fragment_id,
                                       LigandFragmentAtom.atom_id==PiGroupAtom.atom_id))
         )
@@ -64,8 +60,7 @@ class PiInteractionAdaptor(object):
         return query.distinct()
 
 #from ..models.aromaticring import AromaticRing
-from ..models.pigroup import PiGroup
-from ..models.pigroupatom import PiGroupAtom
+from ..models.pigroup import PiGroup, PiGroupAtom, PiGroupResidue
 from ..models.ligandcomponent import LigandComponent
 from ..models.ligandfragment import LigandFragment
 from ..models.ligandfragmentatom import LigandFragmentAtom

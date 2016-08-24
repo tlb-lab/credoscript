@@ -38,8 +38,8 @@ class AromaticRing(Base, PathMixin):
     Atoms : list
         All atoms of this aromatic ring.
     """
-    __tablename__ = '%s.aromatic_rings' % schema['credo']
 
+    __tablename__ = '%s.aromatic_rings' % schema['credo']
 
     def __repr__(self):
         """

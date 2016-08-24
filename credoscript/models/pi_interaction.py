@@ -50,6 +50,7 @@ class PiInteraction(Base):
     """
     __tablename__ = '%s.pi_interactions' % schema['credo']
 
+
     PiGroupBgn = relationship("PiGroup",
                               primaryjoin="and_(PiGroup.pi_id==PiInteraction.pi_bgn_id, \
                                                 PiInteraction.pi_bgn_is_ring==False)",
@@ -59,7 +60,7 @@ class PiInteraction(Base):
                               primaryjoin="and_(PiGroup.pi_id==PiInteraction.pi_end_id, \
                                                 PiInteraction.pi_end_is_ring==False)",
                               foreign_keys="[PiGroup.pi_id]", uselist=False)
-    
+
     AromaticRingBgn = relationship("AromaticRing",
                               primaryjoin="and_(AromaticRing.aromatic_ring_id==PiInteraction.pi_bgn_id, \
                                                 PiInteraction.pi_bgn_is_ring==True)",
@@ -69,19 +70,28 @@ class PiInteraction(Base):
                               primaryjoin="and_(AromaticRing.aromatic_ring_id==PiInteraction.pi_end_id, \
                                                 PiInteraction.pi_end_is_ring==True)",
                               foreign_keys="[AromaticRing.aromatic_ring_id]", uselist=False)
-    
-    ClosestAtomBgn = relationship("Atom",
-                                  primaryjoin="and_(PiInteraction.closest_atom_bgn_id==Atom.atom_id, PiInteraction.biomolecule_id==Atom.biomolecule_id)",
-                                  foreign_keys = "[Atom.atom_id]", uselist=False)
 
-    ClosestAtomEnd = relationship("Atom",
-                                  primaryjoin="and_(PiInteraction.closest_atom_end_id==Atom.atom_id, PiInteraction.biomolecule_id==Atom.biomolecule_id)",
-                                  foreign_keys = "[Atom.atom_id]", uselist=False)
+    # ClosestAtomBgn = relationship("Atom",
+    #                               primaryjoin="and_(PiInteraction.closest_atom_bgn_id==Atom.atom_id, PiInteraction.biomolecule_id==Atom.biomolecule_id)",
+    #                               foreign_keys = "[Atom.atom_id]", uselist=False)
+    #
+    # ClosestAtomEnd = relationship("Atom",
+    #                               primaryjoin="and_(PiInteraction.closest_atom_end_id==Atom.atom_id, PiInteraction.biomolecule_id==Atom.biomolecule_id)",
+    #                               foreign_keys = "[Atom.atom_id]", uselist=False)
 
     def __repr__(self):
         """
         """
         return "<PiInteraction({self.pi_interaction_id} {self.interaction_type})>".format(self=self)
+
+    @property
+    def PiBgn(self):
+        return self.AromaticRingBgn if self.pi_bgn_is_ring else self.PiGroupBgn
+
+    @property
+    def PiEnd(self):
+        return self.AromaticRingEnd if self.pi_end_is_ring else self.PiGroupEnd
+
 
     def get_imz_str(self, mol_name=None):
         '''

@@ -15,6 +15,7 @@ class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
+
 class Pagination(object):
     """
     Internal helper class returned by BaseQuery.paginate.  You
@@ -87,6 +88,7 @@ class Pagination(object):
         """
         return self.page + 1
 
+
 class BaseQuery(Query):
     """
     Base query that will be attached to every model in the credoscript API.
@@ -111,6 +113,7 @@ class BaseQuery(Query):
     def count_star(self):
         stmt = self.statement.with_only_columns([func.count()]).order_by(None)
         return self.session.execute(stmt).scalar()
+
 
 class Base(object):
     """

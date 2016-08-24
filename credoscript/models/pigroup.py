@@ -2,11 +2,29 @@ from itertools import groupby
 
 from sqlalchemy.orm import backref, relationship, column_property
 from sqlalchemy.sql.expression import and_, func, or_
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from credoscript import Base, BaseQuery, schema, pi_groups, pi_residues
 from credoscript.mixins import PathMixin
 from credoscript.support.vector import Vector
+
+
+
+
+class PiGroupResidue(Base):
+    '''
+    '''
+    __tablename__ = '%s.pi_group_residues' % schema['credo']
+
+
+
+class PiGroupAtom(Base):
+    '''
+    '''
+    __tablename__ = '%s.pi_group_atoms' % schema['credo']
+
+
 
 class PiGroup(Base): #, PathMixin):
     """
@@ -40,24 +58,43 @@ class PiGroup(Base): #, PathMixin):
     Atoms : list
         All atoms of this pi group.
     """
-    __table__ = pi_groups.join(pi_residues, onclause=pi_groups.c.pi_id == pi_residues.c.pi_id)
-    #__tablename__ = '%s.pi_groups' % schema['credo']
+    #__table__ = pi_groups.join(pi_residues, onclause=pi_groups.c.pi_id == pi_residues.c.pi_id)
+    __tablename__ = '%s.pi_groups' % schema['credo']
 
-    pi_id = column_property(pi_groups.c.pi_id, pi_residues.c.pi_id)
-    biomolecule_id = column_property(pi_groups.c.biomolecule_id, pi_residues.c.biomolecule_id)
+    PiGroupAtoms = relationship(PiGroupAtom, query_class=BaseQuery,
+                                primaryjoin="and_(PiGroup.pi_id==PiGroupAtom.pi_id,"
+                                            "PiGroup.biomolecule_id==PiGroupAtom.biomolecule_id)",
+                                foreign_keys=[PiGroupAtom.pi_id, PiGroupAtom.biomolecule_id],
+                                uselist=True,
+                                backref=backref('PiGroup', uselist=False))
 
-    Residues = relationship("Residue", query_class=BaseQuery,
-                             primaryjoin="and_(PiGroup.residue_id==Residue.residue_id, " +
-                                              "PiGroup.biomolecule_id==Residue.biomolecule_id)",
-                             foreign_keys="[Residue.residue_id, Residue.biomolecule_id]",
-                             uselist=True, innerjoin=True, lazy='dynamic')
+    PiGroupResidues = relationship(PiGroupResidue, query_class=BaseQuery,
+                                   primaryjoin="and_(PiGroup.pi_id==PiGroupResidue.pi_id,"
+                                                    "PiGroup.biomolecule_id==PiGroupResidue.biomolecule_id)",
+                                   foreign_keys=[PiGroupResidue.pi_id, PiGroupResidue.biomolecule_id],
+                                   uselist=True,
+                                   backref=backref('PiGroup', uselist=False))
 
 
-    LigandComponent = relationship("LigandComponent",  query_class=BaseQuery,
-                             primaryjoin="PiGroup.residue_id==LigandComponent.residue_id",
-                             foreign_keys="[LigandComponent.residue_id]",
-                             uselist=True, innerjoin=True, lazy='dynamic')
+    Residues = relationship("Residue", query_class=BaseQuery, secondary=PiGroupResidue.__table__,
+                            primaryjoin="and_(PiGroup.pi_id==PiGroupResidue.pi_id,"
+                                             "PiGroup.biomolecule_id==PiGroupResidue.biomolecule_id)",
+                            secondaryjoin="and_(PiGroupResidue.residue_id == Residue.residue_id, " +
+                                               "PiGroupResidue.biomolecule_id == Residue.biomolecule_id)",
+                            foreign_keys="[PiGroupResidue.pi_id, PiGroupResidue.biomolecule_id, "
+                                          "Residue.residue_id, Residue.biomolecule_id]",
+                            uselist=True, innerjoin=True, lazy='dynamic')
 
+    LigandComponent = relationship("LigandComponent",  query_class=BaseQuery, secondary=PiGroupResidue.__table__,
+                                   primaryjoin="and_(PiGroup.pi_id==PiGroupResidue.residue_id,"
+                                                    "PiGroup.biomolecule_id==PiGroupResidue.biomolecule_id)",
+                                   secondaryjoin="PiGroupResidue.residue_id==LigandComponent.residue_id",
+                                   foreign_keys="[PiGroupResidue.pi_id, PiGroupResidue.biomolecule_id, "
+                                                "LigandComponent.residue_id]",
+                                   uselist=True, innerjoin=True, lazy='dynamic')
+
+    atom_ids = association_proxy('PiGroupAtoms', 'atom_id')
+    residue_ids = association_proxy('PiGroupResidues', 'residue_id')
 
     def __repr__(self):
         """
@@ -124,6 +161,9 @@ class PiGroup(Base): #, PathMixin):
         """
         return LigandComponent.residue_id == cls.residue_id
 
+
+
 from ..adaptors.atomadaptor import AtomAdaptor
 from ..adaptors.pi_interactionadaptor import PiInteractionAdaptor
 from ..adaptors.ligandcomponentadaptor import LigandComponentAdaptor, LigandComponent
+

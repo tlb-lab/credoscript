@@ -1,5 +1,8 @@
+from sqlalchemy import func, cast, Integer, String
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
+
+from sqlalchemy.dialects.postgres import BIT
 
 from credoscript import Base, BaseQuery, schema
 from credoscript.support import interactiontypes as it
@@ -158,14 +161,25 @@ class Contact(Base):
         """
         return cls._bm_bitwise_any_exp(it.WAT_WAT)
 
-    @property
+    @hybrid_property
     def sift(self):
         '''
         '''
-        return (self.is_clash, self.is_covalent, self.is_vdw_clash, self.is_vdw,
-                self.is_proximal, self.is_hbond, self.is_weak_hbond, self.is_xbond,
-                self.is_ionic, self.is_metal_complex, self.is_aromatic,
-                self.is_hydrophobic, self.is_carbonyl)
+        return (self.is_clash, self.is_covalent, self.is_vdw_clash, self.is_vdw, self.is_proximal,
+                self.is_hbond, self.is_weak_hbond, self.is_xbond, self.is_ionic,
+                self.is_metal_complex, self.is_aromatic, self.is_hydrophobic, self.is_carbonyl)
+
+    @sift.expression
+    def sift(cls):
+        return cast(func.concat(
+            cast(cast(cls.is_clash, Integer), String), cast(cast(cls.is_covalent, Integer), String),
+            cast(cast(cls.is_vdw_clash, Integer), String), cast(cast(cls.is_vdw, Integer), String),
+            cast(cast(cls.is_proximal, Integer), String),
+            cast(cast(cls.is_hbond, Integer), String), cast(cast(cls.is_weak_hbond, Integer), String),
+            cast(cast(cls.is_xbond, Integer), String), cast(cast(cls.is_ionic, Integer), String),
+            cast(cast(cls.is_metal_complex, Integer), String), cast(cast(cls.is_aromatic, Integer), String),
+            cast(cast(cls.is_hydrophobic, Integer), String), cast(cast(cls.is_carbonyl, Integer), String)), BIT)
+
 
     def get_imz_str(self, mol_name=None):
         '''
@@ -189,6 +203,7 @@ class Contact(Base):
             type_bgn, type_end = type_end, type_bgn
 
 
-        contact_line = "{0}\t{1}\t{2}\t{3}\t{4}".format(path_bgn, path_end, '\t'.join(str(int(s)) for s in self.sift),
+        contact_line = "{0}\t{1}\t{2}\t{3}\t{4}".format(path_bgn, path_end,
+                                                        '\t'.join(str(int(s)) for s in self.sift),
                                                         type_bgn, type_end)
         return contact_line

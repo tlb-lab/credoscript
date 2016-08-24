@@ -1,5 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import backref, relationship, column_property
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from credoscript import Base, schema
 
@@ -18,17 +20,39 @@ class LigandFragment(Base):
 
     Atoms = relationship("Atom",
                          secondary=Base.metadata.tables['%s.ligand_fragment_atoms' % schema['credo']],
-                         primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
+                         primaryjoin="and_(LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id, "
+                                          "LigandFragment.ligand_id==LigandFragmentAtom.ligand_id)",
                          secondaryjoin="LigandFragmentAtom.atom_id==Atom.atom_id",
                          foreign_keys="[LigandFragmentAtom.ligand_fragment_id, LigandFragmentAtom.atom_id]",
-                         uselist=True, innerjoin=True, lazy='dynamic')
+                         uselist=True, lazy='dynamic')
 
     Contacts = relationship("Contact",
                             secondary=Base.metadata.tables['%s.ligand_fragment_atoms' % schema['credo']],
-                            primaryjoin="LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id",
-                            secondaryjoin="and_(or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id, LigandFragmentAtom.atom_id==Contact.atom_end_id), Contact.biomolecule_id==LigandFragment.biomolecule_id)",
+                            primaryjoin="and_(LigandFragment.ligand_fragment_id==LigandFragmentAtom.ligand_fragment_id, "
+                                             "LigandFragment.ligand_id==LigandFragmentAtom.ligand_id)",
+                            secondaryjoin="and_(or_(LigandFragmentAtom.atom_id==Contact.atom_bgn_id, LigandFragmentAtom.atom_id==Contact.atom_end_id), "
+                                                "Contact.biomolecule_id==LigandFragment.biomolecule_id)",
                             foreign_keys="[LigandFragmentAtom.ligand_fragment_id, Contact.atom_bgn_id, Contact.atom_end_id, Contact.biomolecule_id]",
-                            uselist=True, innerjoin=True, lazy='dynamic')
+                            uselist=True, lazy='dynamic')
+
+    ism = association_proxy('Fragment', 'ism')
+
+    @hybrid_property
+    def pdb_chain_id(self):
+        return self.Ligand.pdb_chain_id
+
+    @hybrid_property
+    def ligand_name(self):
+        return self.Ligand.ligand_name
+
+    @hybrid_property
+    def res_num(self):
+        return self.Ligand.res_num
+
+    @hybrid_property
+    def path(self):
+        return self.Ligand.path
+
 
     def __repr__(self):
         """
@@ -86,6 +110,11 @@ class LigandFragment(Base):
         adaptor = ResidueAdaptor(dynamic=True)
         return adaptor.fetch_all_in_contact_with_ligand_fragment_id(self.ligand_fragment_id,
                                                                     self.biomolecule_id)
+
+    @property
+    def atom_names(self):
+        return [a.atom_name for a in self.Atoms]
+
 
     def sift(self, *expr, **kwargs):
         """

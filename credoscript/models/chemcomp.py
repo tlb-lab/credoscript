@@ -1,7 +1,7 @@
 from sqlalchemy.orm import aliased, backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import and_, func
-from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
 from credoscript import Base, BaseQuery, schema
 from credoscript.util import rdkit, requires
@@ -243,16 +243,14 @@ class ChemComp(Base):
         """
         return self.ism.op('%%')(smiles)
         
-    @hybrid_method
-    @property
+    @hybrid_property
     def pdb_name(self):
         try:
             return self.Ligands.filter(Ligand.name != None).first().name
         except AttributeError:
             return 'N/A'
 
-    @hybrid_method
-    @property
+    @hybrid_property
     def is_het_peptide(self):
         """
         Meta column type indicating whether the chemical component is a heteropeptide
@@ -261,7 +259,6 @@ class ChemComp(Base):
         return bool(self.subcomponents)
 
     @is_het_peptide.expression
-    @property
     def is_het_peptide(self):
         """
         Returns an SQLAlchemy boolean clause list that can enables usage of this
