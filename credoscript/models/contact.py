@@ -2,7 +2,7 @@ from sqlalchemy import func, cast, Integer, String
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from sqlalchemy.dialects.postgres import BIT
+from sqlalchemy.dialects.postgresql import BIT
 
 from credoscript import Base, BaseQuery, schema
 from credoscript.support import interactiontypes as it
