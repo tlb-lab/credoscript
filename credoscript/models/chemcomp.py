@@ -26,6 +26,8 @@ class ChemComp(Base):
     nstd_parent_het_id : str
         HET-ID(s) of the chemical component this one is derived from, e.g. in case
         of modified amino acids this field will link to the standard version.
+    name : str
+        Provided name.
     iupac_name : str
         IUPAC systematic name.
     initial_date :

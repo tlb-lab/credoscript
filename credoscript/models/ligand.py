@@ -307,7 +307,6 @@ class Ligand(Base, PathMixin):
         return any((self.is_product==True, self.is_substrate==True))
 
     @is_enzyme_cmpd.expression
-    @property
     def is_enzyme_cmpd(self):
         """
         Returns an SQLAlchemy boolean clause list that enables usage of this
